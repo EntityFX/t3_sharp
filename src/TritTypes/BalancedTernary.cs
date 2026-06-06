@@ -1,4 +1,4 @@
-using System.Numerics;
+using System;
 
 namespace TritTypes
 {
@@ -44,20 +44,20 @@ namespace TritTypes
         }
 
         /// <summary>
-        /// Convert a BigInteger (binary) to a balanced ternary string.
+        /// Convert an Int128 (binary) to a balanced ternary string.
         /// </summary>
-        public static string ToTernaryString(BigInteger value, int minDigits = 1)
+        public static string ToTernaryString(Int128 value, int minDigits = 1)
         {
             if (value == 0) return minDigits <= 1 ? "0" : new string('0', minDigits);
-
+ 
             int maxLen = Math.Max(minDigits, 64);
             char[] chars = new char[maxLen];
             int pos = chars.Length - 1;
-            BigInteger remaining = value;
-
+            Int128 remaining = value;
+ 
             while (remaining != 0 && pos >= 0)
             {
-                BigInteger rem = remaining % 3;
+                Int128 rem = remaining % 3;
                 int remInt = (int)rem;
                 if (remInt == 2) { chars[pos] = '-'; remaining = (remaining + 1) / 3; }
                 else if (remInt == -2) { chars[pos] = '+'; remaining = (remaining - 1) / 3; }
@@ -100,12 +100,12 @@ namespace TritTypes
         }
 
         /// <summary>
-        /// Parse a balanced ternary string to a BigInteger.
+        /// Parse a balanced ternary string to an Int128.
         /// </summary>
-        public static BigInteger ParseToBigInteger(string s)
+        public static Int128 ParseToInt128(string s)
         {
-            BigInteger value = 0;
-            BigInteger power = 1;
+            Int128 value = 0;
+            Int128 power = 1;
             for (int i = s.Length - 1; i >= 0; i--)
             {
                 value += s[i] switch
@@ -115,6 +115,34 @@ namespace TritTypes
                     '+' => power,
                     _ => throw new FormatException($"Invalid trit character: '{s[i]}'")
                 };
+                power *= 3;
+            }
+            return value;
+        }
+
+        public static int[] ToTritArray(long value, int length)
+        {
+            int[] trits = new int[length];
+            long remaining = value;
+            for (int i = length - 1; i >= 0; i--)
+            {
+                long rem = remaining % 3;
+                if (rem == 2) { trits[i] = -1; remaining = (remaining + 1) / 3; }
+                else if (rem == -2) { trits[i] = 1; remaining = (remaining - 1) / 3; }
+                else if (rem == 1) { trits[i] = 1; remaining = (remaining - 1) / 3; }
+                else if (rem == -1) { trits[i] = -1; remaining = (remaining + 1) / 3; }
+                else { trits[i] = 0; remaining /= 3; }
+            }
+            return trits;
+        }
+
+        public static long ParseFromTritArray(int[] trits)
+        {
+            long value = 0;
+            long power = 1;
+            for (int i = trits.Length - 1; i >= 0; i--)
+            {
+                value += trits[i] * power;
                 power *= 3;
             }
             return value;

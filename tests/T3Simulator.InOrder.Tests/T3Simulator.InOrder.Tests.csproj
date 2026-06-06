@@ -17,6 +17,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\T3Simulator.InOrder\T3Simulator.InOrder.csproj" />
     <ProjectReference Include="..\..\src\T3Simulator.Common\T3Simulator.Common.csproj" />
+    <ProjectReference Include="..\..\src\T3Assembler\T3Assembler.csproj" />
+    <ProjectReference Include="..\..\src\TritTypes\TritTypes.csproj" />
   </ItemGroup>
 
 </Project>

@@ -95,7 +95,7 @@ namespace T3Simulator.Common
         protected void IncrementInstructions() => _instructionCount++;
         protected void IncrementStalls() => _stallCount++;
 
-        protected TWord ReadWord(long address)
+        public TWord ReadWord(long address)
         {
             if (address == Memory<TWord>.ADDR_CYCLE_LOW) return (TWord)Convert.ChangeType((long)(_cycleCount & 0xFFFFFFFF), typeof(TWord));
             if (address == Memory<TWord>.ADDR_CYCLE_HIGH) return (TWord)Convert.ChangeType((long)(_cycleCount >> 32), typeof(TWord));

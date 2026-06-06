@@ -119,6 +119,18 @@ namespace T3Simulator.InOrder
                     IncrementCycles(1);
                     break;
 
+                case Opcode.LOAD:
+                    long addrLoad = (long)Convert.ToInt64(GetRegisterValue(op2));
+                    SetRegisterValue(op1, ReadWord(addrLoad));
+                    IncrementCycles(2);
+                    break;
+
+                case Opcode.STORE:
+                    long addrStore = (long)Convert.ToInt64(GetRegisterValue(op2));
+                    WriteWord(addrStore, GetRegisterValue(op1));
+                    IncrementCycles(2);
+                    break;
+
                 case Opcode.LI:
                     SetRegisterValue(op1, instr.Operand2);
                     IncrementCycles(1);

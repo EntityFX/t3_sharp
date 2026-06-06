@@ -36,5 +36,10 @@ namespace T3Simulator.Common
         void SetOutputDevice(long port, IDevice<TWord> dev);
 
         ProcessorState<TWord> GetState();
+
+        /// <summary>
+        /// Reads a word from the processor's memory.
+        /// </summary>
+        TWord ReadWord(long address);
     }
 }

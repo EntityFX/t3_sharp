@@ -63,28 +63,28 @@ namespace TritTypes.Tests
         }
 
         [TestMethod]
-        public void ParseToBigInteger_RoundTrip()
+        public void ParseToInt128_RoundTrip()
         {
-            BigInteger[] values = {
-                BigInteger.Zero, BigInteger.One, -BigInteger.One,
-                new BigInteger(100), new BigInteger(-100),
-                BigInteger.Pow(3, 20), -BigInteger.Pow(3, 20)
+            Int128[] values = {
+                Int128.Zero, Int128.One, -Int128.One,
+                (Int128)100, (Int128)(-100),
+                (Int128)Math.Pow(3, 20), (Int128)(-Math.Pow(3, 20))
             };
-            foreach (BigInteger val in values)
+            foreach (Int128 val in values)
             {
                 string s = BalancedTernary.ToTernaryString(val);
-                BigInteger parsed = BalancedTernary.ParseToBigInteger(s);
+                Int128 parsed = BalancedTernary.ParseToInt128(s);
                 Assert.AreEqual(val, parsed, $"Round-trip failed for {val} (string: {s})");
             }
         }
 
         [TestMethod]
-        public void ToTernaryString_BigInteger_Works()
+        public void ToTernaryString_Int128_Works()
         {
-            BigInteger val = BigInteger.Pow(3, 10);
+            Int128 val = (Int128)Math.Pow(3, 10);
             string s = BalancedTernary.ToTernaryString(val);
             Assert.AreEqual("+0000000000", s);
-            BigInteger parsed = BalancedTernary.ParseToBigInteger(s);
+            Int128 parsed = BalancedTernary.ParseToInt128(s);
             Assert.AreEqual(val, parsed);
         }
 
