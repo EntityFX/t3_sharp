@@ -1,4 +1,5 @@
 using T3Simulator.Common;
+using TritTypes;
 
 namespace T3Simulator.VLIW
 {
@@ -8,10 +9,10 @@ namespace T3Simulator.VLIW
     /// </summary>
     public readonly struct VliwSlot
     {
-        public readonly Instruction Instruction;
+        public readonly Instruction<Word54> Instruction;
         public readonly bool IsNoOp;
 
-        public VliwSlot(Instruction instruction)
+        public VliwSlot(Instruction<Word54> instruction)
         {
             Instruction = instruction;
             IsNoOp = instruction.Opcode == Opcode.HALT; // Simplified: treating HALT in a slot as NOP unless it's the only one or specific logic

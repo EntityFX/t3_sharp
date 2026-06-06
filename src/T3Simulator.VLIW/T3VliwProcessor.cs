@@ -10,9 +10,9 @@ namespace T3Simulator.VLIW
     /// High-performance VLIW implementation of the T3 processor (T3-54 only).
     /// Executes bundles of 3 instructions in parallel with conflict detection.
     /// </summary>
-    public class T3VliwProcessor : ProcessorBase
+    public class T3VliwProcessor : ProcessorBase<Word54>
     {
-        private BigInteger[] _shadowRegisters;
+        private Word54[] _shadowRegisters;
         private bool _isSpeculating;
 
         public T3VliwProcessor() : base(T3Config.T3_54)
@@ -24,7 +24,7 @@ namespace T3Simulator.VLIW
             if (IsHalted) return false;
 
             // 1. Fetch Bundle
-            BigInteger currentWord = ReadWord(PC);
+            Word54 currentWord = ReadWord(PC);
             VliwBundle bundle = VliwBundle.Decode(currentWord);
 
             // 2. Conflict Detection
@@ -100,7 +100,7 @@ namespace T3Simulator.VLIW
                 {
                     if (slot.Instruction.Opcode.WritesToRegister())
                     {
-                        writeRegs[i] = (int)slot.Instruction.Operand1;
+                        writeRegs[i] = (int)Convert.ToInt32(slot.Instruction.Operand1);
                         writes[i] = true;
                     }
                 }
@@ -125,16 +125,16 @@ namespace T3Simulator.VLIW
 
         private int GetPredicateFlag(int predIndex)
         {
-            string prStr = new Word27(PR).ToTritString();
+            string prStr = PR.ToTritString();
             int start = (predIndex - 1) * 3;
             string flag = prStr.Substring(start, 3);
             return (int)BalancedTernary.ParseToLong(flag);
         }
 
-        private void ExecuteVliwInstruction(Instruction instr)
+        private void ExecuteVliwInstruction(Instruction<Word54> instr)
         {
-            int op1 = (int)instr.Operand1;
-            int op2 = (int)instr.Operand2;
+            int op1 = (int)Convert.ToInt32(instr.Operand1);
+            int op2 = (int)Convert.ToInt32(instr.Operand2);
 
             switch (instr.Opcode)
             {
@@ -154,33 +154,33 @@ namespace T3Simulator.VLIW
                     break;
                 case Opcode.NEG: SetRegisterValue(op1, -GetRegisterValue(op1)); break;
                 case Opcode.CMP: Cond = T3Alu.Compare(GetRegisterValue(op1), GetRegisterValue(op2)); break;
-                case Opcode.JMP: PC = (long)GetRegisterValue(op1); break;
-                case Opcode.JE: if (Cond == 0) PC = (long)GetRegisterValue(op1); else PC++; break;
-                case Opcode.JNE: if (Cond != 0) PC = (long)GetRegisterValue(op1); else PC++; break;
-                case Opcode.JL: if (Cond < 0) PC = (long)GetRegisterValue(op1); else PC++; break;
-                case Opcode.JG: if (Cond > 0) PC = (long)GetRegisterValue(op1); else PC++; break;
-                case Opcode.JM: if (Cond == 0) PC = (long)GetRegisterValue(op1); else PC++; break;
+                case Opcode.JMP: PC = (long)Convert.ToInt64(GetRegisterValue(op1)); break;
+                case Opcode.JE: if (Cond == 0) PC = (long)Convert.ToInt64(GetRegisterValue(op1)); else PC++; break;
+                case Opcode.JNE: if (Cond != 0) PC = (long)Convert.ToInt64(GetRegisterValue(op1)); else PC++; break;
+                case Opcode.JL: if (Cond < 0) PC = (long)Convert.ToInt64(GetRegisterValue(op1)); else PC++; break;
+                case Opcode.JG: if (Cond > 0) PC = (long)Convert.ToInt64(GetRegisterValue(op1)); else PC++; break;
+                case Opcode.JM: if (Cond == 0) PC = (long)Convert.ToInt64(GetRegisterValue(op1)); else PC++; break;
                 case Opcode.CALL:
                     SP -= 2;
-                    WriteWord(SP, PC + 1);
-                    WriteWord(SP + 1, WP);
-                    WP = RegisterWindow.CalculateNextWp(WP);
-                    PC = (long)GetRegisterValue(op1);
+                    WriteWord(SP, (Word54)Convert.ChangeType(PC + 1, typeof(Word54)));
+                    WriteWord(SP + 1, (Word54)Convert.ChangeType(WP, typeof(Word54)));
+                    WP = (int)RegisterWindow.CalculateNextWp(WP);
+                    PC = (long)Convert.ToInt64(GetRegisterValue(op1));
                     break;
                 case Opcode.RET:
-                    PC = (long)ReadWord(SP);
-                    WP = (long)ReadWord(SP + 1);
+                    PC = (long)Convert.ToInt64(ReadWord(SP));
+                    WP = (int)Convert.ToInt32(ReadWord(SP + 1));
                     SP += 2;
                     break;
                 case Opcode.PUSH: SP--; WriteWord(SP, GetRegisterValue(op1)); break;
                 case Opcode.POP: SetRegisterValue(op1, ReadWord(SP)); SP++; break;
-                case Opcode.IN: SetRegisterValue(op1, DeviceManager.Read((long)GetRegisterValue(op2))); break;
-                case Opcode.OUT: DeviceManager.Write((long)GetRegisterValue(op2), GetRegisterValue(op1)); break;
-                case Opcode.INI: SetRegisterValue(op1, DeviceManager.Read(instr.Operand2)); break;
-                case Opcode.OUTI: DeviceManager.Write(instr.Operand2, GetRegisterValue(op1)); break;
+                case Opcode.IN: SetRegisterValue(op1, DeviceManager.Read((long)Convert.ToInt64(GetRegisterValue(op2)))); break;
+                case Opcode.OUT: DeviceManager.Write((long)Convert.ToInt64(GetRegisterValue(op2)), GetRegisterValue(op1)); break;
+                case Opcode.INI: SetRegisterValue(op1, DeviceManager.Read(Convert.ToInt64(instr.Operand2))); break;
+                case Opcode.OUTI: DeviceManager.Write(Convert.ToInt64(instr.Operand2), GetRegisterValue(op1)); break;
                 case Opcode.SPEK:
                     _isSpeculating = true;
-                    _shadowRegisters = (BigInteger[])Registers.Clone();
+                    _shadowRegisters = (Word54[])Registers.Clone();
                     break;
                 case Opcode.COMMIT:
                     _isSpeculating = false;
@@ -189,7 +189,7 @@ namespace T3Simulator.VLIW
                 case Opcode.ROLLBACK:
                     if (_isSpeculating)
                     {
-                        Registers = (BigInteger[])_shadowRegisters.Clone();
+                        Registers = (Word54[])_shadowRegisters.Clone();
                         _isSpeculating = false;
                         _shadowRegisters = null;
                     }
@@ -211,13 +211,11 @@ namespace T3Simulator.VLIW
             }
         }
 
-        private void ExecuteSimdInstruction(Instruction instr)
+        private void ExecuteSimdInstruction(Instruction<Word54> instr)
         {
-            // SIMD implementation for T3-54: Word54 is split into 3 segments of 18 trits each.
-            BigInteger valA = GetRegisterValue((int)instr.Operand1);
-            BigInteger valB = (instr.Operand2 < 27) ? GetRegisterValue((int)instr.Operand2) : instr.Operand2;
+            Word54 valA = GetRegisterValue((int)Convert.ToInt32(instr.Operand1));
+            Word54 valB = (Convert.ToInt64(instr.Operand2) < 27) ? GetRegisterValue((int)Convert.ToInt32(instr.Operand2)) : instr.Operand2;
 
-            // Convert to trit arrays for segment processing
             Trit[] tritsA = WordToTritArray(valA, 54);
             Trit[] tritsB = WordToTritArray(valB, 54);
             Trit[] resultTrits = new Trit[54];
@@ -237,7 +235,6 @@ namespace T3Simulator.VLIW
                 switch (instr.Opcode)
                 {
                     case Opcode.VADD3:
-                        // Simple addition for SIMD segments (simplified)
                         resSeg = AddTritArrays(segA, segB);
                         break;
                     case Opcode.VSUB3:
@@ -253,10 +250,9 @@ namespace T3Simulator.VLIW
                         resSeg = TritArray.Xor(segA, segB);
                         break;
                     case Opcode.VCMP:
-                        // VCMP writes to PR. We handle it specially.
                         int cmpRes = CompareTritArrays(segA, segB);
                         SetPredicateBit(seg, cmpRes);
-                        resSeg = segA; // No change to register
+                        resSeg = segA;
                         break;
                     default:
                         resSeg = segA;
@@ -268,19 +264,19 @@ namespace T3Simulator.VLIW
 
             if (instr.Opcode != Opcode.VCMP)
             {
-                SetRegisterValue((int)instr.Operand1, TritArrayToWord(resultTrits));
+                SetRegisterValue((int)Convert.ToInt32(instr.Operand1), TritArrayToWord(resultTrits));
             }
         }
 
-        private Trit[] WordToTritArray(BigInteger val, int length)
+        private Trit[] WordToTritArray(Word54 val, int length)
         {
-            string s = new Word54(val).ToTritString();
+            string s = val.ToTritString();
             return TritArray.FromString(s);
         }
 
-        private BigInteger TritArrayToWord(Trit[] trits)
+        private Word54 TritArrayToWord(Trit[] trits)
         {
-            return BigInteger.Parse(TritArray.ToString(trits)); // Simplified; should use BalancedTernary.Parse
+            return Word54.Parse(TritArray.ToString(trits));
         }
 
         private Trit[] AddTritArrays(Trit[] a, Trit[] b)
@@ -316,12 +312,12 @@ namespace T3Simulator.VLIW
 
         private void SetPredicateBit(int segment, int value)
         {
-            // Update PR register for the given segment (3 trits)
-            // Simplified implementation
-            PR += (value * (BigInteger)Math.Pow(3, segment * 18)); 
+            Int128 power = 1;
+            for (int i = 0; i < segment * 18; i++) power *= 3;
+            PR = PR + new Word54(value * power);
         }
 
-        private BigInteger GetRegisterValue(int logicalIndex) => Registers[RegisterWindow.GetPhysicalIndex(logicalIndex, WP)];
-        private void SetRegisterValue(int logicalIndex, BigInteger value) => Registers[RegisterWindow.GetPhysicalIndex(logicalIndex, WP)] = value;
+        private Word54 GetRegisterValue(int logicalIndex) => Registers[RegisterWindow.GetPhysicalIndex(logicalIndex, WP)];
+        private void SetRegisterValue(int logicalIndex, Word54 value) => Registers[RegisterWindow.GetPhysicalIndex(logicalIndex, WP)] = value;
     }
 }

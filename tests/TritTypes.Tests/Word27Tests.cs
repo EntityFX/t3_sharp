@@ -214,7 +214,7 @@ namespace TritTypes.Tests
         public void ExplicitConversion_ToLong_Works()
         {
             Word27 w = new Word27(42);
-            Assert.AreEqual(42, (BigInteger)w);
+            Assert.AreEqual(42, (long)w);
         }
 
         private static long Pow3(int exp)

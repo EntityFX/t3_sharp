@@ -1,5 +1,5 @@
 using System.Diagnostics;
-using System.Numerics;
+using System;
 
 namespace TritTypes
 {
@@ -11,22 +11,22 @@ namespace TritTypes
     [DebuggerDisplay("{ToLong()} ({ToTritString()})")]
     public readonly struct Word27 : IEquatable<Word27>
     {
-        private readonly BigInteger _value;
+        private readonly long _value;
 
-        private const int TritCount = 27;
-        private static readonly BigInteger MaxValue = (Pow3(27) - 1) / 2;
-        private static readonly BigInteger MinValue = -MaxValue;
+        public long ToLong() => _value;
 
-        public Word27(BigInteger value)
+        public Word27(long value)
         {
             if (value < MinValue || value > MaxValue)
                 throw new ArgumentOutOfRangeException(nameof(value), $"Word27 value must be between {MinValue} and {MaxValue}");
             _value = value;
         }
 
-        public BigInteger ToLong() => _value;
+        public static Word27 FromLong(long value) => new Word27(value);
 
-        public static Word27 FromLong(BigInteger value) => new Word27(value);
+        private const int TritCount = 27;
+        private static readonly long MaxValue = (Pow3(27) - 1) / 2;
+        private static readonly long MinValue = -MaxValue;
 
         /// <summary>
         /// Returns the balanced ternary string representation (27 characters: '-', '0', '+').
@@ -34,10 +34,10 @@ namespace TritTypes
         public string ToTritString()
         {
             char[] chars = new char[TritCount];
-            var remaining = _value;
+            long remaining = _value;
             for (int i = TritCount - 1; i >= 0; i--)
             {
-                var rem = remaining % 3;
+                long rem = remaining % 3;
                 if (rem == 2) { chars[i] = '-'; remaining = (remaining + 1) / 3; }
                 else if (rem == -2) { chars[i] = '+'; remaining = (remaining - 1) / 3; }
                 else if (rem == 1) { chars[i] = '+'; remaining = (remaining - 1) / 3; }
@@ -81,8 +81,8 @@ namespace TritTypes
         {
             if (b._value == 0) throw new DivideByZeroException();
             // Floor division (round toward -inf) for balanced ternary
-            var result = a._value / b._value;
-            var rem = a._value % b._value;
+            long result = a._value / b._value;
+            long rem = a._value % b._value;
             if (rem != 0 && ((b._value < 0) != (rem < 0)))
                 result--;
             return new Word27(result);
@@ -90,7 +90,7 @@ namespace TritTypes
         public static Word27 operator %(Word27 a, Word27 b)
         {
             if (b._value == 0) throw new DivideByZeroException();
-            var result = a._value % b._value;
+            long result = a._value % b._value;
             if (result != 0 && ((b._value < 0) != (result < 0)))
                 result += b._value;
             return new Word27(result);
@@ -107,9 +107,9 @@ namespace TritTypes
         {
             if (shift < 0) throw new ArgumentOutOfRangeException(nameof(shift));
             // Arithmetic right shift in balanced ternary
-            var divisor = Pow3(shift);
-            var result = t._value / divisor;
-            var rem = t._value % divisor;
+            long divisor = Pow3(shift);
+            long result = t._value / divisor;
+            long rem = t._value % divisor;
             if (rem != 0 && ((divisor < 0) != (rem < 0)))
                 result--;
             return new Word27(result);
@@ -118,9 +118,9 @@ namespace TritTypes
         // Tritwise logical operations
         public static Word27 TritAnd(Word27 a, Word27 b)
         {
-            BigInteger result = 0;
-            BigInteger power = 1;
-            BigInteger ta = a._value, tb = b._value;
+            long result = 0;
+            long power = 1;
+            long ta = a._value, tb = b._value;
             for (int i = 0; i < TritCount; i++)
             {
                 int tritA = (int)(ta % 3); if (tritA == 2) tritA = -1; else if (tritA == -2) tritA = 1;
@@ -136,9 +136,9 @@ namespace TritTypes
 
         public static Word27 TritOr(Word27 a, Word27 b)
         {
-            BigInteger result = 0;
-            BigInteger power = 1;
-            BigInteger ta = a._value, tb = b._value;
+            long result = 0;
+            long power = 1;
+            long ta = a._value, tb = b._value;
             for (int i = 0; i < TritCount; i++)
             {
                 int tritA = (int)(ta % 3); if (tritA == 2) tritA = -1; else if (tritA == -2) tritA = 1;
@@ -154,9 +154,9 @@ namespace TritTypes
 
         public static Word27 TritXor(Word27 a, Word27 b)
         {
-            BigInteger result = 0;
-            BigInteger power = 1;
-            BigInteger ta = a._value, tb = b._value;
+            long result = 0;
+            long power = 1;
+            long ta = a._value, tb = b._value;
             for (int i = 0; i < TritCount; i++)
             {
                 int tritA = (int)(ta % 3); if (tritA == 2) tritA = -1; else if (tritA == -2) tritA = 1;
@@ -185,7 +185,7 @@ namespace TritTypes
         public static bool operator >=(Word27 left, Word27 right) => left._value >= right._value;
 
         public static implicit operator Word27(long value) => new Word27(value);
-        public static explicit operator BigInteger(Word27 w) => w._value;
+        public static explicit operator long(Word27 w) => w._value;
 
         private static long Pow3(int exp)
         {

@@ -1,21 +1,19 @@
-using System.Numerics;
-
 namespace T3Simulator.Common
 {
     /// <summary>
     /// Interface for T3 processor I/O devices.
     /// </summary>
-    public interface IDevice
+    public interface IDevice<TWord>
     {
         /// <summary>
         /// Read a value from the device.
         /// </summary>
-        BigInteger Read();
+        TWord Read();
 
         /// <summary>
         /// Write a value to the device.
         /// </summary>
-        void Write(BigInteger value);
+        void Write(TWord value);
 
         /// <summary>
         /// Check if the device has data ready to be read.

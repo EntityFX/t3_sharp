@@ -1,53 +1,60 @@
 using System;
 using System.Collections.Generic;
-using TritTypes;
 
 namespace T3Simulator.Common
 {
     /// <summary>
     /// Abstract base class for T3 processors.
-    /// Provides shared infrastructure: register file, memory, device management, and timing.
     /// </summary>
-    public abstract class ProcessorBase : IT3Processor
+    public abstract class ProcessorBase<TWord> : IT3Processor<TWord>
     {
-        protected readonly T3Config Config;
-        protected readonly Memory Memory;
-        protected readonly DeviceManager DeviceManager;
+        protected TWord[] Registers = new TWord[27];
+        protected TWord PR;
+        protected Memory<TWord> Memory;
+        protected DeviceManager<TWord> DeviceManager;
         
-        // Processor State
-        protected long PC;
-        protected long WP;
-        protected long SP;
-        protected int Cond;
-        protected System.Numerics.BigInteger PR;
-        protected System.Numerics.BigInteger[] Registers = new System.Numerics.BigInteger[27];
+        public T3Config Config { get; }
+        public long PC { get; set; }
+        public long SP { get; set; }
+        public int WP { get; set; }
+        public int Cond { get; set; }
+        public bool IsHalted { get; set; }
         
         protected long _cycleCount;
         protected long _instructionCount;
         protected long _stallCount;
 
-        protected bool IsHalted;
+        public long CycleCount => _cycleCount;
+        public long InstructionCount => _instructionCount;
+        public long StallCount => _stallCount;
 
         protected ProcessorBase(T3Config config)
         {
             Config = config;
-            Memory = new Memory(T3ConfigExtensions.GetMemorySize(config));
-            DeviceManager = new DeviceManager();
-            Reset();
+            WP = 0;
+            PC = 0;
+            IsHalted = false;
+            
+            long memSize = 1048576; // 1M words
+            Memory = new Memory<TWord>(memSize);
+            DeviceManager = new DeviceManager<TWord>();
+            
+            SP = memSize - 1;
         }
 
         public virtual void Reset()
         {
             PC = 0;
             WP = 0;
-            SP = Memory.Size - 1;
-            Cond = 0;
-            PR = 0;
-            Array.Clear(Registers, 0, Registers.Length);
+            IsHalted = false;
             _cycleCount = 0;
             _instructionCount = 0;
             _stallCount = 0;
-            IsHalted = false;
+        }
+
+        public virtual void LoadProgram(IEnumerable<TWord> code)
+        {
+            Memory.LoadProgram(code);
         }
 
         public abstract bool Step();
@@ -56,75 +63,55 @@ namespace T3Simulator.Common
         {
             while (!IsHalted && Step())
             {
-                // Continue execution
             }
         }
 
-        public virtual void LoadProgram(IEnumerable<System.Numerics.BigInteger> code)
+        public virtual void SetInputDevice(long port, IDevice<TWord> dev)
         {
-            Memory.LoadProgram(code);
+            DeviceManager.RegisterDevice(port, dev);
         }
 
-        public long CycleCount => this._cycleCount;
-        public long InstructionCount => this._instructionCount;
-        public long StallCount => this._stallCount;
-
-        public void SetInputDevice(long port, IDevice dev) => DeviceManager.RegisterDevice(port, dev);
-        public void SetOutputDevice(long port, IDevice dev) => DeviceManager.RegisterDevice(port, dev);
-
-        public virtual ProcessorState GetState()
+        public virtual void SetOutputDevice(long port, IDevice<TWord> dev)
         {
-            return new ProcessorState
-            {
-                PC = this.PC,
-                WP = this.WP,
-                SP = this.SP,
-                Cond = this.Cond,
-                PR = this.PR,
-                Registers = (System.Numerics.BigInteger[])this.Registers.Clone(),
-                CycleCount = this.CycleCount,
-                InstructionCount = this.InstructionCount,
-                StallCount = this.StallCount
-            };
+            DeviceManager.RegisterDevice(port, dev);
         }
 
-        /// <summary>
-        /// Helper to read from memory or MMIO.
-        /// </summary>
-        protected System.Numerics.BigInteger ReadWord(long address)
+        public virtual ProcessorState<TWord> GetState()
         {
-            if (address == Memory.ADDR_CYCLE_LOW) return (System.Numerics.BigInteger)(_cycleCount & 0xFFFFFFFF); // Simplified for example
-            if (address == Memory.ADDR_CYCLE_HIGH) return (System.Numerics.BigInteger)(_cycleCount >> 32);
-            if (address == Memory.ADDR_INST_COUNT) return (System.Numerics.BigInteger)_instructionCount;
-            if (address == Memory.ADDR_STALL_COUNT) return (System.Numerics.BigInteger)_stallCount;
-            
+            return new ProcessorState<TWord>(
+                PR,
+                (TWord[])Registers.Clone(),
+                _cycleCount,
+                _instructionCount,
+                _stallCount,
+                PC,
+                SP,
+                WP,
+                Cond
+            );
+        }
+
+        protected void IncrementCycles(long cycles) => _cycleCount += cycles;
+        protected void IncrementInstructions() => _instructionCount++;
+        protected void IncrementStalls() => _stallCount++;
+
+        protected TWord ReadWord(long address)
+        {
+            if (address == Memory<TWord>.ADDR_CYCLE_LOW) return (TWord)Convert.ChangeType((long)(_cycleCount & 0xFFFFFFFF), typeof(TWord));
+            if (address == Memory<TWord>.ADDR_CYCLE_HIGH) return (TWord)Convert.ChangeType((long)(_cycleCount >> 32), typeof(TWord));
+            if (address == Memory<TWord>.ADDR_INST_COUNT) return (TWord)Convert.ChangeType(_instructionCount, typeof(TWord));
+            if (address == Memory<TWord>.ADDR_STALL_COUNT) return (TWord)Convert.ChangeType(_stallCount, typeof(TWord));
+
             return Memory.Read(address);
         }
 
-        /// <summary>
-        /// Helper to write to memory or MMIO.
-        /// </summary>
-        protected void WriteWord(long address, System.Numerics.BigInteger value)
+        protected void WriteWord(long address, TWord value)
         {
-            if (address == Memory.ADDR_CYCLE_LOW)
+            if (address >= Memory<TWord>.ADDR_CYCLE_LOW)
             {
-                // Writing to CYCLE_LOW resets all counters as per spec
-                ResetCounters();
                 return;
             }
-            // Other MMIO writes (TIMER_CMP etc) can be implemented here
             Memory.Write(address, value);
         }
-
-        protected void ResetCounters()
-        {
-            _cycleCount = 0;
-            _instructionCount = 0;
-            _stallCount = 0;
-        }
-
-        protected void IncrementCycles(int count) => _cycleCount += count;
-        protected void IncrementInstructions() => _instructionCount++;
-        protected void IncrementStalls() => _stallCount++;
     }
 }

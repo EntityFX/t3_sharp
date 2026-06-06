@@ -10,7 +10,7 @@ namespace T3Simulator.InOrder
     /// Sequential in-order implementation of the T3 processor.
     /// Supports both T3-27 and T3-54 configurations.
     /// </summary>
-    public class T3InOrderProcessor : ProcessorBase
+    public class T3InOrderProcessor<TWord> : ProcessorBase<TWord> where TWord : INumber<TWord>
     {
         public T3InOrderProcessor(T3Config config) : base(config)
         {
@@ -21,12 +21,10 @@ namespace T3Simulator.InOrder
             if (IsHalted) return false;
 
             // 1. Fetch
-            BigInteger currentWord = ReadWord(PC);
+            TWord currentWord = ReadWord(PC);
             
             // 2. Decode
-            // Note: For T3-54 in-order, it still fetches 27-trit instructions from memory 
-            // according to the basic ISA, but can handle larger values.
-            Instruction instr = InstructionDecoder.Decode27(currentWord);
+            Instruction<TWord> instr = InstructionDecoder.Decode(currentWord);
 
             // 3. Predicate Evaluation
             if (!EvaluatePredicate(instr.PredicateIndex))
@@ -42,7 +40,7 @@ namespace T3Simulator.InOrder
             {
                 ExecuteInstruction(instr);
             }
-            catch (DeviceStallException ex)
+            catch (DeviceStallException)
             {
                 IncrementStalls();
                 IncrementCycles(1);
@@ -76,35 +74,38 @@ namespace T3Simulator.InOrder
             if (predIndex == 0) return true; // Unconditional
             if (predIndex < 1 || predIndex > 8) return false;
 
-            // PR is stored as a word. We need to extract the 3-trit flag for predIndex.
-            // predIndex 1 -> first 3 trits, etc.
-            // For simplicity, we can use a helper or TritArray.
-            // In T3-27, PR is 27 trits.
-            
-            // Temporary implementation: check if the corresponding part of PR is +1
-            // This requires bit-manipulation of the balanced ternary representation.
             return GetPredicateFlag(predIndex) == 1;
         }
 
         private int GetPredicateFlag(int predIndex)
         {
-            // Extract the 3-trit group from the PR register
-            // This is a simplified version.
-            string prStr = new Word27(PR).ToTritString();
+            // To extract trits, we temporarily convert the PR (TWord) to a Word type
+            string prStr;
+            if (typeof(TWord) == typeof(long))
+            {
+                prStr = new Word27((long)(object)PR).ToTritString();
+            }
+            else if (typeof(TWord) == typeof(Int128))
+            {
+                prStr = new Word54((Int128)(object)PR).ToTritString();
+            }
+            else
+            {
+                throw new NotSupportedException($"Unsupported word type for predicate evaluation: {typeof(TWord)}");
+            }
+
             int start = (predIndex - 1) * 3;
             string flag = prStr.Substring(start, 3);
             
-            // Evaluate the 3-trit flag as a balanced ternary number
-            long val = BalancedTernary.ParseToLong(flag);
-            return (int)val; 
-            // Spec says: -1 (false), 0 (maybe), +1 (true)
+            return (int)BalancedTernary.ParseToLong(flag);
         }
 
-        private void ExecuteInstruction(Instruction instr)
+        private void ExecuteInstruction(Instruction<TWord> instr)
         {
             // Get operands (logical register indices or immediates)
-            int op1 = (int)instr.Operand1;
-            int op2 = (int)instr.Operand2;
+            // Since TWord is INumber, we cast to long for register indexing
+            int op1 = (int)Convert.ToInt32(instr.Operand1);
+            int op2 = (int)Convert.ToInt32(instr.Operand2);
 
             switch (instr.Opcode)
             {
@@ -125,7 +126,7 @@ namespace T3Simulator.InOrder
 
                 case Opcode.LIMM:
                     PC++;
-                    System.Numerics.BigInteger immVal = ReadWord(PC);
+                    TWord immVal = ReadWord(PC);
                     SetRegisterValue(op1, immVal);
                     IncrementCycles(2);
                     break;
@@ -135,7 +136,7 @@ namespace T3Simulator.InOrder
                 case Opcode.MUL:
                 case Opcode.DIV:
                 case Opcode.MOD:
-                    System.Numerics.BigInteger res = T3Alu.Execute(instr.Opcode, GetRegisterValue(op1), GetRegisterValue(op2), Config);
+                    TWord res = T3Alu.Execute(instr.Opcode, GetRegisterValue(op1), GetRegisterValue(op2), Config);
                     SetRegisterValue(op1, res);
                     IncrementCycles(instr.Opcode switch {
                         Opcode.ADD => 1,
@@ -152,59 +153,110 @@ namespace T3Simulator.InOrder
                     IncrementCycles(1);
                     break;
 
+                case Opcode.TRITAND:
+                    TWord valAnd1 = GetRegisterValue(op1);
+                    TWord valAnd2 = GetRegisterValue(op2);
+                    if (typeof(TWord) == typeof(long))
+                        SetRegisterValue(op1, (TWord)(object)((long)Word27.TritAnd(new Word27((long)(object)valAnd1), new Word27((long)(object)valAnd2))));
+                    else
+                        SetRegisterValue(op1, (TWord)(object)((Int128)Word54.TritAnd(new Word54((Int128)(object)valAnd1), new Word54((Int128)(object)valAnd2))));
+                    IncrementCycles(1);
+                    break;
+                
+                case Opcode.TRITOR:
+                    TWord valOr1 = GetRegisterValue(op1);
+                    TWord valOr2 = GetRegisterValue(op2);
+                    if (typeof(TWord) == typeof(long))
+                        SetRegisterValue(op1, (TWord)(object)((long)Word27.TritOr(new Word27((long)(object)valOr1), new Word27((long)(object)valOr2))));
+                    else
+                        SetRegisterValue(op1, (TWord)(object)((Int128)Word54.TritOr(new Word54((Int128)(object)valOr1), new Word54((Int128)(object)valOr2))));
+                    IncrementCycles(1);
+                    break;
+                
+                case Opcode.TRITXOR:
+                    TWord valXor1 = GetRegisterValue(op1);
+                    TWord valXor2 = GetRegisterValue(op2);
+                    if (typeof(TWord) == typeof(long))
+                        SetRegisterValue(op1, (TWord)(object)((long)Word27.TritXor(new Word27((long)(object)valXor1), new Word27((long)(object)valXor2))));
+                    else
+                        SetRegisterValue(op1, (TWord)(object)((Int128)Word54.TritXor(new Word54((Int128)(object)valXor1), new Word54((Int128)(object)valXor2))));
+                    IncrementCycles(1);
+                    break;
+                
+                case Opcode.SHL:
+                    TWord valShl = GetRegisterValue(op1);
+                    int shiftL = (int)Convert.ToInt32(GetRegisterValue(op2));
+                    if (typeof(TWord) == typeof(long))
+                        SetRegisterValue(op1, (TWord)(object)((long)(new Word27((long)(object)valShl) << shiftL)));
+                    else
+                        SetRegisterValue(op1, (TWord)(object)((Int128)(new Word54((Int128)(object)valShl) << shiftL)));
+                    IncrementCycles(1);
+                    break;
+                
+                case Opcode.SHR:
+                    TWord valShr = GetRegisterValue(op1);
+                    int shiftR = (int)Convert.ToInt32(GetRegisterValue(op2));
+                    if (typeof(TWord) == typeof(long))
+                        SetRegisterValue(op1, (TWord)(object)((long)(new Word27((long)(object)valShr) >> shiftR)));
+                    else
+                        SetRegisterValue(op1, (TWord)(object)((Int128)(new Word54((Int128)(object)valShr) >> shiftR)));
+                    IncrementCycles(1);
+                    break;
+
                 case Opcode.CMP:
-                    System.Numerics.BigInteger diff = GetRegisterValue(op1) - GetRegisterValue(op2);
-                    Cond = diff > 0 ? 1 : (diff < 0 ? -1 : 0);
+                    TWord diff = GetRegisterValue(op1) - GetRegisterValue(op2);
+                    Cond = diff > TWord.Zero ? 1 : (diff < TWord.Zero ? -1 : 0);
                     IncrementCycles(1);
                     break;
 
                 case Opcode.JMP:
-                    PC = (long)GetRegisterValue(op1);
+                    PC = (long)Convert.ToInt64(GetRegisterValue(op1));
                     IncrementCycles(1);
                     break;
 
                 case Opcode.JE:
-                    if (Cond == 0) PC = (long)GetRegisterValue(op1);
+                    if (Cond == 0) PC = (long)Convert.ToInt64(GetRegisterValue(op1));
                     else PC++;
                     IncrementCycles(Cond == 0 ? 2 : 1);
                     break;
 
                 case Opcode.JNE:
-                    if (Cond != 0) PC = (long)GetRegisterValue(op1);
+                    if (Cond != 0) PC = (long)Convert.ToInt64(GetRegisterValue(op1));
                     else PC++;
                     IncrementCycles(Cond != 0 ? 2 : 1);
                     break;
 
                 case Opcode.JL:
-                    if (Cond < 0) PC = (long)GetRegisterValue(op1);
+                    if (Cond < 0) PC = (long)Convert.ToInt64(GetRegisterValue(op1));
                     else PC++;
                     IncrementCycles(Cond < 0 ? 2 : 1);
                     break;
 
                 case Opcode.JG:
-                    if (Cond > 0) PC = (long)GetRegisterValue(op1);
+                    if (Cond > 0) PC = (long)Convert.ToInt64(GetRegisterValue(op1));
                     else PC++;
                     IncrementCycles(Cond > 0 ? 2 : 1);
                     break;
 
                 case Opcode.JM:
-                    if (Cond == 0) PC = (long)GetRegisterValue(op1);
+                    if (Cond == 0) PC = (long)Convert.ToInt64(GetRegisterValue(op1));
                     else PC++;
                     IncrementCycles(Cond == 0 ? 2 : 1);
                     break;
 
                 case Opcode.CALL:
+                    TWord targetPC = GetRegisterValue(op1);
                     SP -= 2;
-                    WriteWord(SP, PC + 1);
-                    WriteWord(SP + 1, WP);
-                    WP = RegisterWindow.CalculateNextWp(WP);
-                    PC = (long)GetRegisterValue(op1);
+                    WriteWord(SP, (TWord)Convert.ChangeType(PC + 1, typeof(TWord)));
+                    WriteWord(SP + 1, (TWord)Convert.ChangeType(WP, typeof(TWord)));
+                    WP = (int)RegisterWindow.CalculateNextWp(WP);
+                    PC = (long)Convert.ToInt64(targetPC);
                     IncrementCycles(2);
                     break;
 
                 case Opcode.RET:
-                    PC = (long)ReadWord(SP);
-                    WP = (long)ReadWord(SP + 1);
+                    PC = (long)Convert.ToInt64(ReadWord(SP));
+                    WP = (int)Convert.ToInt32(ReadWord(SP + 1));
                     SP += 2;
                     IncrementCycles(2);
                     break;
@@ -222,24 +274,24 @@ namespace T3Simulator.InOrder
                     break;
 
                 case Opcode.IN:
-                    long portIn = (long)GetRegisterValue(op2);
+                    long portIn = (long)Convert.ToInt64(GetRegisterValue(op2));
                     SetRegisterValue(op1, DeviceManager.Read(portIn));
                     IncrementCycles(2);
                     break;
 
                 case Opcode.OUT:
-                    long portOut = (long)GetRegisterValue(op2);
+                    long portOut = (long)Convert.ToInt64(GetRegisterValue(op2));
                     DeviceManager.Write(portOut, GetRegisterValue(op1));
                     IncrementCycles(2);
                     break;
 
                 case Opcode.INI:
-                    SetRegisterValue(op1, DeviceManager.Read(instr.Operand2));
+                    SetRegisterValue(op1, DeviceManager.Read(Convert.ToInt64(instr.Operand2)));
                     IncrementCycles(2);
                     break;
 
                 case Opcode.OUTI:
-                    DeviceManager.Write(instr.Operand2, GetRegisterValue(op1));
+                    DeviceManager.Write(Convert.ToInt64(instr.Operand2), GetRegisterValue(op1));
                     IncrementCycles(2);
                     break;
 
@@ -248,13 +300,13 @@ namespace T3Simulator.InOrder
             }
         }
 
-        private System.Numerics.BigInteger GetRegisterValue(int logicalIndex)
+        private TWord GetRegisterValue(int logicalIndex)
         {
             int physicalIndex = RegisterWindow.GetPhysicalIndex(logicalIndex, WP);
             return Registers[physicalIndex];
         }
 
-        private void SetRegisterValue(int logicalIndex, System.Numerics.BigInteger value)
+        private void SetRegisterValue(int logicalIndex, TWord value)
         {
             int physicalIndex = RegisterWindow.GetPhysicalIndex(logicalIndex, WP);
             Registers[physicalIndex] = value;

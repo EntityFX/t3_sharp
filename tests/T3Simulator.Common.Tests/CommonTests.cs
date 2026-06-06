@@ -42,15 +42,15 @@ namespace T3Simulator.Common.Tests
         [TestMethod]
         public void RegisterWindow_CalculateNextWp_CorrectShift()
         {
-            Assert.AreEqual(4, RegisterWindow.CalculateNextWp(0));
-            Assert.AreEqual(8, RegisterWindow.CalculateNextWp(4));
-            Assert.AreEqual(0, RegisterWindow.CalculateNextWp(23)); // (23+4)%27 = 0
+            long wp = 0;
+            long nextWp = RegisterWindow.CalculateNextWp(wp);
+            Assert.AreEqual(23, nextWp);
         }
 
         [TestMethod]
         public void Memory_ReadWrite_CorrectValue()
         {
-            var mem = new Memory(1024);
+            var mem = new Memory<long>(1024);
             mem.Write(10, 12345);
             Assert.AreEqual(12345, mem.Read(10));
         }

@@ -5,14 +5,12 @@ namespace T3Simulator.Common
 {
     /// <summary>
     /// Word-addressable memory for the T3 processor.
-    /// Supports MMIO for cycle counters.
     /// </summary>
-    public class Memory
+    public class Memory<TWord>
     {
-        private readonly System.Numerics.BigInteger[] _data;
+        private readonly TWord[] _data;
         private readonly long _size;
 
-        // MMIO Addresses
         public const long ADDR_CYCLE_LOW = 0xFFFFFF00;
         public const long ADDR_CYCLE_HIGH = 0xFFFFFF01;
         public const long ADDR_INST_COUNT = 0xFFFFFF02;
@@ -23,37 +21,31 @@ namespace T3Simulator.Common
         public Memory(long size)
         {
             _size = size;
-            _data = new System.Numerics.BigInteger[size];
+            _data = new TWord[size];
         }
 
-        public System.Numerics.BigInteger Read(long address)
+        public TWord Read(long address)
         {
             if (address < 0 || address >= _size)
-            {
-                throw new IndexOutOfRangeException($"Memory read out of bounds: {address}");
-            }
+                throw new IndexOutOfRangeException($"Memory read out of bounds: address {address}");
             return _data[address];
         }
 
-        public void Write(long address, System.Numerics.BigInteger value)
+        public void Write(long address, TWord value)
         {
             if (address < 0 || address >= _size)
-            {
-                throw new IndexOutOfRangeException($"Memory write out of bounds: {address}");
-            }
+                throw new IndexOutOfRangeException($"Memory write out of bounds: address {address}");
             _data[address] = value;
         }
 
-        public long Size => _size;
-
         // Helpers for program loading
-        public void LoadProgram(IEnumerable<System.Numerics.BigInteger> code, long startAddress = 0)
+        public void LoadProgram(IEnumerable<TWord> code, long startAddress = 0)
         {
-            long currentAddr = startAddress;
+            int i = 0;
             foreach (var word in code)
             {
-                if (currentAddr >= _size) break;
-                _data[currentAddr++] = word;
+                Write(startAddress + i, word);
+                i++;
             }
         }
     }

@@ -3,6 +3,7 @@ using T3Simulator.Common;
 using T3Simulator.InOrder;
 using System.Collections.Generic;
 using System.Numerics;
+using TritTypes;
 
 namespace T3Simulator.InOrder.Tests
 {
@@ -18,9 +19,9 @@ namespace T3Simulator.InOrder.Tests
             // ADD A, B
             // HALT
             
-            var proc = new T3InOrderProcessor(T3Config.T3_27);
+            var proc = new T3InOrderProcessor<long>(T3Config.T3_27);
             
-            List<BigInteger> program = new List<BigInteger>
+            List<long> program = new List<long>
             {
                 Encode(4, 0, 10), // LI A, 10
                 Encode(4, 1, 20), // LI B, 20
@@ -36,14 +37,15 @@ namespace T3Simulator.InOrder.Tests
             Assert.AreEqual(30, state.Registers[0]);
         }
 
-        private BigInteger Encode(int opcode, int op1, long op2)
+        private long Encode(int opcode, int op1, long op2)
         {
             // Simple encoder for test purposes
-            // opcode(6), op1(9), op2(9)
+            // opcode(6), op1(9), op2(9). Total 24. 
+            // Must pad to 27 to ensure opcode is at the start of the Word27 string.
             string sOp = ToBalancedTernary(opcode, 6);
             string sOp1 = ToBalancedTernary(op1, 9);
             string sOp2 = ToBalancedTernary(op2, 9);
-            return TritTypes.BalancedTernary.ParseToBigInteger(sOp + sOp1 + sOp2 + "000");
+            return BalancedTernary.ParseToLong(sOp + sOp1 + sOp2 + "000");
         }
 
         private string ToBalancedTernary(long value, int digits)

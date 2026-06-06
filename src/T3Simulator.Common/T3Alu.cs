@@ -1,36 +1,38 @@
 using System;
-using System.Numerics;
-using TritTypes;
 
 namespace T3Simulator.Common
 {
     /// <summary>
     /// Shared ALU logic for T3 processors.
+    /// Uses dynamic dispatch to support different Word types that implement basic arithmetic operators.
     /// </summary>
     public static class T3Alu
     {
-        public static BigInteger Execute(Opcode op, BigInteger a, BigInteger b, T3Config config)
+        public static T Execute<T>(Opcode op, T a, T b, T3Config config)
         {
+            dynamic da = a;
+            dynamic db = b;
+
             switch (op)
             {
-                case Opcode.ADD: return a + b;
-                case Opcode.SUB: return a - b;
-                case Opcode.MUL: return a * b;
+                case Opcode.ADD: return (T)(da + db);
+                case Opcode.SUB: return (T)(da - db);
+                case Opcode.MUL: return (T)(da * db);
                 case Opcode.DIV:
-                    if (b == 0) throw new DivideByZeroException();
-                    // Balanced ternary floor division
-                    BigInteger resDiv = BigInteger.Divide(a, b);
-                    BigInteger remDiv = a % b;
-                    if (remDiv != 0 && ((b.Sign < 0) != (remDiv.Sign < 0)))
+                    if (db == 0) throw new DivideByZeroException();
+                    // Balanced ternary floor division: result = floor(a/b)
+                    dynamic resDiv = da / db;
+                    dynamic remDiv = da % db;
+                    if (remDiv != 0 && ((db < 0) != (remDiv < 0)))
                         resDiv--;
-                    return resDiv;
+                    return (T)resDiv;
                 case Opcode.MOD:
-                    if (b == 0) throw new DivideByZeroException();
-                    BigInteger resMod = a % b;
-                    if (resMod != 0 && ((b.Sign < 0) != (resMod.Sign < 0)))
-                        resMod += b;
-                    return resMod;
-                case Opcode.NEG: return -a;
+                    if (db == 0) throw new DivideByZeroException();
+                    dynamic resMod = da % db;
+                    if (resMod != 0 && ((db < 0) != (resMod < 0)))
+                        resMod += db;
+                    return (T)resMod;
+                case Opcode.NEG: return (T)(-da);
                 case Opcode.LI: return b; // In LI, 'b' is the immediate
                 case Opcode.MOV: return b;
                 default:
@@ -38,11 +40,11 @@ namespace T3Simulator.Common
             }
         }
 
-        public static int Compare(BigInteger a, BigInteger b)
+        public static int Compare<T>(T a, T b)
         {
-            return a > b ? 1 : (a < b ? -1 : 0);
+            dynamic da = a;
+            dynamic db = b;
+            return da > db ? 1 : (da < db ? -1 : 0);
         }
-
-        // Tritwise logical operations for Word27/54 would go here or stay in TritTypes
     }
 }

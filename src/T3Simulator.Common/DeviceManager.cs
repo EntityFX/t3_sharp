@@ -1,59 +1,44 @@
 using System;
 using System.Collections.Generic;
-using System.Numerics;
 
 namespace T3Simulator.Common
 {
     /// <summary>
-    /// Manages I/O devices mapped to ports.
+    /// Manages I/O devices for the T3 processor.
     /// </summary>
-    public class DeviceManager
+    public class DeviceManager<TWord>
     {
-        private readonly Dictionary<BigInteger, IDevice> _devices = new Dictionary<BigInteger, IDevice>();
+        private readonly Dictionary<long, IDevice<TWord>> _devices = new Dictionary<long, IDevice<TWord>>();
 
-        public void RegisterDevice(BigInteger port, IDevice device)
+        public void RegisterDevice(long port, IDevice<TWord> device)
         {
             _devices[port] = device;
         }
 
-        public BigInteger Read(BigInteger port)
+        public TWord Read(long port)
         {
             if (_devices.TryGetValue(port, out var device))
             {
-                if (!device.DataReady)
+                if (device.DataReady)
                 {
-                    throw new DeviceStallException(port);
+                    return device.Read();
                 }
-                return device.Read();
+                throw new DeviceStallException(port);
             }
-            return 0; // Default value for unmapped ports
+            return default;
         }
 
-        public void Write(BigInteger port, BigInteger value)
+        public void Write(long port, TWord value)
         {
             if (_devices.TryGetValue(port, out var device))
             {
                 device.Write(value);
             }
-            // Writes to unmapped ports are silently ignored
         }
 
-        public bool IsDeviceReady(BigInteger port)
+        public bool IsDeviceReady(long port)
         {
             return _devices.TryGetValue(port, out var device) && device.DataReady;
-        }
-    }
-
-    /// <summary>
-    /// Exception thrown when an I/O operation is attempted on a device that is not ready.
-    /// This should be caught by the processor to trigger a stall.
-    /// </summary>
-    public class DeviceStallException : Exception
-    {
-        public BigInteger Port { get; }
-        public DeviceStallException(BigInteger port) : base($"Device at port {port} is not ready.")
-        {
-            Port = port;
         }
     }
 }

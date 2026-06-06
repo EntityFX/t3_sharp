@@ -1,5 +1,8 @@
+using System.Linq;
 using System.Numerics;
 using TritTypes;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 
 namespace TritTypes.Tests
 {
@@ -10,30 +13,38 @@ namespace TritTypes.Tests
         public void Constructor_Zero_Works()
         {
             Word54 w = new Word54(0);
-            Assert.AreEqual(0, w.ToBigInteger());
+            Assert.AreEqual(0, w.ToInt128());
         }
 
         [TestMethod]
         public void Constructor_MaxValue_Works()
         {
-            BigInteger max = (BigInteger.Pow(3, 54) - 1) / 2;
-            Word54 w = new Word54(max);
-            Assert.AreEqual(max, w.ToBigInteger());
+            Int128 p3_54 = 1;
+            for(int i=0; i<54; i++) p3_54 *= 3;
+            Int128 maxVal = (p3_54 - 1) / 2;
+            
+            Word54 w = new Word54(maxVal);
+            Assert.AreEqual(maxVal, w.ToInt128());
         }
 
         [TestMethod]
         public void Constructor_MinValue_Works()
         {
-            BigInteger min = -(BigInteger.Pow(3, 54) - 1) / 2;
-            Word54 w = new Word54(min);
-            Assert.AreEqual(min, w.ToBigInteger());
+            Int128 p3_54 = 1;
+            for(int i=0; i<54; i++) p3_54 *= 3;
+            Int128 minVal = -(p3_54 - 1) / 2;
+            
+            Word54 w = new Word54(minVal);
+            Assert.AreEqual(minVal, w.ToInt128());
         }
 
         [TestMethod]
         public void Constructor_TooLarge_Throws()
         {
-            BigInteger max = (BigInteger.Pow(3, 54) - 1) / 2;
-            try { new Word54(max + 1); Assert.Fail("Expected exception"); }
+            Int128 p3_54 = 1;
+            for(int i=0; i<54; i++) p3_54 *= 3;
+            Int128 maxVal = (p3_54 - 1) / 2;
+            try { new Word54(maxVal + 1); Assert.Fail("Expected exception"); }
             catch (ArgumentOutOfRangeException) { }
         }
 
@@ -42,7 +53,7 @@ namespace TritTypes.Tests
         {
             Word54 a = new Word54(1000);
             Word54 b = new Word54(2000);
-            Assert.AreEqual(3000, (a + b).ToBigInteger());
+            Assert.AreEqual(3000, (a + b).ToInt128());
         }
 
         [TestMethod]
@@ -50,7 +61,7 @@ namespace TritTypes.Tests
         {
             Word54 a = new Word54(2000);
             Word54 b = new Word54(1000);
-            Assert.AreEqual(1000, (a - b).ToBigInteger());
+            Assert.AreEqual(1000, (a - b).ToInt128());
         }
 
         [TestMethod]
@@ -58,7 +69,7 @@ namespace TritTypes.Tests
         {
             Word54 a = new Word54(100);
             Word54 b = new Word54(200);
-            Assert.AreEqual(20000, (a * b).ToBigInteger());
+            Assert.AreEqual(20000, (a * b).ToInt128());
         }
 
         [TestMethod]
@@ -66,10 +77,10 @@ namespace TritTypes.Tests
         {
             Word54 a = new Word54(10);
             Word54 b = new Word54(3);
-            Assert.AreEqual(3, (a / b).ToBigInteger());
+            Assert.AreEqual(3, (a / b).ToInt128());
 
             a = new Word54(-10);
-            Assert.AreEqual(-4, (a / b).ToBigInteger());
+            Assert.AreEqual(-4, (a / b).ToInt128());
         }
 
         [TestMethod]
@@ -77,10 +88,10 @@ namespace TritTypes.Tests
         {
             Word54 a = new Word54(10);
             Word54 b = new Word54(3);
-            Assert.AreEqual(1, (a % b).ToBigInteger());
+            Assert.AreEqual(1, (a % b).ToInt128());
 
             a = new Word54(-10);
-            Assert.AreEqual(2, (a % b).ToBigInteger());
+            Assert.AreEqual(2, (a % b).ToInt128());
         }
 
         [TestMethod]
@@ -96,7 +107,7 @@ namespace TritTypes.Tests
         public void Negation_Works()
         {
             Word54 a = new Word54(1000);
-            Assert.AreEqual(-1000, (-a).ToBigInteger());
+            Assert.AreEqual(-1000, (-a).ToInt128());
         }
 
         [TestMethod]
@@ -104,10 +115,10 @@ namespace TritTypes.Tests
         {
             Word54 a = new Word54(10);
             Word54 shifted = a << 1;
-            Assert.AreEqual(30, shifted.ToBigInteger());
+            Assert.AreEqual(30, shifted.ToInt128());
 
             shifted = a << 2;
-            Assert.AreEqual(90, shifted.ToBigInteger());
+            Assert.AreEqual(90, shifted.ToInt128());
         }
 
         [TestMethod]
@@ -115,48 +126,48 @@ namespace TritTypes.Tests
         {
             Word54 a = new Word54(30);
             Word54 shifted = a >> 1;
-            Assert.AreEqual(10, shifted.ToBigInteger());
+            Assert.AreEqual(10, shifted.ToInt128());
 
             a = new Word54(10);
             shifted = a >> 1;
-            Assert.AreEqual(3, shifted.ToBigInteger());
+            Assert.AreEqual(3, shifted.ToInt128());
         }
 
         [TestMethod]
         public void TritAnd_Works()
         {
-            Word54 a = Word54.FromBigInteger(0);
-            Word54 b = Word54.FromBigInteger(1);
+            Word54 a = new Word54(0);
+            Word54 b = new Word54(1);
             Word54 result = Word54.TritAnd(a, b);
-            Assert.AreEqual(0, result.ToBigInteger());
+            Assert.AreEqual(0, result.ToInt128());
 
-            a = Word54.FromBigInteger(1);
-            b = Word54.FromBigInteger(1);
+            a = new Word54(1);
+            b = new Word54(1);
             result = Word54.TritAnd(a, b);
-            Assert.AreEqual(1, result.ToBigInteger());
+            Assert.AreEqual(1, result.ToInt128());
         }
 
         [TestMethod]
         public void TritOr_Works()
         {
-            Word54 a = Word54.FromBigInteger(0);
-            Word54 b = Word54.FromBigInteger(1);
+            Word54 a = new Word54(0);
+            Word54 b = new Word54(1);
             Word54 result = Word54.TritOr(a, b);
-            Assert.AreEqual(1, result.ToBigInteger());
+            Assert.AreEqual(1, result.ToInt128());
         }
 
         [TestMethod]
         public void TritXor_Works()
         {
-            Word54 a = Word54.FromBigInteger(1);
-            Word54 b = Word54.FromBigInteger(1);
+            Word54 a = new Word54(1);
+            Word54 b = new Word54(1);
             Word54 result = Word54.TritXor(a, b);
-            Assert.AreEqual(-1, result.ToBigInteger());
+            Assert.AreEqual(-1, result.ToInt128());
 
-            a = Word54.FromBigInteger(1);
-            b = Word54.FromBigInteger(-1);
+            a = new Word54(1);
+            b = new Word54(-1);
             result = Word54.TritXor(a, b);
-            Assert.AreEqual(0, result.ToBigInteger());
+            Assert.AreEqual(0, result.ToInt128());
         }
 
         [TestMethod]
@@ -182,8 +193,8 @@ namespace TritTypes.Tests
         [TestMethod]
         public void Parse_RoundTrip_Works()
         {
-            BigInteger[] testValues = { 0, 1, -1, 100, -100, 1000000, -1000000 };
-            foreach (BigInteger val in testValues)
+            Int128[] testValues = { 0, 1, -1, 100, -100, 1000000, -1000000 };
+            foreach (Int128 val in testValues)
             {
                 Word54 w = new Word54(val);
                 string s = w.ToTritString();
@@ -196,14 +207,14 @@ namespace TritTypes.Tests
         public void ImplicitConversion_FromLong_Works()
         {
             Word54 w = 42L;
-            Assert.AreEqual(42, w.ToBigInteger());
+            Assert.AreEqual(42, w.ToInt128());
         }
 
         [TestMethod]
-        public void ExplicitConversion_ToBigInteger_Works()
+        public void ExplicitConversion_ToInt128_Works()
         {
             Word54 w = new Word54(42);
-            Assert.AreEqual(42, (BigInteger)w);
+            Assert.AreEqual(42, (Int128)w);
         }
     }
 }

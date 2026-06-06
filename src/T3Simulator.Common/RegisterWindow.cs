@@ -26,7 +26,10 @@ namespace T3Simulator.Common
         /// </summary>
         public static long CalculateNextWp(long currentWp)
         {
-            return (currentWp + 4) % PhysicalRegisterCount;
+            // Old A (logical 0) should become New E (logical 4).
+            // WP_old + 0 = WP_new + 4 (mod 27)
+            // WP_new = WP_old - 4 = WP_old + 23 (mod 27)
+            return (currentWp + 23) % PhysicalRegisterCount;
         }
     }
 }

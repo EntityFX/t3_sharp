@@ -1,17 +1,16 @@
 using System.Collections.Generic;
-using TritTypes;
 
 namespace T3Simulator.Common
 {
     /// <summary>
     /// Core interface for T3 Ternary Processor simulators.
     /// </summary>
-    public interface IT3Processor
+    public interface IT3Processor<TWord>
     {
         /// <summary>
         /// Loads a program into processor memory.
         /// </summary>
-        void LoadProgram(IEnumerable<System.Numerics.BigInteger> code);
+        void LoadProgram(IEnumerable<TWord> code);
 
         /// <summary>
         /// Resets the processor to its initial state.
@@ -33,9 +32,9 @@ namespace T3Simulator.Common
         long InstructionCount { get; }
         long StallCount { get; }
 
-        void SetInputDevice(long port, IDevice dev);
-        void SetOutputDevice(long port, IDevice dev);
+        void SetInputDevice(long port, IDevice<TWord> dev);
+        void SetOutputDevice(long port, IDevice<TWord> dev);
 
-        ProcessorState GetState();
+        ProcessorState<TWord> GetState();
     }
 }

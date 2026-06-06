@@ -25,20 +25,20 @@ namespace T3Simulator.VLIW
         /// <summary>
         /// Decodes a Word54 into a VLIW bundle.
         /// </summary>
-        public static VliwBundle Decode(BigInteger word)
+        public static VliwBundle Decode(Word54 word)
         {
             // Word54 is 54 trits. Each slot is 18 trits.
             // 18 * 3 = 54.
-            string s = new Word54(word).ToTritString();
+            string s = word.ToTritString();
             
             string s0 = s.Substring(0, 18);
             string s1 = s.Substring(18, 18);
             string s2 = s.Substring(36, 18);
 
             return new VliwBundle(
-                new VliwSlot(InstructionDecoder.DecodeVliwSlot(s0)),
-                new VliwSlot(InstructionDecoder.DecodeVliwSlot(s1)),
-                new VliwSlot(InstructionDecoder.DecodeVliwSlot(s2))
+                new VliwSlot(InstructionDecoder.DecodeVliwSlot<Word54>(s0)),
+                new VliwSlot(InstructionDecoder.DecodeVliwSlot<Word54>(s1)),
+                new VliwSlot(InstructionDecoder.DecodeVliwSlot<Word54>(s2))
             );
         }
     }
