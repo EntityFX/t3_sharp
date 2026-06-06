@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/T3Simulator.InOrder/T3Simulator.InOrder.csproj" />
+    <Project Path="src/T3Simulator.VLIW/T3Simulator.VLIW.csproj" />
+    <Project Path="src/TritTypes/TritTypes.csproj" />
+    <Project Path="src/T3Simulator.Common/T3Simulator.Common.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/TritTypes.Tests/TritTypes.Tests.csproj" />
+    <Project Path="tests/T3Simulator.Common.Tests/T3Simulator.Common.Tests.csproj" />
+    <Project Path="tests/T3Simulator.InOrder.Tests/T3Simulator.InOrder.Tests.csproj" />
+  </Folder>
+</Solution>
