@@ -33,6 +33,7 @@ namespace T3Simulator.InOrder.Tests
         }
 
         [TestMethod]
+        [Timeout(30000)]
         public void Test_ADD()
         {
             var proc = CreateProcessor();
@@ -49,6 +50,7 @@ namespace T3Simulator.InOrder.Tests
         }
 
         [TestMethod]
+        [Timeout(30000)]
         public void Test_SUB()
         {
             var proc = CreateProcessor();
@@ -65,6 +67,7 @@ namespace T3Simulator.InOrder.Tests
         }
 
         [TestMethod]
+        [Timeout(30000)]
         public void Test_MUL()
         {
             var proc = CreateProcessor();
@@ -81,6 +84,7 @@ namespace T3Simulator.InOrder.Tests
         }
 
         [TestMethod]
+        [Timeout(30000)]
         public void Test_DIV()
         {
             var proc = CreateProcessor();
@@ -97,6 +101,7 @@ namespace T3Simulator.InOrder.Tests
         }
 
         [TestMethod]
+        [Timeout(30000)]
         public void Test_MOD()
         {
             var proc = CreateProcessor();
@@ -113,6 +118,7 @@ namespace T3Simulator.InOrder.Tests
         }
 
         [TestMethod]
+        [Timeout(30000)]
         public void Test_NEG()
         {
             var proc = CreateProcessor();
@@ -128,12 +134,10 @@ namespace T3Simulator.InOrder.Tests
         }
 
         [TestMethod]
+        [Timeout(30000)]
         public void Test_TRITAND()
         {
             var proc = CreateProcessor();
-            // 1 in balanced ternary is "0...0+"
-            // 0 is "0...00"
-            // TritAnd(1, 0) = 0
             var program = new List<long>
             {
                 Encode(4, 0, 1),  // LI A, 1
@@ -147,6 +151,7 @@ namespace T3Simulator.InOrder.Tests
         }
 
         [TestMethod]
+        [Timeout(30000)]
         public void Test_TRITOR()
         {
             var proc = CreateProcessor();
@@ -163,6 +168,7 @@ namespace T3Simulator.InOrder.Tests
         }
 
         [TestMethod]
+        [Timeout(30000)]
         public void Test_TRITXOR()
         {
             var proc = CreateProcessor();
@@ -179,6 +185,7 @@ namespace T3Simulator.InOrder.Tests
         }
 
         [TestMethod]
+        [Timeout(30000)]
         public void Test_SHL()
         {
             var proc = CreateProcessor();
@@ -195,6 +202,7 @@ namespace T3Simulator.InOrder.Tests
         }
 
         [TestMethod]
+        [Timeout(30000)]
         public void Test_SHR()
         {
             var proc = CreateProcessor();
@@ -211,51 +219,11 @@ namespace T3Simulator.InOrder.Tests
         }
 
         [TestMethod]
+        [Timeout(30000)]
         public void Test_CMP_And_Branches()
         {
             var proc = CreateProcessor();
-            // Test: if (A > B) A = 1 else A = -1
-            // LI A, 10
-            // LI B, 20
-            // CMP A, B -> Cond = -1 (A < B)
-            // JG target_gt
-            // LI A, -1
-            // JMP end
-            // target_gt: LI A, 1
-            // end: HALT
-            
             List<long> program = new List<long>();
-            program.Add(Encode(4, 0, 10)); // A=10
-            program.Add(Encode(4, 1, 20)); // B=20
-            program.Add(Encode(17, 0, 1)); // CMP A, B -> Cond=-1
-            
-            // JG (jump if Cond > 0)
-            // We need to jump to LI A, 1. 
-            // Current PC: 3. target_gt is at index 6.
-            program.Add(Encode(22, 0, 6)); // JG to index 6 (logical register 6 is used here as absolute address for simplicity in this test)
-            // Note: In a real processor, JMP/JE etc use the value in a register.
-            // Let's fix the program to use a register for the address.
-            
-            // Fixed program:
-            program.Clear();
-            program.Add(Encode(4, 2, 6));  // R2 = 6 (target address)
-            program.Add(Encode(4, 0, 10)); // A=10
-            program.Add(Encode(4, 1, 20)); // B=20
-            program.Add(Encode(17, 0, 1)); // CMP A, B
-            program.Add(Encode(22, 2, 0)); // JG R2
-            program.Add(Encode(4, 0, -1)); // A = -1
-            program.Add(Encode(18, 2, 0)); // JMP R2 (wait, need to jump to end)
-            
-            // Let's rethink. 
-            // PC 0: LI R2, 7 (address of HALT)
-            // PC 1: LI A, 10
-            // PC 2: LI B, 20
-            // PC 3: CMP A, B
-            // PC 4: JG R2 (jump to HALT)
-            // PC 5: LI A, 1
-            // PC 6: HALT
-            
-            program.Clear();
             program.Add(Encode(4, 2, 6)); // PC 0: R2 = 6
             program.Add(Encode(4, 0, 10)); // PC 1: A = 10
             program.Add(Encode(4, 1, 20)); // PC 2: B = 20
@@ -270,65 +238,11 @@ namespace T3Simulator.InOrder.Tests
         }
 
         [TestMethod]
+        [Timeout(30000)]
         public void Test_Loop_Sum()
         {
             var proc = CreateProcessor();
-            // Calculate sum of 1..5
-            // R0: sum = 0
-            // R1: i = 1
-            // R2: limit = 5
-            // R3: constant 1
-            // R4: target address for loop start
-            
-            // PC 0: LI R0, 0
-            // PC 1: LI R1, 1
-            // PC 2: LI R2, 5
-            // PC 3: LI R3, 1
-            // PC 4: LI R4, 5 (loop start)
-            // PC 5: ADD R0, R1
-            // PC 6: ADD R1, R3
-            // PC 7: CMP R1, R2 (is i <= limit?)
-            // PC 8: JE end (if i == 6, stop) - Wait, the spec says JE is Cond == 0.
-            // Let's use: if (R1 == R2+1) break.
-            
-            // Revised:
-            // PC 0: LI R0, 0
-            // PC 1: LI R1, 1
-            // PC 2: LI R2, 6 (break when i == 6)
-            // PC 3: LI R3, 1
-            // PC 4: LI R4, 5 (loop start)
-            // PC 5: ADD R0, R1
-            // PC 6: ADD R1, R3
-            // PC 7: CMP R1, R2
-            // PC 8: JE R5 (address of HALT)
-            // PC 9: JMP R4 (loop start)
-            // PC 10: HALT
-            
             List<long> program = new List<long>();
-            program.Add(Encode(4, 0, 0)); // PC 0: sum = 0
-            program.Add(Encode(4, 1, 1)); // PC 1: i = 1
-            program.Add(Encode(4, 2, 6)); // PC 2: limit = 6
-            program.Add(Encode(4, 3, 1)); // PC 3: const 1
-            program.Add(Encode(4, 4, 5)); // PC 4: loop_start_addr = 5
-            program.Add(Encode(6, 0, 1)); // PC 5: sum += i
-            program.Add(Encode(6, 1, 3)); // PC 6: i += 1
-            program.Add(Encode(17, 1, 2)); // PC 7: CMP i, limit
-            program.Add(Encode(19, 5, 0)); // PC 8: JE R5 (R5 is address of HALT)
-            // Wait, I need to set R5 = 10.
-            
-            program.Clear();
-            program.Add(Encode(4, 0, 0)); // PC 0: sum = 0
-            program.Add(Encode(4, 1, 1)); // PC 1: i = 1
-            program.Add(Encode(4, 2, 6)); // PC 2: limit = 6
-            program.Add(Encode(4, 3, 1)); // PC 3: const 1
-            program.Add(Encode(4, 4, 5)); // PC 4: loop_start = 5
-            program.Add(Encode(4, 5, 10)); // PC 5: end_addr = 10 (Wait, I'm using R5 for end_addr)
-            
-            // Shift things:
-            // PC 0: sum=0, PC 1: i=1, PC 2: limit=6, PC 3: c1=1, PC 4: loop=6, PC 5: end=11
-            // PC 6: sum+=i, PC 7: i+=1, PC 8: CMP i, limit, PC 9: JE end, PC 10: JMP loop, PC 11: HALT
-            
-            program.Clear();
             program.Add(Encode(4, 0, 0)); // 0: R0 = 0
             program.Add(Encode(4, 1, 1)); // 1: R1 = 1
             program.Add(Encode(4, 2, 6)); // 2: R2 = 6
@@ -344,51 +258,33 @@ namespace T3Simulator.InOrder.Tests
             
             proc.LoadProgram(program);
             proc.Run();
-            // Sum of 1..5 = 15
             Assert.AreEqual(15, proc.GetState().Registers[0]);
         }
 
         [TestMethod]
+        [Timeout(30000)]
         public void Test_Call_Ret()
         {
             var proc = CreateProcessor();
-            // Simple function that adds 1 to the first parameter (A in main -> E in func)
-            // main:
-            //   LI A, 10
-            //   CALL func
-            //   HALT
-            // func:
-            //   LI B, 1
-            //   ADD E, B
-            //   RET
-            
             List<long> program = new List<long>();
-            // main:
             program.Add(Encode(4, 0, 10)); // PC 0: A = 10
             program.Add(Encode(4, 1, 4));  // PC 1: R1 = 4 (addr of func)
             program.Add(Encode(24, 1, 0)); // PC 2: CALL R1
             program.Add(Encode(0, 0, 0));  // PC 3: HALT
-            
-            // func:
-            program.Add(Encode(4, 1, 1));  // PC 4: B = 1 (Logical B = index 1)
-            program.Add(Encode(6, 4, 1));  // PC 5: E += B (Logical E = index 4, which is main's A)
+            program.Add(Encode(4, 1, 1));  // PC 4: B = 1
+            program.Add(Encode(6, 4, 1));  // PC 5: E += B
             program.Add(Encode(25, 0, 0)); // PC 6: RET
             
             proc.LoadProgram(program);
             proc.Run();
-            // After RET, WP is restored to 0, so we check main's A (Physical 0)
             Assert.AreEqual(11, proc.GetState().Registers[0]);
         }
 
         [TestMethod]
+        [Timeout(30000)]
         public void Test_Push_Pop()
         {
             var proc = CreateProcessor();
-            // LI A, 10
-            // PUSH A
-            // LI A, 20
-            // POP A
-            // HALT
             var program = new List<long>
             {
                 Encode(4, 0, 10), // A=10
@@ -403,6 +299,7 @@ namespace T3Simulator.InOrder.Tests
         }
 
         [TestMethod]
+        [Timeout(30000)]
         public void Test_LIMM()
         {
             var proc = CreateProcessor();
@@ -418,6 +315,7 @@ namespace T3Simulator.InOrder.Tests
         }
 
         [TestMethod]
+        [Timeout(30000)]
         public void Test_LOAD_STORE()
         {
             var proc = CreateProcessor();
@@ -436,6 +334,7 @@ namespace T3Simulator.InOrder.Tests
         }
 
         [TestMethod]
+        [Timeout(30000)]
         public void Test_IO_Basic()
         {
             var proc = CreateProcessor();
@@ -446,33 +345,78 @@ namespace T3Simulator.InOrder.Tests
                 Encode(42, 1, 0),   // OUT B, A (port 5 = 42)
                 Encode(0, 0, 0)     // HALT
             };
-            
-            // Setup a mock device
             var mockDevice = new MockDevice(42); 
             proc.SetOutputDevice(5, mockDevice);
-
             proc.LoadProgram(program);
             proc.Run();
             Assert.AreEqual(42, mockDevice.LastWrittenValue);
         }
 
         [TestMethod]
+        [Timeout(30000)]
+        public void Test_INI_OUTI()
+        {
+            var proc = CreateProcessor();
+            var program = new List<long>
+            {
+                Encode(43, 0, 7),   // INI A, 7 (port 7)
+                Encode(44, 0, 8),   // OUTI A, 8 (port 8)
+                Encode(0, 0, 0)     // HALT
+            };
+            var inputDev = new MockDevice(99);
+            var outputDev = new MockDevice(0);
+            proc.SetInputDevice(7, inputDev);
+            proc.SetOutputDevice(8, outputDev);
+            proc.LoadProgram(program);
+            proc.Run();
+            Assert.AreEqual(99, outputDev.LastWrittenValue);
+        }
+
+        [TestMethod]
+        [Timeout(30000)]
+        public void Test_JNE_JM()
+        {
+            var proc = CreateProcessor();
+            List<long> progJne = new List<long>();
+            progJne.Add(Encode(4, 2, 6));  // R2 = 6 (target)
+            progJne.Add(Encode(4, 0, 10)); // A = 10
+            progJne.Add(Encode(4, 1, 20)); // B = 20
+            progJne.Add(Encode(17, 0, 1)); // CMP A, B -> Cond = -1
+            progJne.Add(Encode(20, 2, 0)); // JNE R2
+            progJne.Add(Encode(4, 0, -1)); // A = -1 (should be skipped)
+            progJne.Add(Encode(4, 0, 1));  // A = 1 (target)
+            progJne.Add(Encode(0, 0, 0));  // HALT
+            proc.LoadProgram(progJne);
+            proc.Run();
+            Assert.AreEqual(1, proc.GetState().Registers[0]);
+
+            proc.Reset();
+            List<long> progJm = new List<long>();
+            progJm.Add(Encode(4, 2, 6));   // R2 = 6 (target)
+            progJm.Add(Encode(4, 0, 10));  // A = 10
+            progJm.Add(Encode(4, 1, 10));  // B = 10
+            progJm.Add(Encode(17, 0, 1));  // CMP A, B -> Cond = 0
+            progJm.Add(Encode(23, 2, 0));  // JM R2
+            progJm.Add(Encode(4, 0, -1));  // A = -1 (should be skipped)
+            progJm.Add(Encode(4, 0, 1));   // A = 1 (target)
+            progJm.Add(Encode(0, 0, 0));   // HALT
+            proc.LoadProgram(progJm);
+            proc.Run();
+            Assert.AreEqual(1, proc.GetState().Registers[0]);
+        }
+
+        [TestMethod]
+        [Timeout(30000)]
         public void Test_T3_54_Int128()
         {
-            // Test with T3-54 and Int128
             var proc = new T3InOrderProcessor<Int128>(T3Config.T3_54);
-            
             List<Int128> program = new List<Int128>();
-            
-            // Use LI instead of LIMM to isolate the problem
             program.Add(EncodeInt128(4, 0, 100)); // LI A, 100
             program.Add(EncodeInt128(4, 1, 2));   // LI B, 2
             program.Add(EncodeInt128(8, 0, 1));   // MUL A, B -> 200
             program.Add(EncodeInt128(0, 0, 0));   // HALT
-            
             proc.LoadProgram(program);
             proc.Run();
-            
             Assert.AreEqual((Int128)200, proc.GetState().Registers[0]);
         }
 
@@ -482,7 +426,6 @@ namespace T3Simulator.InOrder.Tests
             string sOp = ToBalancedTernary(fullOpcode, 6);
             string sOp1 = ToBalancedTernary(op1, 9);
             string sOp2 = TritTypes.BalancedTernary.ToTernaryString(op2, 9);
-            // For T3-54, the word is 54 trits. We pad the 27-trit instruction to 54.
             string instruction = sOp + sOp1 + sOp2 + "000";
             string word = instruction.PadLeft(54, '0');
             return TritTypes.BalancedTernary.ParseToInt128(word);

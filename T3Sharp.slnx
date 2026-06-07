@@ -9,5 +9,6 @@
     <Project Path="tests/TritTypes.Tests/TritTypes.Tests.csproj" />
     <Project Path="tests/T3Simulator.Common.Tests/T3Simulator.Common.Tests.csproj" />
     <Project Path="tests/T3Simulator.InOrder.Tests/T3Simulator.InOrder.Tests.csproj" />
+    <Project Path="tests/T3Simulator.VLIW.Tests/T3Simulator.VLIW.Tests.csproj" />
   </Folder>
 </Solution>

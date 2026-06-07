@@ -4,6 +4,7 @@ using T3Simulator.InOrder;
 using System.Collections.Generic;
 using TritTypes;
 using System;
+using T3Assembler;
 
 namespace T3Simulator.InOrder.Tests
 {
@@ -47,6 +48,7 @@ namespace T3Simulator.InOrder.Tests
         }
 
         [TestMethod]
+        [Timeout(30000)]
         public void Test_ArrayAddition()
         {
             var proc = CreateProcessor();
@@ -115,6 +117,7 @@ namespace T3Simulator.InOrder.Tests
         }
 
         [TestMethod]
+        [Timeout(30000)]
         public void Test_ProcedureCall_WithStack()
         {
             var proc = CreateProcessor();
@@ -151,6 +154,7 @@ namespace T3Simulator.InOrder.Tests
         }
 
         [TestMethod]
+        [Timeout(30000)]
         public void Test_T3_54_Int128()
         {
             // Test with T3-54 and Int128
@@ -170,6 +174,116 @@ namespace T3Simulator.InOrder.Tests
             proc.Run();
             
             Assert.AreEqual(val * 2, proc.GetState().Registers[0]);
+        }
+
+        [TestMethod]
+        [Timeout(30000)]
+        public void Test_NestedBranching()
+        {
+            var proc = CreateProcessor();
+            var assembler = new T3AssemblerCore(T3Config.T3_27);
+            
+            // if (A > 0) { if (B > 0) C = 1 else C = 2 } else C = 3
+            string asm = @"
+                LI A, 1
+                LI B, 1
+                LI C, 0
+                LI D, 0
+                LI E, nested
+                CMP A, D
+                JG E
+                LI C, 3
+                LI F, end
+                JMP F
+            nested:
+                LI E, set1
+                CMP B, D
+                JG E
+                LI C, 2
+                LI F, end
+                JMP F
+            set1:
+                LI C, 1
+            end:
+                HALT
+            ";
+            
+            var program = assembler.Assemble(asm);
+            proc.LoadProgram(program);
+            proc.Run();
+            Assert.AreEqual(1, proc.GetState().Registers[2]); // A=1, B=1 -> C=1
+        }
+
+        [TestMethod]
+        [Timeout(30000)]
+        public void Test_DoubleLoop()
+        {
+            var proc = CreateProcessor();
+            var assembler = new T3AssemblerCore(T3Config.T3_27);
+            
+            // Double loop to calculate sum of i+j for i=0..2, j=0..2
+            // res = sum(i+j) = 0+0 + 0+1 + 0+2 + 1+0 + 1+1 + 1+2 + 2+0 + 2+1 + 2+2 = 18
+            string asm = @"
+                LI res, 0
+                LI i, 0
+                LI limit, 3
+                LI one, 1
+                
+            loop_i:
+                LI j, 0
+            loop_j:
+                ADD temp, i
+                ADD temp, j
+                ADD res, temp
+                ADD j, one
+                CMP j, limit
+                JE end_j
+                JMP loop_j
+            end_j:
+                ADD i, one
+                CMP i, limit
+                JE end_i
+                JMP loop_i
+            end_i:
+                HALT
+            ";
+            // I need to map logical registers to indices for the assembler if it doesn't do it.
+            // Wait, T3AssemblerCore.IsRegister checks "ABCDEFGHI". 
+            // I should use registers A-I.
+            
+            string asmFixed = @"
+                LI A, 0       ; A = res
+                LI B, 0       ; B = i
+                LI C, 3       ; C = limit
+                LI D, 1       ; D = one
+                
+            loop_i:
+                LI E, 0       ; E = j
+            loop_j:
+                MOV F, B      ; F = i
+                ADD F, E      ; F = i + j
+                ADD A, F      ; res += F
+                ADD E, D      ; j++
+                LI G, end_j
+                CMP E, C      ; j == limit?
+                JE G
+                LI H, loop_j
+                JMP H
+            end_j:
+                ADD B, D      ; i++
+                LI G, end_i
+                CMP B, C      ; i == limit?
+                JE G
+                LI H, loop_i
+                JMP H
+            end_i:
+                HALT
+            ";
+            
+            var program = assembler.Assemble(asmFixed);
+            proc.LoadProgram(program);
+            proc.Run();
+            Assert.AreEqual(18, proc.GetState().Registers[0]);
         }
     }
 }

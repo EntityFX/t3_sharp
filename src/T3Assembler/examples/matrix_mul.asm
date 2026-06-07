@@ -6,6 +6,7 @@
 start:
     LI A, 2       ; A = N = 2
     LI B, 0       ; B = i = 0
+    LI I, 1       ; I = constant 1
     
 loop_i:
     LI C, 0       ; C = j = 0
@@ -32,12 +33,12 @@ loop_k:
     
     LI G, addr_B
     ADD F, G
-    LOAD I, F     ; I = B[k][j]
+    LOAD F, F     ; F = B[k][j]
     
-    MUL H, I      ; H = A[i][k] * B[k][j]
+    MUL H, F      ; H = A[i][k] * B[k][j]
     ADD D, H      ; sum += H
     
-    ADD E, 1      ; k++
+    ADD E, I      ; k++
     LI F, loop_k
     CMP E, A      ; k < N?
     JL F
@@ -52,12 +53,12 @@ loop_k:
     ADD F, G
     STORE D, F    ; C[i][j] = sum
     
-    ADD C, 1      ; j++
+    ADD C, I      ; j++
     LI F, loop_j
     CMP C, A      ; j < N?
     JL F
     
-    ADD B, 1      ; i++
+    ADD B, I      ; i++
     LI F, loop_i
     CMP B, A      ; i < N?
     JL F
