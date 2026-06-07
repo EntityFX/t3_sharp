@@ -46,13 +46,104 @@ namespace T3Assembler
             throw new Exception($"Unable to resolve operand: {token}");
         }
 
-        protected long ResolveOperandValue(string token)
+        protected List<Int128> ResolveString(string token)
+        {
+            if (!token.StartsWith("\"") || !token.EndsWith("\""))
+                throw new Exception($"Invalid string literal: {token}. Strings must be enclosed in double quotes.");
+
+            string content = token.Substring(1, token.Length - 2);
+            List<Int128> result = new List<Int128>();
+            foreach (char c in content)
+            {
+                result.Add(TritTypes.TScii.FromChar(c));
+            }
+            // Null terminator
+            result.Add(0);
+            return result;
+        }
+
+        protected Int128 ResolveOperandValue(string token)
         {
             if (IsRegister(token)) return GetRegisterIndex(token);
-            if (long.TryParse(token, NumberStyles.Integer, CultureInfo.InvariantCulture, out long val)) return val;
+
+            // Ternary literal: t+0-
+            if (token.StartsWith("t", StringComparison.OrdinalIgnoreCase))
+            {
+                return BalancedTernary.ParseToInt128(token.Substring(1));
+            }
+
+            // 9-ary literal: 0n...
+            if (token.StartsWith("0n", StringComparison.OrdinalIgnoreCase))
+            {
+                return Parse9Ary(token.Substring(2));
+            }
+
+            // 27-ary literal: 0y...
+            if (token.StartsWith("0y", StringComparison.OrdinalIgnoreCase))
+            {
+                return Parse27Ary(token.Substring(2));
+            }
+
+            // Decimal
+            if (Int128.TryParse(token, NumberStyles.Integer, CultureInfo.InvariantCulture, out Int128 val)) return val;
+            
+            // Label
             if (_labels.TryGetValue(token, out int addr)) return addr;
             
             throw new Exception($"Unable to resolve operand value: {token}");
+        }
+
+        private Int128 Parse9Ary(string token)
+        {
+            string resultTritString = "";
+            foreach (char c in token.ToUpper())
+            {
+                resultTritString += c switch
+                {
+                    'W' => "--",
+                    'X' => "-0",
+                    'Y' => "-+",
+                    'Z' => "0-",
+                    '0' => "00",
+                    '1' => "0+",
+                    '2' => "+-",
+                    '3' => "+0",
+                    '4' => "++",
+                    _ => throw new Exception($"Invalid 9-ary character: {c}")
+                };
+            }
+            return BalancedTernary.ParseToInt128(resultTritString);
+        }
+
+        private Int128 Parse27Ary(string token)
+        {
+            string resultTritString = "";
+            foreach (char c in token.ToUpper())
+            {
+                resultTritString += c switch
+                {
+                    'N' => "---",
+                    'O' => "--0",
+                    'P' => "--+",
+                    'Q' => "-0-",
+                    'R' => "-00",
+                    'S' => "-0+",
+                    'T' => "-+-",
+                    'U' => "-+0",
+                    'V' => "-++",
+                    '5' => "+--",
+                    '6' => "+-0",
+                    '7' => "+-+",
+                    '8' => "+0-",
+                    '9' => "+00",
+                    'A' => "+0+",
+                    'B' => "++-",
+                    'C' => "++0",
+                    'D' => "+++",
+                    _ => throw new Exception($"Invalid 27-ary character: {c}")
+                };
+            }
+            return BalancedTernary.ParseToInt128(resultTritString);
         }
 
         protected bool IsRegister(string token)

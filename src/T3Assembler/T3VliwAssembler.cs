@@ -71,7 +71,7 @@ namespace T3Assembler
 
             string mnemonic = instParts[0].ToUpper();
             int op1 = 0;
-            long op2 = 0;
+            Int128 op2 = 0;
             if (instParts.Length > 1) op1 = ResolveOperand(instParts[1]);
             if (instParts.Length > 2) op2 = ResolveOperandValue(instParts[2]);
 
@@ -105,7 +105,7 @@ namespace T3Assembler
                         var parts = slotLine.Split(new[] { ' ', '\t', ',' }, StringSplitOptions.RemoveEmptyEntries);
                         string mnemonic = parts[0].ToUpper();
                         int op1 = 0;
-                        long op2 = 0;
+                        Int128 op2 = 0;
                         if (parts.Length > 1) op1 = ResolveOperand(parts[1]);
                         if (parts.Length > 2) op2 = ResolveOperandValue(parts[2]);
                         bundleString += EncodeSlot(mnemonic, op1, op2);
@@ -120,7 +120,7 @@ namespace T3Assembler
             return BalancedTernary.ParseToInt128(bundleString);
         }
 
-        private string EncodeSlot(string mnemonic, int op1, long op2)
+        private string EncodeSlot(string mnemonic, int op1, Int128 op2)
         {
             if (mnemonic == "NOP") return BalancedTernary.ToTernaryString((int)Opcode.NOP, 6) + BalancedTernary.ToTernaryString(0, 6) + BalancedTernary.ToTernaryString(0, 6);
 
@@ -129,7 +129,7 @@ namespace T3Assembler
             // VLIW Slot (18 trits): Opcode (6), Op1 (6), Op2 (6)
             string sOp = BalancedTernary.ToTernaryString((int)opcode, 6);
             string sOp1 = BalancedTernary.ToTernaryString(op1, 6);
-            string sOp2 = BalancedTernary.ToTernaryString(op2, 6);
+            string sOp2 = BalancedTernary.ToTernaryString((long)op2, 6);
             
             return sOp + sOp1 + sOp2;
         }
