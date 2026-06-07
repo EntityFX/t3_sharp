@@ -9,10 +9,11 @@ namespace TritTypes
     /// Range: ±(3²⁷−1)/2 ≈ ±3.8·10¹²
     /// </summary>
     [DebuggerDisplay("{ToLong()} ({ToTritString()})")]
-    public readonly struct Word27 : IEquatable<Word27>
-    {
+public readonly struct Word27 : IEquatable<Word27>, IT3Word<Word27>
+{
         private readonly long _value;
 
+        public Int128 ToInt128() => _value;
         public long ToLong() => _value;
 
         public Word27(long value)
@@ -23,6 +24,11 @@ namespace TritTypes
         }
 
         public static Word27 FromLong(long value) => new Word27(value);
+        public static Word27 FromInt128(Int128 value) => new Word27((long)value);
+        
+        static Word27 IT3Word<Word27>.FromLong(long value) => Word27.FromLong(value);
+        static Word27 IT3Word<Word27>.FromInt128(Int128 value) => Word27.FromInt128(value);
+        public static Word27 Zero => new Word27(0);
 
         private const int TritCount = 27;
         private static readonly long MaxValue = (Pow3(27) - 1) / 2;
@@ -96,6 +102,8 @@ namespace TritTypes
             return new Word27(result);
         }
         public static Word27 operator -(Word27 t) => new Word27(-t._value);
+
+        public Word27 Negate() => -this;
 
         // Shift operators (balanced ternary shifts: multiply/divide by 3^shift)
         public static Word27 operator <<(Word27 t, int shift)
@@ -173,8 +181,9 @@ namespace TritTypes
         }
 
         // Comparison
-        public override bool Equals(object? obj) => obj is Word27 other && _value == other._value;
+        public override bool Equals(object? obj) => obj is Word27 other && ToInt128() == other.ToInt128();
         public bool Equals(Word27 other) => _value == other._value;
+        public bool Equals(IT3Word<Word27> other) => ToInt128() == other.ToInt128();
         public override int GetHashCode() => _value.GetHashCode();
 
         public static bool operator ==(Word27 left, Word27 right) => left._value == right._value;

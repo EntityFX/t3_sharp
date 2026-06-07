@@ -25,16 +25,18 @@ namespace T3Assembler
             try
             {
                 string source = File.ReadAllText(inputFile);
-                T3AssemblerCore assembler = new T3AssemblerCore(T3Config.T3_27);
-                List<long> machineCode = assembler.Assemble(source);
+                
+                // For now, default to InOrder T3-27. 
+                // In a real scenario, this would be a CLI argument.
+                T3AssemblerBase assembler = new T3InOrderAssembler(T3Config.T3_27);
+                List<Int128> machineCode = assembler.Assemble(source);
 
-                string outputContent = Export(machineCode, format);
+                string outputContent = Export(machineCode, format, 27);
                 File.WriteAllText(outputFile, outputContent);
                 
                 if (format == "binary")
                 {
-                    // For binary, we actually need to write bytes
-                    byte[] binaryData = ConvertToBinaryBytes(machineCode);
+                    byte[] binaryData = ConvertToBinaryBytes(machineCode, 27);
                     File.WriteAllBytes(outputFile, binaryData);
                 }
 
@@ -46,13 +48,13 @@ namespace T3Assembler
             }
         }
 
-        static string Export(List<long> code, string format)
+        static string Export(List<Int128> code, string format, int wordSize)
         {
             // Convert each word to a list of trits
             List<int> allTrits = new List<int>();
             foreach (var word in code)
             {
-                allTrits.AddRange(BalancedTernary.ToTritArray(word, 27));
+                allTrits.AddRange(BalancedTernary.ToTritArray((long)word, wordSize));
             }
 
             return format switch
@@ -65,12 +67,12 @@ namespace T3Assembler
             };
         }
 
-        static byte[] ConvertToBinaryBytes(List<long> code)
+        static byte[] ConvertToBinaryBytes(List<Int128> code, int wordSize)
         {
             List<int> allTrits = new List<int>();
             foreach (var word in code)
             {
-                allTrits.AddRange(BalancedTernary.ToTritArray(word, 27));
+                allTrits.AddRange(BalancedTernary.ToTritArray((long)word, wordSize));
             }
             return TritEncoding.ToBinary(allTrits);
         }

@@ -13,7 +13,7 @@ namespace T3Simulator.Common
         /// <summary>
         /// Disassembles a sequence of words into assembly instructions.
         /// </summary>
-        public static List<string> Disassemble<TWord>(IEnumerable<TWord> code)
+        public static List<string> Disassemble<TWord>(IEnumerable<TWord> code) where TWord : IT3Word<TWord>
         {
             var lines = new List<string>();
             long pc = 0;

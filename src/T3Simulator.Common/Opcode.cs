@@ -53,6 +53,7 @@ namespace T3Simulator.Common
         IN = 41,
         OUT = 42,
         INI = 43,
-        OUTI = 44
+        OUTI = 44,
+        NOP = 63
     }
 }

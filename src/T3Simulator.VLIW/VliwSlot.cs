@@ -7,15 +7,15 @@ namespace T3Simulator.VLIW
     /// Represents a single 18-trit slot within a VLIW bundle.
     /// Format: opcode(6), op1(6), op2(6)
     /// </summary>
-    public readonly struct VliwSlot
+    public readonly struct VliwSlot<TWord> where TWord : IT3Word<TWord>
     {
-        public readonly Instruction<Word54> Instruction;
+        public readonly Instruction<TWord> Instruction;
         public readonly bool IsNoOp;
 
-        public VliwSlot(Instruction<Word54> instruction)
+        public VliwSlot(Instruction<TWord> instruction)
         {
             Instruction = instruction;
-            IsNoOp = instruction.Opcode == Opcode.HALT; // Simplified: treating HALT in a slot as NOP unless it's the only one or specific logic
+            IsNoOp = false; // HALT is not a NOP, it's a control instruction
         }
 
         public VliwSlot(bool isNoOp)

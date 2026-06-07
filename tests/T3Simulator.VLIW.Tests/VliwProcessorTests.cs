@@ -12,9 +12,9 @@ namespace T3Simulator.VLIW.Tests
     [TestClass]
     public class VliwProcessorTests
     {
-        private T3VliwProcessor CreateProcessor()
+        private T3VliwProcessor<Word54> CreateProcessor()
         {
-            return new T3VliwProcessor();
+            return new T3VliwProcessor<Word54>(T3Config.T3_54);
         }
 
         [TestMethod]
@@ -22,7 +22,7 @@ namespace T3Simulator.VLIW.Tests
         public void Test_BasicVLIW_Parallelism()
         {
             var proc = CreateProcessor();
-            var assembler = new T3AssemblerCore(T3Config.T3_54);
+            var assembler = new T3VliwAssembler(T3Config.T3_54);
             
             // In VLIW, we can put 3 instructions in one word.
             // We'll test if 3 LI instructions execute in parallel.
@@ -37,12 +37,12 @@ namespace T3Simulator.VLIW.Tests
             ";
             
             var program = assembler.Assemble(asm);
-            proc.LoadProgram(program.Select(x => (Word54)x).ToList());
+            proc.LoadProgram(program.Select(x => Word54.FromInt128(x)).ToList());
             proc.Run();
             
-            Assert.AreEqual(10, proc.GetState().Registers[0]);
-            Assert.AreEqual(20, proc.GetState().Registers[1]);
-            Assert.AreEqual(30, proc.GetState().Registers[2]);
+            Assert.AreEqual((Int128)10, proc.GetState().Registers[0].ToInt128());
+            Assert.AreEqual((Int128)20, proc.GetState().Registers[1].ToInt128());
+            Assert.AreEqual((Int128)30, proc.GetState().Registers[2].ToInt128());
         }
 
         [TestMethod]
@@ -50,7 +50,7 @@ namespace T3Simulator.VLIW.Tests
         public void Test_VLIW_SIMD_VADD3()
         {
             var proc = CreateProcessor();
-            var assembler = new T3AssemblerCore(T3Config.T3_54);
+            var assembler = new T3VliwAssembler(T3Config.T3_54);
             
             // Vector ADD: A = A + B
             // Assuming A and B are initialized with some values
@@ -62,12 +62,12 @@ namespace T3Simulator.VLIW.Tests
             ";
             
             var program = assembler.Assemble(asm);
-            proc.LoadProgram(program.Select(x => (Word54)x).ToList());
+            proc.LoadProgram(program.Select(x => Word54.FromInt128(x)).ToList());
             proc.Run();
             
             // VADD3 for T3-54 works on 3 segments of 18 trits.
             // Since we only set the whole word to 10 and 20, the result should be 30.
-            Assert.AreEqual(30, proc.GetState().Registers[0]);
+            Assert.AreEqual((Int128)30, proc.GetState().Registers[0].ToInt128());
         }
 
         [TestMethod]
@@ -75,7 +75,7 @@ namespace T3Simulator.VLIW.Tests
         public void Test_VLIW_Speculation()
         {
             var proc = CreateProcessor();
-            var assembler = new T3AssemblerCore(T3Config.T3_54);
+            var assembler = new T3VliwAssembler(T3Config.T3_54);
             
             string asm = @"
                 LI A, 10
@@ -86,11 +86,11 @@ namespace T3Simulator.VLIW.Tests
             ";
             
             var program = assembler.Assemble(asm);
-            proc.LoadProgram(program.Select(x => (Word54)x).ToList());
+            proc.LoadProgram(program.Select(x => Word54.FromInt128(x)).ToList());
             proc.Run();
             
             // After ROLLBACK, A should be 10 again
-            Assert.AreEqual(10, proc.GetState().Registers[0]);
+            Assert.AreEqual((Int128)10, proc.GetState().Registers[0].ToInt128());
         }
 
         [TestMethod]
@@ -98,7 +98,7 @@ namespace T3Simulator.VLIW.Tests
         public void Test_VLIW_Speculation_Commit()
         {
             var proc = CreateProcessor();
-            var assembler = new T3AssemblerCore(T3Config.T3_54);
+            var assembler = new T3VliwAssembler(T3Config.T3_54);
             
             string asm = @"
                 LI A, 10
@@ -109,11 +109,11 @@ namespace T3Simulator.VLIW.Tests
             ";
             
             var program = assembler.Assemble(asm);
-            proc.LoadProgram(program.Select(x => (Word54)x).ToList());
+            proc.LoadProgram(program.Select(x => Word54.FromInt128(x)).ToList());
             proc.Run();
             
             // After COMMIT, A should be 20
-            Assert.AreEqual(20, proc.GetState().Registers[0]);
+            Assert.AreEqual((Int128)20, proc.GetState().Registers[0].ToInt128());
         }
     }
 }

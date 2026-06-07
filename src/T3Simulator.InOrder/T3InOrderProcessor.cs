@@ -10,7 +10,7 @@ namespace T3Simulator.InOrder
     /// Sequential in-order implementation of the T3 processor.
     /// Supports both T3-27 and T3-54 configurations.
     /// </summary>
-    public class T3InOrderProcessor<TWord> : ProcessorBase<TWord> where TWord : INumber<TWord>
+    public class T3InOrderProcessor<TWord> : ProcessorBase<TWord> where TWord : IT3Word<TWord>
     {
         public T3InOrderProcessor(T3Config config) : base(config)
         {
@@ -79,21 +79,7 @@ namespace T3Simulator.InOrder
 
         private int GetPredicateFlag(int predIndex)
         {
-            // To extract trits, we temporarily convert the PR (TWord) to a Word type
-            string prStr;
-            if (typeof(TWord) == typeof(long))
-            {
-                prStr = new Word27((long)(object)PR).ToTritString();
-            }
-            else if (typeof(TWord) == typeof(Int128))
-            {
-                prStr = new Word54((Int128)(object)PR).ToTritString();
-            }
-            else
-            {
-                throw new NotSupportedException($"Unsupported word type for predicate evaluation: {typeof(TWord)}");
-            }
-
+            string prStr = PR.ToTritString();
             int start = (predIndex - 1) * 3;
             string flag = prStr.Substring(start, 3);
             
@@ -160,63 +146,41 @@ namespace T3Simulator.InOrder
                     break;
 
                 case Opcode.NEG:
-                    SetRegisterValue(op1, -GetRegisterValue(op1));
+                    SetRegisterValue(op1, (TWord)GetRegisterValue(op1).Negate());
                     IncrementCycles(1);
                     break;
 
                 case Opcode.TRITAND:
-                    TWord valAnd1 = GetRegisterValue(op1);
-                    TWord valAnd2 = GetRegisterValue(op2);
-                    if (typeof(TWord) == typeof(long))
-                        SetRegisterValue(op1, (TWord)(object)((long)Word27.TritAnd(new Word27((long)(object)valAnd1), new Word27((long)(object)valAnd2))));
-                    else
-                        SetRegisterValue(op1, (TWord)(object)((Int128)Word54.TritAnd(new Word54((Int128)(object)valAnd1), new Word54((Int128)(object)valAnd2))));
+                    SetRegisterValue(op1, T3Alu.TritAnd(GetRegisterValue(op1), GetRegisterValue(op2)));
                     IncrementCycles(1);
                     break;
                 
                 case Opcode.TRITOR:
-                    TWord valOr1 = GetRegisterValue(op1);
-                    TWord valOr2 = GetRegisterValue(op2);
-                    if (typeof(TWord) == typeof(long))
-                        SetRegisterValue(op1, (TWord)(object)((long)Word27.TritOr(new Word27((long)(object)valOr1), new Word27((long)(object)valOr2))));
-                    else
-                        SetRegisterValue(op1, (TWord)(object)((Int128)Word54.TritOr(new Word54((Int128)(object)valOr1), new Word54((Int128)(object)valOr2))));
+                    SetRegisterValue(op1, T3Alu.TritOr(GetRegisterValue(op1), GetRegisterValue(op2)));
                     IncrementCycles(1);
                     break;
                 
                 case Opcode.TRITXOR:
-                    TWord valXor1 = GetRegisterValue(op1);
-                    TWord valXor2 = GetRegisterValue(op2);
-                    if (typeof(TWord) == typeof(long))
-                        SetRegisterValue(op1, (TWord)(object)((long)Word27.TritXor(new Word27((long)(object)valXor1), new Word27((long)(object)valXor2))));
-                    else
-                        SetRegisterValue(op1, (TWord)(object)((Int128)Word54.TritXor(new Word54((Int128)(object)valXor1), new Word54((Int128)(object)valXor2))));
+                    SetRegisterValue(op1, T3Alu.TritXor(GetRegisterValue(op1), GetRegisterValue(op2)));
                     IncrementCycles(1);
                     break;
                 
                 case Opcode.SHL:
                     TWord valShl = GetRegisterValue(op1);
-                    int shiftL = (int)Convert.ToInt32(GetRegisterValue(op2));
-                    if (typeof(TWord) == typeof(long))
-                        SetRegisterValue(op1, (TWord)(object)((long)(new Word27((long)(object)valShl) << shiftL)));
-                    else
-                        SetRegisterValue(op1, (TWord)(object)((Int128)(new Word54((Int128)(object)valShl) << shiftL)));
+                    int shiftL = (int)GetRegisterValue(op2).ToInt128();
+                    SetRegisterValue(op1, T3Alu.ShiftLeft(valShl, shiftL));
                     IncrementCycles(1);
                     break;
                 
                 case Opcode.SHR:
                     TWord valShr = GetRegisterValue(op1);
-                    int shiftR = (int)Convert.ToInt32(GetRegisterValue(op2));
-                    if (typeof(TWord) == typeof(long))
-                        SetRegisterValue(op1, (TWord)(object)((long)(new Word27((long)(object)valShr) >> shiftR)));
-                    else
-                        SetRegisterValue(op1, (TWord)(object)((Int128)(new Word54((Int128)(object)valShr) >> shiftR)));
+                    int shiftR = (int)GetRegisterValue(op2).ToInt128();
+                    SetRegisterValue(op1, T3Alu.ShiftRight(valShr, shiftR));
                     IncrementCycles(1);
                     break;
 
                 case Opcode.CMP:
-                    TWord diff = GetRegisterValue(op1) - GetRegisterValue(op2);
-                    Cond = diff > TWord.Zero ? 1 : (diff < TWord.Zero ? -1 : 0);
+                    Cond = T3Alu.Compare(GetRegisterValue(op1), GetRegisterValue(op2));
                     IncrementCycles(1);
                     break;
 

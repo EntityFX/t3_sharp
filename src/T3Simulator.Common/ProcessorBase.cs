@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
+using TritTypes;
 
 namespace T3Simulator.Common
 {
     /// <summary>
     /// Abstract base class for T3 processors.
     /// </summary>
-    public abstract class ProcessorBase<TWord> : IT3Processor<TWord>
+    public abstract class ProcessorBase<TWord> : IT3Processor<TWord> where TWord : IT3Word<TWord>
     {
         protected TWord[] Registers = new TWord[27];
         protected TWord PR;
@@ -97,16 +98,12 @@ namespace T3Simulator.Common
 
         protected TWord FromLong(long value)
         {
-            if (typeof(TWord) == typeof(long)) return (TWord)(object)value;
-            if (typeof(TWord) == typeof(Int128)) return (TWord)(object)(Int128)value;
-            throw new NotSupportedException($"Unsupported word type: {typeof(TWord)}");
+            return (TWord)TWord.FromLong(value);
         }
 
         protected long ToLong(TWord value)
         {
-            if (typeof(TWord) == typeof(long)) return (long)(object)value;
-            if (typeof(TWord) == typeof(Int128)) return (long)(Int128)(object)value;
-            throw new NotSupportedException($"Unsupported word type: {typeof(TWord)}");
+            return (long)value.ToInt128();
         }
 
         public TWord ReadWord(long address)

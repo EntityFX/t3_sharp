@@ -17,8 +17,8 @@ namespace T3Simulator.InOrder.Tests
         public void MatrixMultiplication_IntegrationTest()
         {
             // 1. Setup Assembler and Processor
-            var assembler = new T3AssemblerCore(T3Config.T3_27);
-            var processor = new T3InOrderProcessor<long>(T3Config.T3_27);
+            var assembler = new T3InOrderAssembler(T3Config.T3_27);
+            var processor = new T3InOrderProcessor<Word27>(T3Config.T3_27);
 
             // 2. Load the matrix multiplication assembly code
             // We use a more robust path discovery to find the src directory from the test execution folder
@@ -46,7 +46,7 @@ namespace T3Simulator.InOrder.Tests
             }
 
             string source = File.ReadAllText(asmPath);
-            List<long> machineCode = assembler.Assemble(source);
+            var machineCode = assembler.Assemble(source).Select(x => Word27.FromLong((long)x)).ToList();
             processor.LoadProgram(machineCode);
 
             // 3. Execute the program
@@ -67,13 +67,13 @@ namespace T3Simulator.InOrder.Tests
             
             for (int i = 0; i < 4; i++)
             {
-                long actual = processor.ReadWord(addrC + i);
-                if (actual != expectedC[i])
+                Word27 actual = processor.ReadWord(addrC + i);
+                if (actual.ToLong() != expectedC[i])
                 {
                     string state = T3Simulator.Common.T3StateDumper.Dump(processor.GetState());
                     Console.WriteLine($"Failure at index {addrC + i}: Expected {expectedC[i]}, Got {actual}");
                     Console.WriteLine(state);
-                    Assert.AreEqual(expectedC[i], actual, $"Value at memory index {addrC + i} should be {expectedC[i]}, but was {actual}");
+                    Assert.AreEqual(expectedC[i], actual.ToLong(), $"Value at memory index {addrC + i} should be {expectedC[i]}, but was {actual}");
                 }
             }
 

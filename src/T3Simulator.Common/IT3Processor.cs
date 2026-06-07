@@ -1,11 +1,12 @@
 using System.Collections.Generic;
+using TritTypes;
 
 namespace T3Simulator.Common
 {
     /// <summary>
     /// Core interface for T3 Ternary Processor simulators.
     /// </summary>
-    public interface IT3Processor<TWord>
+    public interface IT3Processor<TWord> where TWord : IT3Word<TWord>
     {
         /// <summary>
         /// Loads a program into processor memory.

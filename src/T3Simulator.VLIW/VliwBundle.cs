@@ -9,13 +9,13 @@ namespace T3Simulator.VLIW
     /// Represents a VLIW bundle consisting of three 18-trit slots.
     /// A bundle is packed into a single Word54.
     /// </summary>
-    public readonly struct VliwBundle
+    public readonly struct VliwBundle<TWord> where TWord : IT3Word<TWord>
     {
-        public readonly VliwSlot Slot0;
-        public readonly VliwSlot Slot1;
-        public readonly VliwSlot Slot2;
+        public readonly VliwSlot<TWord> Slot0;
+        public readonly VliwSlot<TWord> Slot1;
+        public readonly VliwSlot<TWord> Slot2;
 
-        public VliwBundle(VliwSlot s0, VliwSlot s1, VliwSlot s2)
+        public VliwBundle(VliwSlot<TWord> s0, VliwSlot<TWord> s1, VliwSlot<TWord> s2)
         {
             Slot0 = s0;
             Slot1 = s1;
@@ -25,9 +25,9 @@ namespace T3Simulator.VLIW
         /// <summary>
         /// Decodes a Word54 into a VLIW bundle.
         /// </summary>
-        public static VliwBundle Decode(Word54 word)
+        public static VliwBundle<TWord> Decode(TWord word)
         {
-            // Word54 is 54 trits. Each slot is 18 trits.
+            // Word is converted to trit string. Each slot is 18 trits.
             // 18 * 3 = 54.
             string s = word.ToTritString();
             
@@ -35,10 +35,10 @@ namespace T3Simulator.VLIW
             string s1 = s.Substring(18, 18);
             string s2 = s.Substring(36, 18);
 
-            return new VliwBundle(
-                new VliwSlot(InstructionDecoder.DecodeVliwSlot<Word54>(s0)),
-                new VliwSlot(InstructionDecoder.DecodeVliwSlot<Word54>(s1)),
-                new VliwSlot(InstructionDecoder.DecodeVliwSlot<Word54>(s2))
+            return new VliwBundle<TWord>(
+                new VliwSlot<TWord>(InstructionDecoder.DecodeVliwSlot<TWord>(s0)),
+                new VliwSlot<TWord>(InstructionDecoder.DecodeVliwSlot<TWord>(s1)),
+                new VliwSlot<TWord>(InstructionDecoder.DecodeVliwSlot<TWord>(s2))
             );
         }
     }

@@ -9,7 +9,7 @@ namespace TritTypes
     /// Stored as Int128.
     /// </summary>
     [DebuggerDisplay("{ToTritString()}")]
-    public readonly struct Word54 : IEquatable<Word54>
+    public readonly struct Word54 : IEquatable<Word54>, IT3Word<Word54>
     {
         private readonly Int128 _value;
 
@@ -26,7 +26,12 @@ namespace TritTypes
 
         public Int128 ToInt128() => _value;
 
+        public static Word54 FromLong(long value) => new Word54((Int128)value);
         public static Word54 FromInt128(Int128 value) => new Word54(value);
+
+        static Word54 IT3Word<Word54>.FromLong(long value) => FromLong(value);
+        static Word54 IT3Word<Word54>.FromInt128(Int128 value) => FromInt128(value);
+        public static Word54 Zero => new Word54(0);
 
         /// <summary>
         /// Returns the balanced ternary string representation (54 characters: '-', '0', '+').
@@ -97,6 +102,8 @@ namespace TritTypes
             return new Word54(result);
         }
         public static Word54 operator -(Word54 t) => new Word54(-t._value);
+
+        public Word54 Negate() => -this;
 
         // Shift operators
         public static Word54 operator <<(Word54 t, int shift)
@@ -176,8 +183,9 @@ namespace TritTypes
         }
 
         // Comparison
-        public override bool Equals(object? obj) => obj is Word54 other && _value == other._value;
+        public override bool Equals(object? obj) => obj is Word54 other && ToInt128() == other.ToInt128();
         public bool Equals(Word54 other) => _value == other._value;
+        public bool Equals(IT3Word<Word54> other) => ToInt128() == other.ToInt128();
         public override int GetHashCode() => _value.GetHashCode();
 
         public static bool operator ==(Word54 left, Word54 right) => left._value == right._value;

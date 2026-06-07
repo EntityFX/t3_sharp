@@ -11,13 +11,13 @@ namespace T3Simulator.InOrder.Tests
     [TestClass]
     public class T3AdvancedTests
     {
-        private long Encode(int opcode, int op1, long op2, int pred = 0)
+        private Word27 Encode(int opcode, int op1, long op2, int pred = 0)
         {
             long fullOpcode = pred * 45 + opcode;
             string sOp = ToBalancedTernary(fullOpcode, 6);
             string sOp1 = ToBalancedTernary(op1, 9);
             string sOp2 = ToBalancedTernary(op2, 9);
-            return BalancedTernary.ParseToLong(sOp + sOp1 + sOp2 + "000");
+            return Word27.FromLong(BalancedTernary.ParseToLong(sOp + sOp1 + sOp2 + "000"));
         }
 
         private string ToBalancedTernary(long value, int digits)
@@ -28,12 +28,12 @@ namespace T3Simulator.InOrder.Tests
             return s;
         }
 
-        private T3InOrderProcessor<long> CreateProcessor()
+        private T3InOrderProcessor<Word27> CreateProcessor()
         {
-            return new T3InOrderProcessor<long>(T3Config.T3_27);
+            return new T3InOrderProcessor<Word27>(T3Config.T3_27);
         }
 
-        private Int128 EncodeInt128(int opcode, int op1, Int128 op2, int pred = 0)
+        private Word54 EncodeInt128(int opcode, int op1, Int128 op2, int pred = 0)
         {
             long fullOpcode = pred * 45 + opcode;
             string sOp = ToBalancedTernary(fullOpcode, 6);
@@ -44,7 +44,7 @@ namespace T3Simulator.InOrder.Tests
             
             string instruction = sOp + sOp1 + sOp2 + "000";
             string word = instruction.PadLeft(54, '0');
-            return TritTypes.BalancedTernary.ParseToInt128(word);
+            return Word54.FromInt128(TritTypes.BalancedTernary.ParseToInt128(word));
         }
 
         [TestMethod]
@@ -57,7 +57,7 @@ namespace T3Simulator.InOrder.Tests
             // Result C[0..2] = {5, 7, 9}
             // Addresses: A=100, B=110, C=120
             
-            List<long> program = new List<long>();
+            List<Word27> program = new List<Word27>();
             // R0: ptrA, R1: ptrB, R2: ptrC, R3: count, R4: valA, R5: valB, R6: index, R7: loop_start, R8: end_addr
             program.Add(Encode(4, 0, 100)); // 0
             program.Add(Encode(4, 1, 110)); // 1
@@ -99,7 +99,7 @@ namespace T3Simulator.InOrder.Tests
             proc.Reset();
             
             // Verify results: mem[120]=5, mem[121]=7, mem[122]=9
-            List<long> verifyProg = new List<long>();
+            List<Word27> verifyProg = new List<Word27>();
             verifyProg.Add(Encode(4, 0, 120)); // R0 = 120
             verifyProg.Add(Encode(1, 1, 0));   // R1 = mem[120]
             verifyProg.Add(Encode(4, 0, 121)); // R0 = 121
@@ -134,7 +134,7 @@ namespace T3Simulator.InOrder.Tests
             //   MOV A, E
             //   RET
             
-            List<long> program = new List<long>();
+            List<Word27> program = new List<Word27>();
             program.Add(Encode(4, 0, 5));  // 0: A = 5
             program.Add(Encode(4, 1, 4));  // 1: R1 = 4 (addr of func)
             program.Add(Encode(24, 1, 0)); // 2: CALL R1
@@ -158,14 +158,14 @@ namespace T3Simulator.InOrder.Tests
         public void Test_T3_54_Int128()
         {
             // Test with T3-54 and Int128
-            var proc = new T3InOrderProcessor<Int128>(T3Config.T3_54);
+            var proc = new T3InOrderProcessor<Word54>(T3Config.T3_54);
             
-            List<Int128> program = new List<Int128>();
+            List<Word54> program = new List<Word54>();
             
             // LIMM A, 3^20
             Int128 val = (Int128)Math.Pow(3, 20);
             program.Add(EncodeInt128(5, 0, 0)); // LIMM A, [next]
-            program.Add(val);                   // The value itself
+            program.Add(Word54.FromInt128(val)); // The value itself
             program.Add(EncodeInt128(4, 1, 2)); // LI B, 2
             program.Add(EncodeInt128(8, 0, 1)); // MUL A, B -> 3^20 * 2
             program.Add(EncodeInt128(0, 0, 0)); // HALT
@@ -173,7 +173,7 @@ namespace T3Simulator.InOrder.Tests
             proc.LoadProgram(program);
             proc.Run();
             
-            Assert.AreEqual(val * 2, proc.GetState().Registers[0]);
+            Assert.AreEqual(val * 2, proc.GetState().Registers[0].ToInt128());
         }
 
         [TestMethod]
@@ -181,7 +181,7 @@ namespace T3Simulator.InOrder.Tests
         public void Test_NestedBranching()
         {
             var proc = CreateProcessor();
-            var assembler = new T3AssemblerCore(T3Config.T3_27);
+            var assembler = new T3InOrderAssembler(T3Config.T3_27);
             
             // if (A > 0) { if (B > 0) C = 1 else C = 2 } else C = 3
             string asm = @"
@@ -208,7 +208,7 @@ namespace T3Simulator.InOrder.Tests
                 HALT
             ";
             
-            var program = assembler.Assemble(asm);
+            var program = assembler.Assemble(asm).Select(x => Word27.FromLong((long)x)).ToList();
             proc.LoadProgram(program);
             proc.Run();
             Assert.AreEqual(1, proc.GetState().Registers[2]); // A=1, B=1 -> C=1
@@ -219,7 +219,7 @@ namespace T3Simulator.InOrder.Tests
         public void Test_DoubleLoop()
         {
             var proc = CreateProcessor();
-            var assembler = new T3AssemblerCore(T3Config.T3_27);
+            var assembler = new T3InOrderAssembler(T3Config.T3_27);
             
             // Double loop to calculate sum of i+j for i=0..2, j=0..2
             // res = sum(i+j) = 0+0 + 0+1 + 0+2 + 1+0 + 1+1 + 1+2 + 2+0 + 2+1 + 2+2 = 18
@@ -280,7 +280,7 @@ namespace T3Simulator.InOrder.Tests
                 HALT
             ";
             
-            var program = assembler.Assemble(asmFixed);
+            var program = assembler.Assemble(asmFixed).Select(x => Word27.FromLong((long)x)).ToList();
             proc.LoadProgram(program);
             proc.Run();
             Assert.AreEqual(18, proc.GetState().Registers[0]);

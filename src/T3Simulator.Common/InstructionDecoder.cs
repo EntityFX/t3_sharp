@@ -11,32 +11,10 @@ namespace T3Simulator.Common
         /// <summary>
         /// Generic entry point to decode a word into an instruction.
         /// </summary>
-        public static Instruction<TWord> Decode<TWord>(TWord word)
+        public static Instruction<TWord> Decode<TWord>(TWord word) where TWord : IT3Word<TWord>
         {
-            if (typeof(TWord) == typeof(long))
-            {
-                long val = (long)(object)word;
-                var (opcode, pred, op1, op2) = DecodeRaw(new Word27(val).ToTritString());
-                return (Instruction<TWord>)(object)new Instruction<long>((Opcode)opcode, pred, op1, op2);
-            }
-            if (typeof(TWord) == typeof(Int128))
-            {
-                Int128 val = (Int128)(object)word;
-                var (opcode, pred, op1, op2) = DecodeRaw(new Word54(val).ToTritString());
-                return (Instruction<TWord>)(object)new Instruction<Int128>((Opcode)opcode, pred, op1, op2);
-            }
-            if (word is Word27 w27)
-            {
-                var (opcode, pred, op1, op2) = DecodeRaw(w27.ToTritString());
-                return (Instruction<TWord>)(object)new Instruction<Word27>((Opcode)opcode, pred, op1, op2);
-            }
-            if (word is Word54 w54)
-            {
-                var (opcode, pred, op1, op2) = DecodeRaw(w54.ToTritString());
-                return (Instruction<TWord>)(object)new Instruction<Word54>((Opcode)opcode, pred, op1, op2);
-            }
-
-            throw new NotSupportedException($"Unsupported word type: {typeof(TWord)}");
+            var (opcode, pred, op1, op2) = DecodeRaw(word.ToTritString());
+            return new Instruction<TWord>((Opcode)opcode, pred, TWord.FromLong(op1), TWord.FromLong(op2));
         }
 
         private static (int opcode, int pred, long op1, long op2) DecodeRaw(string s)
@@ -78,7 +56,7 @@ namespace T3Simulator.Common
         /// <summary>
         /// Decodes a VLIW slot (18 trits) into a generic Instruction.
         /// </summary>
-        public static Instruction<TWord> DecodeVliwSlot<TWord>(string slotTritString)
+        public static Instruction<TWord> DecodeVliwSlot<TWord>(string slotTritString) where TWord : IT3Word<TWord>
         {
             if (slotTritString.Length != 18)
                 throw new ArgumentException("VLIW slot must be 18 trits");
@@ -94,26 +72,7 @@ namespace T3Simulator.Common
             int predIndex = (int)(fullOpcodeVal / 28);
             int baseOpcode = (int)(fullOpcodeVal % 28);
 
-            if (typeof(TWord) == typeof(Word27))
-            {
-                return (Instruction<TWord>)(object)new Instruction<Word27>(
-                    (Opcode)baseOpcode,
-                    predIndex,
-                    op1Val,
-                    op2Val
-                );
-            }
-            if (typeof(TWord) == typeof(Word54))
-            {
-                return (Instruction<TWord>)(object)new Instruction<Word54>(
-                    (Opcode)baseOpcode,
-                    predIndex,
-                    op1Val,
-                    op2Val
-                );
-            }
-
-            throw new NotSupportedException($"Unsupported word type for VLIW decoding: {typeof(TWord)}");
+            return new Instruction<TWord>((Opcode)baseOpcode, predIndex, TWord.FromLong(op1Val), TWord.FromLong(op2Val));
         }
     }
 }
