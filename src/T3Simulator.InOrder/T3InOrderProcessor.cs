@@ -103,9 +103,8 @@ namespace T3Simulator.InOrder
         private void ExecuteInstruction(Instruction<TWord> instr)
         {
             // Get operands (logical register indices or immediates)
-            // Since TWord is INumber, we cast to long for register indexing
-            int op1 = (int)Convert.ToInt32(instr.Operand1);
-            int op2 = (int)Convert.ToInt32(instr.Operand2);
+            int op1 = (int)ToLong(instr.Operand1);
+            int op2 = (int)ToLong(instr.Operand2);
 
             switch (instr.Opcode)
             {
@@ -120,13 +119,13 @@ namespace T3Simulator.InOrder
                     break;
 
                 case Opcode.LOAD:
-                    long addrLoad = (long)Convert.ToInt64(GetRegisterValue(op2));
+                    long addrLoad = ToLong(GetRegisterValue(op2));
                     SetRegisterValue(op1, ReadWord(addrLoad));
                     IncrementCycles(2);
                     break;
 
                 case Opcode.STORE:
-                    long addrStore = (long)Convert.ToInt64(GetRegisterValue(op2));
+                    long addrStore = ToLong(GetRegisterValue(op2));
                     WriteWord(addrStore, GetRegisterValue(op1));
                     IncrementCycles(2);
                     break;
@@ -222,36 +221,36 @@ namespace T3Simulator.InOrder
                     break;
 
                 case Opcode.JMP:
-                    PC = (long)Convert.ToInt64(GetRegisterValue(op1));
+                    PC = ToLong(GetRegisterValue(op1));
                     IncrementCycles(1);
                     break;
 
                 case Opcode.JE:
-                    if (Cond == 0) PC = (long)Convert.ToInt64(GetRegisterValue(op1));
+                    if (Cond == 0) PC = ToLong(GetRegisterValue(op1));
                     else PC++;
                     IncrementCycles(Cond == 0 ? 2 : 1);
                     break;
 
                 case Opcode.JNE:
-                    if (Cond != 0) PC = (long)Convert.ToInt64(GetRegisterValue(op1));
+                    if (Cond != 0) PC = ToLong(GetRegisterValue(op1));
                     else PC++;
                     IncrementCycles(Cond != 0 ? 2 : 1);
                     break;
 
                 case Opcode.JL:
-                    if (Cond < 0) PC = (long)Convert.ToInt64(GetRegisterValue(op1));
+                    if (Cond < 0) PC = ToLong(GetRegisterValue(op1));
                     else PC++;
                     IncrementCycles(Cond < 0 ? 2 : 1);
                     break;
 
                 case Opcode.JG:
-                    if (Cond > 0) PC = (long)Convert.ToInt64(GetRegisterValue(op1));
+                    if (Cond > 0) PC = ToLong(GetRegisterValue(op1));
                     else PC++;
                     IncrementCycles(Cond > 0 ? 2 : 1);
                     break;
 
                 case Opcode.JM:
-                    if (Cond == 0) PC = (long)Convert.ToInt64(GetRegisterValue(op1));
+                    if (Cond == 0) PC = ToLong(GetRegisterValue(op1));
                     else PC++;
                     IncrementCycles(Cond == 0 ? 2 : 1);
                     break;
@@ -259,16 +258,16 @@ namespace T3Simulator.InOrder
                 case Opcode.CALL:
                     TWord targetPC = GetRegisterValue(op1);
                     SP -= 2;
-                    WriteWord(SP, (TWord)Convert.ChangeType(PC + 1, typeof(TWord)));
-                    WriteWord(SP + 1, (TWord)Convert.ChangeType(WP, typeof(TWord)));
+                    WriteWord(SP, FromLong(PC + 1));
+                    WriteWord(SP + 1, FromLong(WP));
                     WP = (int)RegisterWindow.CalculateNextWp(WP);
-                    PC = (long)Convert.ToInt64(targetPC);
+                    PC = ToLong(targetPC);
                     IncrementCycles(2);
                     break;
 
                 case Opcode.RET:
-                    PC = (long)Convert.ToInt64(ReadWord(SP));
-                    WP = (int)Convert.ToInt32(ReadWord(SP + 1));
+                    PC = ToLong(ReadWord(SP));
+                    WP = (int)ToLong(ReadWord(SP + 1));
                     SP += 2;
                     IncrementCycles(2);
                     break;
@@ -286,24 +285,24 @@ namespace T3Simulator.InOrder
                     break;
 
                 case Opcode.IN:
-                    long portIn = (long)Convert.ToInt64(GetRegisterValue(op2));
+                    long portIn = ToLong(GetRegisterValue(op2));
                     SetRegisterValue(op1, DeviceManager.Read(portIn));
                     IncrementCycles(2);
                     break;
 
                 case Opcode.OUT:
-                    long portOut = (long)Convert.ToInt64(GetRegisterValue(op2));
+                    long portOut = ToLong(GetRegisterValue(op2));
                     DeviceManager.Write(portOut, GetRegisterValue(op1));
                     IncrementCycles(2);
                     break;
 
                 case Opcode.INI:
-                    SetRegisterValue(op1, DeviceManager.Read(Convert.ToInt64(instr.Operand2)));
+                    SetRegisterValue(op1, DeviceManager.Read(ToLong(instr.Operand2)));
                     IncrementCycles(2);
                     break;
 
                 case Opcode.OUTI:
-                    DeviceManager.Write(Convert.ToInt64(instr.Operand2), GetRegisterValue(op1));
+                    DeviceManager.Write(ToLong(instr.Operand2), GetRegisterValue(op1));
                     IncrementCycles(2);
                     break;
 

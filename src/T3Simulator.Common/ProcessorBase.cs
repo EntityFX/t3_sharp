@@ -95,12 +95,26 @@ namespace T3Simulator.Common
         protected void IncrementInstructions() => _instructionCount++;
         protected void IncrementStalls() => _stallCount++;
 
+        protected TWord FromLong(long value)
+        {
+            if (typeof(TWord) == typeof(long)) return (TWord)(object)value;
+            if (typeof(TWord) == typeof(Int128)) return (TWord)(object)(Int128)value;
+            throw new NotSupportedException($"Unsupported word type: {typeof(TWord)}");
+        }
+
+        protected long ToLong(TWord value)
+        {
+            if (typeof(TWord) == typeof(long)) return (long)(object)value;
+            if (typeof(TWord) == typeof(Int128)) return (long)(Int128)(object)value;
+            throw new NotSupportedException($"Unsupported word type: {typeof(TWord)}");
+        }
+
         public TWord ReadWord(long address)
         {
-            if (address == Memory<TWord>.ADDR_CYCLE_LOW) return (TWord)Convert.ChangeType((long)(_cycleCount & 0xFFFFFFFF), typeof(TWord));
-            if (address == Memory<TWord>.ADDR_CYCLE_HIGH) return (TWord)Convert.ChangeType((long)(_cycleCount >> 32), typeof(TWord));
-            if (address == Memory<TWord>.ADDR_INST_COUNT) return (TWord)Convert.ChangeType(_instructionCount, typeof(TWord));
-            if (address == Memory<TWord>.ADDR_STALL_COUNT) return (TWord)Convert.ChangeType(_stallCount, typeof(TWord));
+            if (address == Memory<TWord>.ADDR_CYCLE_LOW) return FromLong(_cycleCount & 0xFFFFFFFF);
+            if (address == Memory<TWord>.ADDR_CYCLE_HIGH) return FromLong(_cycleCount >> 32);
+            if (address == Memory<TWord>.ADDR_INST_COUNT) return FromLong(_instructionCount);
+            if (address == Memory<TWord>.ADDR_STALL_COUNT) return FromLong(_stallCount);
 
             return Memory.Read(address);
         }

@@ -67,7 +67,13 @@ namespace T3Simulator.InOrder.Tests
             for (int i = 0; i < 4; i++)
             {
                 long actual = processor.ReadWord(addrC + i);
-                Assert.AreEqual(expectedC[i], actual, $"Value at memory index {addrC + i} should be {expectedC[i]}, but was {actual}");
+                if (actual != expectedC[i])
+                {
+                    string state = T3Simulator.Common.T3StateDumper.Dump(processor.GetState());
+                    Console.WriteLine($"Failure at index {addrC + i}: Expected {expectedC[i]}, Got {actual}");
+                    Console.WriteLine(state);
+                    Assert.AreEqual(expectedC[i], actual, $"Value at memory index {addrC + i} should be {expectedC[i]}, but was {actual}");
+                }
             }
 
             Assert.IsFalse(processor.Step(), "Processor should have halted.");

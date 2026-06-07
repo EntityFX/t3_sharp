@@ -10,9 +10,10 @@ namespace T3Simulator.InOrder.Tests
     [TestClass]
     public class InOrderInstructionTests
     {
-        private long Encode(int opcode, int op1, long op2)
+        private long Encode(int opcode, int op1, long op2, int pred = 0)
         {
-            string sOp = ToBalancedTernary(opcode, 6);
+            long fullOpcode = pred * 45 + opcode;
+            string sOp = ToBalancedTernary(fullOpcode, 6);
             string sOp1 = ToBalancedTernary(op1, 9);
             string sOp2 = ToBalancedTernary(op2, 9);
             return BalancedTernary.ParseToLong(sOp + sOp1 + sOp2 + "000");
@@ -399,6 +400,102 @@ namespace T3Simulator.InOrder.Tests
             proc.LoadProgram(program);
             proc.Run();
             Assert.AreEqual(10, proc.GetState().Registers[0]);
+        }
+
+        [TestMethod]
+        public void Test_LIMM()
+        {
+            var proc = CreateProcessor();
+            var program = new List<long>
+            {
+                Encode(5, 0, 0), // LIMM A, [next]
+                12345,           // Immediate value
+                Encode(0, 0, 0)   // HALT
+            };
+            proc.LoadProgram(program);
+            proc.Run();
+            Assert.AreEqual(12345, proc.GetState().Registers[0]);
+        }
+
+        [TestMethod]
+        public void Test_LOAD_STORE()
+        {
+            var proc = CreateProcessor();
+            var program = new List<long>
+            {
+                Encode(4, 0, 100), // LI A, 100
+                Encode(4, 1, 50),  // LI B, 50
+                Encode(2, 0, 1),   // STORE A, B (mem[50] = 100)
+                Encode(4, 0, 0),   // LI A, 0 (clear A)
+                Encode(1, 0, 1),   // LOAD A, B (A = mem[50])
+                Encode(0, 0, 0)    // HALT
+            };
+            proc.LoadProgram(program);
+            proc.Run();
+            Assert.AreEqual(100, proc.GetState().Registers[0]);
+        }
+
+        [TestMethod]
+        public void Test_IO_Basic()
+        {
+            var proc = CreateProcessor();
+            var program = new List<long>
+            {
+                Encode(4, 0, 5),    // LI A, 5 (port)
+                Encode(4, 1, 42),   // LI B, 42 (value)
+                Encode(42, 1, 0),   // OUT B, A (port 5 = 42)
+                Encode(0, 0, 0)     // HALT
+            };
+            
+            // Setup a mock device
+            var mockDevice = new MockDevice(42); 
+            proc.SetOutputDevice(5, mockDevice);
+
+            proc.LoadProgram(program);
+            proc.Run();
+            Assert.AreEqual(42, mockDevice.LastWrittenValue);
+        }
+
+        [TestMethod]
+        public void Test_T3_54_Int128()
+        {
+            // Test with T3-54 and Int128
+            var proc = new T3InOrderProcessor<Int128>(T3Config.T3_54);
+            
+            List<Int128> program = new List<Int128>();
+            
+            // Use LI instead of LIMM to isolate the problem
+            program.Add(EncodeInt128(4, 0, 100)); // LI A, 100
+            program.Add(EncodeInt128(4, 1, 2));   // LI B, 2
+            program.Add(EncodeInt128(8, 0, 1));   // MUL A, B -> 200
+            program.Add(EncodeInt128(0, 0, 0));   // HALT
+            
+            proc.LoadProgram(program);
+            proc.Run();
+            
+            Assert.AreEqual((Int128)200, proc.GetState().Registers[0]);
+        }
+
+        private Int128 EncodeInt128(int opcode, int op1, Int128 op2, int pred = 0)
+        {
+            long fullOpcode = pred * 45 + opcode;
+            string sOp = ToBalancedTernary(fullOpcode, 6);
+            string sOp1 = ToBalancedTernary(op1, 9);
+            string sOp2 = TritTypes.BalancedTernary.ToTernaryString(op2, 9);
+            // For T3-54, the word is 54 trits. We pad the 27-trit instruction to 54.
+            string instruction = sOp + sOp1 + sOp2 + "000";
+            string word = instruction.PadLeft(54, '0');
+            return TritTypes.BalancedTernary.ParseToInt128(word);
+        }
+
+        private class MockDevice : IDevice<long>
+        {
+            public long LastWrittenValue { get; private set; }
+            private readonly long _initialValue;
+            public MockDevice(long initialValue) => _initialValue = initialValue;
+            public long Read() => _initialValue;
+            public void Write(long value) => LastWrittenValue = value;
+            public bool DataReady => true;
         }
     }
 }

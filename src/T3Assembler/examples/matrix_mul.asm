@@ -38,8 +38,9 @@ loop_k:
     ADD D, H      ; sum += H
     
     ADD E, 1      ; k++
+    LI F, loop_k
     CMP E, A      ; k < N?
-    JL loop_k
+    JL F
     
     ; Store C[i][j] = sum
     ; index_C = i * N + j
@@ -52,12 +53,14 @@ loop_k:
     STORE D, F    ; C[i][j] = sum
     
     ADD C, 1      ; j++
+    LI F, loop_j
     CMP C, A      ; j < N?
-    JL loop_j
+    JL F
     
     ADD B, 1      ; i++
+    LI F, loop_i
     CMP B, A      ; i < N?
-    JL loop_i
+    JL F
     
     HALT
 

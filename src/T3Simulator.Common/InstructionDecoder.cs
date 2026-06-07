@@ -41,6 +41,11 @@ namespace T3Simulator.Common
 
         private static (int opcode, int pred, long op1, long op2) DecodeRaw(string s)
         {
+            if (s.Length > 27)
+            {
+                s = s.Substring(s.Length - 27);
+            }
+
             string opPart = s.Substring(0, 6);
             string op1Part = s.Substring(6, 9);
             string op2Part = s.Substring(15, 9);
@@ -49,8 +54,8 @@ namespace T3Simulator.Common
             long op1Val = BalancedTernary.ParseToLong(op1Part);
             long op2Val = BalancedTernary.ParseToLong(op2Part);
 
-            int predIndex = (int)(fullOpcodeVal / 28);
-            int baseOpcode = (int)(fullOpcodeVal % 28);
+            int predIndex = (int)(fullOpcodeVal / 45);
+            int baseOpcode = (int)(fullOpcodeVal % 45);
 
             if (baseOpcode < 0 || baseOpcode > 44)
                 throw new InvalidOperationException($"Invalid base opcode: {baseOpcode}");
