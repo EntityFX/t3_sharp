@@ -1,9 +1,7 @@
 namespace T3Simulator.Common
 {
     /// <summary>
-    /// Opcodes for the T3 ternary processor.
-    /// Values 0-27 are basic instructions.
-    /// Values 28-44 are VLIW/SIMD instructions.
+    /// Opcodes for the T3 ternary processor (18-trit In-Order).
     /// </summary>
     public enum Opcode
     {
@@ -35,8 +33,32 @@ namespace T3Simulator.Common
         RET = 25,
         PUSH = 26,
         POP = 27,
+
+        // I/O Instructions
+        IN = 41,
+        OUT = 42,
+        INI = 43,
+        OUTI = 44,
         
-        // VLIW / SIMD / Speculation
+        // I-type offsets (base + 64)
+        LOADI = 65,
+        STOREI = 66,
+        MOVI = 67,
+        LI_I = 68, 
+        ADDI = 70,
+        SUBI = 71,
+        MULI = 72,
+        DIVI = 73,
+        MODI = 74,
+        NEGI = 75,
+        TRITANDI = 76,
+        TRITORI = 77,
+        TRITXORI = 78,
+        SHLI = 79,
+        SHRI = 80,
+        CMPI = 81,
+        
+        // VLIW SIMD instructions
         SPEK = 28,
         COMMIT = 29,
         ROLLBACK = 30,
@@ -50,10 +72,7 @@ namespace T3Simulator.Common
         VTRITXOR3 = 38,
         VSHL3 = 39,
         VSHR3 = 40,
-        IN = 41,
-        OUT = 42,
-        INI = 43,
-        OUTI = 44,
+
         NOP = 63
     }
 }

@@ -26,17 +26,17 @@ namespace T3Assembler
             {
                 string source = File.ReadAllText(inputFile);
                 
-                // For now, default to InOrder T3-27. 
+                // For now, default to InOrder T3-18. 
                 // In a real scenario, this would be a CLI argument.
-                T3AssemblerBase assembler = new T3InOrderAssembler(T3Config.T3_27);
+                T3AssemblerBase assembler = new T3InOrderAssembler(T3Config.T3_18);
                 List<Int128> machineCode = assembler.Assemble(source);
 
-                string outputContent = Export(machineCode, format, 27);
+                string outputContent = Export(machineCode, format, 18);
                 File.WriteAllText(outputFile, outputContent);
                 
                 if (format == "binary")
                 {
-                    byte[] binaryData = ConvertToBinaryBytes(machineCode, 27);
+                    byte[] binaryData = ConvertToBinaryBytes(machineCode, 18);
                     File.WriteAllBytes(outputFile, binaryData);
                 }
 

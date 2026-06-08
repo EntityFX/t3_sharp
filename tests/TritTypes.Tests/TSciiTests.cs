@@ -59,20 +59,35 @@ namespace TritTypes.Tests
         }
 
         [TestMethod]
-        public void PrintTSciiTable()
+        public void VerifyAndPrintTSciiTable()
         {
-            Console.WriteLine("TScii Table:");
+            Console.WriteLine("TScii Table Verification:");
             Console.WriteLine("{0,5} | {1,8} | {2,6} | {3,6} | {4}", "V", "Ternary", "0n", "0y", "Char");
             Console.WriteLine(new string('-', 45));
             
+            // Samples from spec for verification
+            var samples = new Dictionary<int, (string ternary, string ninary, string tryx)>
+            {
+                { 65, ("0t0+-++-", "0n1Y2", "0y2B") },   // 'A'
+                { 224, ("0t+0-+0-", "0n3YZ", "0y88") },  // 'а' - FIXED: was "0y9C", now "0y88"
+                { 255, ("0t+00++0", "0n313", "0y9C") },  // 'я' - FIXED: was "0yC1", now "0y9C"
+                { -364, ("0t------", "0nWWW", "0yNN") }  // 'Α'
+            };
+
             for (int v = -364; v <= 364; v++)
             {
                 Int128 val = v;
-                int u = v + 364;
                 string ternary = TScii.ToTritString(val);
                 string ninary = TScii.ToNinary(val);
                 string tryx = TScii.ToTryx(val);
                 char c = TScii.ToChar(val);
+
+                if (samples.TryGetValue(v, out var expected))
+                {
+                    Assert.AreEqual(expected.ternary, ternary, $"Ternary mismatch for V={v}");
+                    Assert.AreEqual(expected.ninary, ninary, $"Ninary mismatch for V={v}");
+                    Assert.AreEqual(expected.tryx, tryx, $"Tryx mismatch for V={v}");
+                }
 
                 Console.WriteLine("{0,5} | {1,8} | {2,6} | {3,6} | {4}", v, ternary, ninary, tryx, c);
             }

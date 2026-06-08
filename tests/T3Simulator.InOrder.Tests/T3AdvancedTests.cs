@@ -11,13 +11,13 @@ namespace T3Simulator.InOrder.Tests
     [TestClass]
     public class T3AdvancedTests
     {
-        private Word27 Encode(int opcode, int op1, long op2, int pred = 0)
+        private Word18 Encode(int opcode, int op1, long op2, int pred = 0)
         {
             long fullOpcode = pred * 45 + opcode;
             string sOp = ToBalancedTernary(fullOpcode, 6);
-            string sOp1 = ToBalancedTernary(op1, 9);
-            string sOp2 = ToBalancedTernary(op2, 9);
-            return Word27.FromLong(BalancedTernary.ParseToLong(sOp + sOp1 + sOp2 + "000"));
+            string sOp1 = ToBalancedTernary(op1, 6);
+            string sOp2 = ToBalancedTernary(op2, 6);
+            return Word18.FromLong(BalancedTernary.ParseToLong(sOp + sOp1 + sOp2));
         }
 
         private string ToBalancedTernary(long value, int digits)
@@ -28,9 +28,9 @@ namespace T3Simulator.InOrder.Tests
             return s;
         }
 
-        private T3InOrderProcessor<Word27> CreateProcessor()
+        private T3InOrderProcessor<Word18> CreateProcessor()
         {
-            return new T3InOrderProcessor<Word27>(T3Config.T3_27);
+            return new T3InOrderProcessor<Word18>(T3Config.T3_18);
         }
 
         private Word54 EncodeInt128(int opcode, int op1, Int128 op2, int pred = 0)
@@ -57,7 +57,7 @@ namespace T3Simulator.InOrder.Tests
             // Result C[0..2] = {5, 7, 9}
             // Addresses: A=100, B=110, C=120
             
-            List<Word27> program = new List<Word27>();
+            List<Word18> program = new List<Word18>();
             // R0: ptrA, R1: ptrB, R2: ptrC, R3: count, R4: valA, R5: valB, R6: index, R7: loop_start, R8: end_addr
             program.Add(Encode(4, 0, 100)); // 0
             program.Add(Encode(4, 1, 110)); // 1
@@ -99,7 +99,7 @@ namespace T3Simulator.InOrder.Tests
             proc.Reset();
             
             // Verify results: mem[120]=5, mem[121]=7, mem[122]=9
-            List<Word27> verifyProg = new List<Word27>();
+            List<Word18> verifyProg = new List<Word18>();
             verifyProg.Add(Encode(4, 0, 120)); // R0 = 120
             verifyProg.Add(Encode(1, 1, 0));   // R1 = mem[120]
             verifyProg.Add(Encode(4, 0, 121)); // R0 = 121
@@ -134,7 +134,7 @@ namespace T3Simulator.InOrder.Tests
             //   MOV A, E
             //   RET
             
-            List<Word27> program = new List<Word27>();
+            List<Word18> program = new List<Word18>();
             program.Add(Encode(4, 0, 5));  // 0: A = 5
             program.Add(Encode(4, 1, 4));  // 1: R1 = 4 (addr of func)
             program.Add(Encode(24, 1, 0)); // 2: CALL R1
@@ -181,7 +181,7 @@ namespace T3Simulator.InOrder.Tests
         public void Test_NestedBranching()
         {
             var proc = CreateProcessor();
-            var assembler = new T3InOrderAssembler(T3Config.T3_27);
+            var assembler = new T3InOrderAssembler(T3Config.T3_18);
             
             // if (A > 0) { if (B > 0) C = 1 else C = 2 } else C = 3
             string asm = @"
@@ -208,7 +208,7 @@ namespace T3Simulator.InOrder.Tests
                 HALT
             ";
             
-            var program = assembler.Assemble(asm).Select(x => Word27.FromLong((long)x)).ToList();
+            var program = assembler.Assemble(asm).Select(x => Word18.FromLong((long)x)).ToList();
             proc.LoadProgram(program);
             proc.Run();
             Assert.AreEqual(1, proc.GetState().Registers[2]); // A=1, B=1 -> C=1
@@ -219,7 +219,7 @@ namespace T3Simulator.InOrder.Tests
         public void Test_DoubleLoop()
         {
             var proc = CreateProcessor();
-            var assembler = new T3InOrderAssembler(T3Config.T3_27);
+            var assembler = new T3InOrderAssembler(T3Config.T3_18);
             
             // Double loop to calculate sum of i+j for i=0..2, j=0..2
             // res = sum(i+j) = 0+0 + 0+1 + 0+2 + 1+0 + 1+1 + 1+2 + 2+0 + 2+1 + 2+2 = 18
@@ -280,7 +280,7 @@ namespace T3Simulator.InOrder.Tests
                 HALT
             ";
             
-            var program = assembler.Assemble(asmFixed).Select(x => Word27.FromLong((long)x)).ToList();
+            var program = assembler.Assemble(asmFixed).Select(x => Word18.FromLong((long)x)).ToList();
             proc.LoadProgram(program);
             proc.Run();
             Assert.AreEqual(18, proc.GetState().Registers[0]);

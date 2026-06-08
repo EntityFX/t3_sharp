@@ -25,7 +25,7 @@ namespace T3Simulator.Common
                 }
                 throw new DeviceStallException(port);
             }
-            return default;
+            return default!;
         }
 
         public void Write(long port, TWord value)

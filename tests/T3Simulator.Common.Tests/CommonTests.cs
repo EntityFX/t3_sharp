@@ -1,6 +1,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using T3Simulator.Common;
 using System.Collections.Generic;
+using TritTypes;
 
 namespace T3Simulator.Common.Tests
 {
@@ -8,17 +9,17 @@ namespace T3Simulator.Common.Tests
     public class CommonTests
     {
         [TestMethod]
-        public void InstructionDecoder_Decode27_ValidInstruction()
+        public void InstructionDecoder_Decode18_ValidInstruction()
         {
             // Test LI A, 10
             // Opcode LI = 4: "0000++" (6 trits)
-            // Op1 A = 0: "000000000" (9 trits)
-            // Op2 10 = 10: "000000+0+" (9 trits)
-            // Total = 24 trits. Add 3 trailing zeros to make it a 27-trit word.
-            string instrTritString = "0000++" + "000000000" + "000000+0+" + "000";
-            long word = TritTypes.BalancedTernary.ParseToLong(instrTritString);
+            // Op1 A = 0: "000000" (6 trits)
+            // Op2 10 = 10: "000+0+" (6 trits)
+            // Total = 18 trits.
+            string instrTritString = "0000++" + "000000" + "000+0+";
+            Word18 word = Word18.Parse(instrTritString);
             
-            var instr = InstructionDecoder.Decode27(word);
+            var instr = InstructionDecoder.Decode18(word);
             
             Assert.AreEqual(Opcode.LI, instr.Opcode);
             Assert.AreEqual(0, instr.PredicateIndex);

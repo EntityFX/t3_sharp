@@ -16,7 +16,7 @@ namespace T3Simulator.CLI
             Console.WriteLine("----------------------------------");
             
             // For simplicity, we use T3-27 In-Order Processor
-            var processor = new T3InOrderProcessor<long>(T3Config.T3_27);
+            var processor = new T3InOrderProcessor<long>(T3Config.T3_18);
             
             // Attach T-SCII output device to port 0 for text output
             processor.SetOutputDevice(0, new TsciiOutputDevice<long>());

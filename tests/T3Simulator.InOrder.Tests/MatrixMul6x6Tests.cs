@@ -18,8 +18,8 @@ namespace T3Simulator.InOrder.Tests
         public void MatrixMultiplication_6x6_InOrder_Test()
         {
             // 1. Setup
-            var assembler = new T3InOrderAssembler(T3Config.T3_27);
-            var processor = new T3InOrderProcessor<Word27>(T3Config.T3_27);
+            var assembler = new T3InOrderAssembler(T3Config.T3_18);
+            var processor = new T3InOrderProcessor<Word18>(T3Config.T3_18);
 
             string asmPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "src", "T3Assembler", "examples", "matrix_mul_6x6_inorder.asm");
             
@@ -43,7 +43,7 @@ namespace T3Simulator.InOrder.Tests
             }
 
             string source = File.ReadAllText(asmPath);
-            var machineCode = assembler.Assemble(source).Select(x => Word27.FromLong((long)x)).ToList();
+            var machineCode = assembler.Assemble(source).Select(x => Word18.FromInt128(x)).ToList();
             processor.LoadProgram(machineCode);
 
             // 2. Execute
@@ -55,7 +55,7 @@ namespace T3Simulator.InOrder.Tests
             
             for (int i = 0; i < 36; i++)
             {
-                Word27 actual = processor.ReadWord(addrC + i);
+                Word18 actual = processor.ReadWord(addrC + i);
                 Assert.AreEqual(6, actual.ToLong(), $"Value at memory index {addrC + i} should be 6, but was {actual}");
             }
 

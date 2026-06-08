@@ -10,13 +10,13 @@ namespace T3Simulator.InOrder.Tests
     [TestClass]
     public class InOrderInstructionTests
     {
-        private Word27 Encode(int opcode, int op1, long op2, int pred = 0)
+        private Word18 Encode(int opcode, int op1, long op2, int pred = 0)
         {
             long fullOpcode = pred * 45 + opcode;
             string sOp = ToBalancedTernary(fullOpcode, 6);
-            string sOp1 = ToBalancedTernary(op1, 9);
-            string sOp2 = ToBalancedTernary(op2, 9);
-            return Word27.FromLong(BalancedTernary.ParseToLong(sOp + sOp1 + sOp2 + "000"));
+            string sOp1 = ToBalancedTernary(op1, 6);
+            string sOp2 = ToBalancedTernary(op2, 6);
+            return Word18.FromLong(BalancedTernary.ParseToLong(sOp + sOp1 + sOp2));
         }
 
         private string ToBalancedTernary(long value, int digits)
@@ -27,9 +27,9 @@ namespace T3Simulator.InOrder.Tests
             return s;
         }
 
-        private T3InOrderProcessor<Word27> CreateProcessor()
+        private T3InOrderProcessor<Word18> CreateProcessor()
         {
-            return new T3InOrderProcessor<Word27>(T3Config.T3_27);
+            return new T3InOrderProcessor<Word18>(T3Config.T3_18);
         }
 
         [TestMethod]
@@ -37,7 +37,7 @@ namespace T3Simulator.InOrder.Tests
         public void Test_ADD()
         {
             var proc = CreateProcessor();
-            var program = new List<Word27>
+            var program = new List<Word18>
             {
                 Encode(4, 0, 10), // LI A, 10
                 Encode(4, 1, 20), // LI B, 20
@@ -54,7 +54,7 @@ namespace T3Simulator.InOrder.Tests
         public void Test_SUB()
         {
             var proc = CreateProcessor();
-            var program = new List<Word27>
+            var program = new List<Word18>
             {
                 Encode(4, 0, 50), // LI A, 50
                 Encode(4, 1, 20), // LI B, 20
@@ -71,7 +71,7 @@ namespace T3Simulator.InOrder.Tests
         public void Test_MUL()
         {
             var proc = CreateProcessor();
-            var program = new List<Word27>
+            var program = new List<Word18>
             {
                 Encode(4, 0, 5),  // LI A, 5
                 Encode(4, 1, 6),  // LI B, 6
@@ -88,7 +88,7 @@ namespace T3Simulator.InOrder.Tests
         public void Test_DIV()
         {
             var proc = CreateProcessor();
-            var program = new List<Word27>
+            var program = new List<Word18>
             {
                 Encode(4, 0, 30), // LI A, 30
                 Encode(4, 1, 4),  // LI B, 4
@@ -105,7 +105,7 @@ namespace T3Simulator.InOrder.Tests
         public void Test_MOD()
         {
             var proc = CreateProcessor();
-            var program = new List<Word27>
+            var program = new List<Word18>
             {
                 Encode(4, 0, 30), // LI A, 30
                 Encode(4, 1, 4),  // LI B, 4
@@ -122,7 +122,7 @@ namespace T3Simulator.InOrder.Tests
         public void Test_NEG()
         {
             var proc = CreateProcessor();
-            var program = new List<Word27>
+            var program = new List<Word18>
             {
                 Encode(4, 0, 15), // LI A, 15
                 Encode(11, 0, 0), // NEG A
@@ -138,7 +138,7 @@ namespace T3Simulator.InOrder.Tests
         public void Test_TRITAND()
         {
             var proc = CreateProcessor();
-            var program = new List<Word27>
+            var program = new List<Word18>
             {
                 Encode(4, 0, 1),  // LI A, 1
                 Encode(4, 1, 0),  // LI B, 0
@@ -155,7 +155,7 @@ namespace T3Simulator.InOrder.Tests
         public void Test_TRITOR()
         {
             var proc = CreateProcessor();
-            var program = new List<Word27>
+            var program = new List<Word18>
             {
                 Encode(4, 0, 1),  // LI A, 1
                 Encode(4, 1, 0),  // LI B, 0
@@ -172,7 +172,7 @@ namespace T3Simulator.InOrder.Tests
         public void Test_TRITXOR()
         {
             var proc = CreateProcessor();
-            var program = new List<Word27>
+            var program = new List<Word18>
             {
                 Encode(4, 0, 1),  // LI A, 1
                 Encode(4, 1, 1),  // LI B, 1
@@ -189,7 +189,7 @@ namespace T3Simulator.InOrder.Tests
         public void Test_SHL()
         {
             var proc = CreateProcessor();
-            var program = new List<Word27>
+            var program = new List<Word18>
             {
                 Encode(4, 0, 2),  // LI A, 2
                 Encode(4, 1, 2),  // LI B, 2 (shift by 2: * 3^2 = * 9)
@@ -206,7 +206,7 @@ namespace T3Simulator.InOrder.Tests
         public void Test_SHR()
         {
             var proc = CreateProcessor();
-            var program = new List<Word27>
+            var program = new List<Word18>
             {
                 Encode(4, 0, 18), // LI A, 18
                 Encode(4, 1, 2),  // LI B, 2 (shift by 2: / 9)
@@ -223,7 +223,7 @@ namespace T3Simulator.InOrder.Tests
         public void Test_CMP_And_Branches()
         {
             var proc = CreateProcessor();
-            List<Word27> program = new List<Word27>();
+            List<Word18> program = new List<Word18>();
             program.Add(Encode(4, 2, 6)); // PC 0: R2 = 6
             program.Add(Encode(4, 0, 10)); // PC 1: A = 10
             program.Add(Encode(4, 1, 20)); // PC 2: B = 20
@@ -242,7 +242,7 @@ namespace T3Simulator.InOrder.Tests
         public void Test_Loop_Sum()
         {
             var proc = CreateProcessor();
-            List<Word27> program = new List<Word27>();
+            List<Word18> program = new List<Word18>();
             program.Add(Encode(4, 0, 0)); // 0: R0 = 0
             program.Add(Encode(4, 1, 1)); // 1: R1 = 1
             program.Add(Encode(4, 2, 6)); // 2: R2 = 6
@@ -266,7 +266,7 @@ namespace T3Simulator.InOrder.Tests
         public void Test_Call_Ret()
         {
             var proc = CreateProcessor();
-            List<Word27> program = new List<Word27>();
+            List<Word18> program = new List<Word18>();
             program.Add(Encode(4, 0, 10)); // PC 0: A = 10
             program.Add(Encode(4, 1, 4));  // PC 1: R1 = 4 (addr of func)
             program.Add(Encode(24, 1, 0)); // PC 2: CALL R1
@@ -285,7 +285,7 @@ namespace T3Simulator.InOrder.Tests
         public void Test_Push_Pop()
         {
             var proc = CreateProcessor();
-            var program = new List<Word27>
+            var program = new List<Word18>
             {
                 Encode(4, 0, 10), // A=10
                 Encode(26, 0, 0), // PUSH A
@@ -303,10 +303,10 @@ namespace T3Simulator.InOrder.Tests
         public void Test_LIMM()
         {
             var proc = CreateProcessor();
-            var program = new List<Word27>
+            var program = new List<Word18>
             {
                 Encode(5, 0, 0), // LIMM A, [next]
-                Word27.FromLong(12345),           // Immediate value
+                Word18.FromLong(12345),           // Immediate value
                 Encode(0, 0, 0)   // HALT
             };
             proc.LoadProgram(program);
@@ -319,7 +319,7 @@ namespace T3Simulator.InOrder.Tests
         public void Test_LOAD_STORE()
         {
             var proc = CreateProcessor();
-            var program = new List<Word27>
+            var program = new List<Word18>
             {
                 Encode(4, 0, 100), // LI A, 100
                 Encode(4, 1, 50),  // LI B, 50
@@ -338,7 +338,7 @@ namespace T3Simulator.InOrder.Tests
         public void Test_IO_Basic()
         {
             var proc = CreateProcessor();
-            var program = new List<Word27>
+            var program = new List<Word18>
             {
                 Encode(4, 0, 5),    // LI A, 5 (port)
                 Encode(4, 1, 42),   // LI B, 42 (value)
@@ -357,7 +357,7 @@ namespace T3Simulator.InOrder.Tests
         public void Test_INI_OUTI()
         {
             var proc = CreateProcessor();
-            var program = new List<Word27>
+            var program = new List<Word18>
             {
                 Encode(43, 0, 7),   // INI A, 7 (port 7)
                 Encode(44, 0, 8),   // OUTI A, 8 (port 8)
@@ -377,7 +377,7 @@ namespace T3Simulator.InOrder.Tests
         public void Test_JNE_JM()
         {
             var proc = CreateProcessor();
-            List<Word27> progJne = new List<Word27>();
+            List<Word18> progJne = new List<Word18>();
             progJne.Add(Encode(4, 2, 6));  // R2 = 6 (target)
             progJne.Add(Encode(4, 0, 10)); // A = 10
             progJne.Add(Encode(4, 1, 20)); // B = 20
@@ -391,7 +391,7 @@ namespace T3Simulator.InOrder.Tests
             Assert.AreEqual(1, proc.GetState().Registers[0]);
 
             proc.Reset();
-            List<Word27> progJm = new List<Word27>();
+            List<Word18> progJm = new List<Word18>();
             progJm.Add(Encode(4, 2, 6));   // R2 = 6 (target)
             progJm.Add(Encode(4, 0, 10));  // A = 10
             progJm.Add(Encode(4, 1, 10));  // B = 10
@@ -431,13 +431,13 @@ namespace T3Simulator.InOrder.Tests
             return Word54.FromInt128(TritTypes.BalancedTernary.ParseToInt128(word));
         }
 
-        private class MockDevice : IDevice<Word27>
+        private class MockDevice : IDevice<Word18>
         {
             public long LastWrittenValue { get; private set; }
             private readonly long _initialValue;
             public MockDevice(long initialValue) => _initialValue = initialValue;
-            public Word27 Read() => Word27.FromLong(_initialValue);
-            public void Write(Word27 value) => LastWrittenValue = value.ToLong();
+            public Word18 Read() => Word18.FromLong(_initialValue);
+            public void Write(Word18 value) => LastWrittenValue = value.ToLong();
             public bool DataReady => true;
         }
     }

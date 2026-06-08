@@ -9,7 +9,7 @@ namespace TritTypes
     [DebuggerDisplay("{ToLong()} ({ToString()})")]
     public readonly struct Tryte : IEquatable<Tryte>
     {
-        private readonly short _value; // stored as signed integer for efficiency
+        private readonly short _value; // stored as signed short for efficiency
 
         private const int MinValue = -364;
         private const int MaxValue = 364;

@@ -5,7 +5,7 @@ namespace T3Simulator.Common
     /// </summary>
     public enum T3Config
     {
-        T3_27,
+        T3_18,
         T3_54
     }
 
@@ -13,7 +13,7 @@ namespace T3Simulator.Common
     {
         public static int GetWordSize(this T3Config config) => config switch
         {
-            T3Config.T3_27 => 27,
+            T3Config.T3_18 => 18,
             T3Config.T3_54 => 54,
             _ => throw new System.ArgumentOutOfRangeException(nameof(config))
         };

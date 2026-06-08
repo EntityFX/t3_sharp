@@ -4,38 +4,44 @@ using System;
 namespace TritTypes
 {
     /// <summary>
-    /// Represents a 27-trit word for the T3-27 processor.
-    /// Stored internally as a signed long (64-bit, enough for 27 trits).
-    /// Range: ±(3²⁷−1)/2 ≈ ±3.8·10¹²
+    /// Represents an 18-trit word for the T3-18 processor.
+    /// Stored internally as a signed long (64-bit).
+    /// Range: ±(3¹⁸−1)/2 = ±193,710,244
     /// </summary>
     [DebuggerDisplay("{ToLong()} ({ToTritString()})")]
-public readonly struct Word27 : IEquatable<Word27>, IT3Word<Word27>
-{
+    public readonly struct Word18 : IEquatable<Word18>, IT3Word<Word18>
+    {
         private readonly long _value;
 
         public Int128 ToInt128() => _value;
         public long ToLong() => _value;
 
-        public Word27(long value)
+        public Word18(long value)
         {
             if (value < MinValue || value > MaxValue)
-                throw new ArgumentOutOfRangeException(nameof(value), $"Word27 value must be between {MinValue} and {MaxValue}");
+                throw new ArgumentOutOfRangeException(nameof(value), $"Word18 value must be between {MinValue} and {MaxValue}");
             _value = value;
         }
 
-        public static Word27 FromLong(long value) => new Word27(value);
-        public static Word27 FromInt128(Int128 value) => new Word27((long)value);
+        public static Word18 FromLong(long value) => new Word18(value);
+        public static Word18 FromInt128(Int128 value) => new Word18((long)value);
         
-        static Word27 IT3Word<Word27>.FromLong(long value) => Word27.FromLong(value);
-        static Word27 IT3Word<Word27>.FromInt128(Int128 value) => Word27.FromInt128(value);
-        public static Word27 Zero => new Word27(0);
+        static Word18 IT3Word<Word18>.FromLong(long value) => Word18.FromLong(value);
+        static Word18 IT3Word<Word18>.FromInt128(Int128 value) => Word18.FromInt128(value);
 
-        private const int TritCount = 27;
-        private static readonly long MaxValue = (Pow3(27) - 1) / 2;
-        private static readonly long MinValue = -MaxValue;
+        static Word18 IT3Word<Word18>.FromTritString(string tritString) => Parse(tritString);
+
+
+        static Word18 FromTritString(string tritString) => Parse(tritString);
+
+        public static Word18 Zero => new Word18(0);
+
+        private const int TritCount = 18;
+        private static readonly long MaxValue = 193710244;
+        private static readonly long MinValue = -193710244;
 
         /// <summary>
-        /// Returns the balanced ternary string representation (27 characters: '-', '0', '+').
+        /// Returns the balanced ternary string representation (18 characters: '-', '0', '+').
         /// </summary>
         public string ToTritString()
         {
@@ -56,12 +62,12 @@ public readonly struct Word27 : IEquatable<Word27>, IT3Word<Word27>
         public override string ToString() => ToTritString();
 
         /// <summary>
-        /// Parse a balanced ternary string into a Word27.
+        /// Parse a balanced ternary string into a Word18.
         /// </summary>
-        public static Word27 Parse(string s)
+        public static Word18 Parse(string s)
         {
             if (string.IsNullOrEmpty(s) || s.Length != TritCount)
-                throw new ArgumentException($"Word27 string must be exactly {TritCount} characters");
+                throw new ArgumentException($"Word18 string must be exactly {TritCount} characters");
 
             long value = 0;
             long power = 1;
@@ -76,55 +82,53 @@ public readonly struct Word27 : IEquatable<Word27>, IT3Word<Word27>
                 };
                 power *= 3;
             }
-            return new Word27(value);
+            return new Word18(value);
         }
 
         // Arithmetic operators
-        public static Word27 operator +(Word27 a, Word27 b) => new Word27(a._value + b._value);
-        public static Word27 operator -(Word27 a, Word27 b) => new Word27(a._value - b._value);
-        public static Word27 operator *(Word27 a, Word27 b) => new Word27(a._value * b._value);
-        public static Word27 operator /(Word27 a, Word27 b)
+        public static Word18 operator +(Word18 a, Word18 b) => new Word18(a._value + b._value);
+        public static Word18 operator -(Word18 a, Word18 b) => new Word18(a._value - b._value);
+        public static Word18 operator *(Word18 a, Word18 b) => new Word18(a._value * b._value);
+        public static Word18 operator /(Word18 a, Word18 b)
         {
             if (b._value == 0) throw new DivideByZeroException();
-            // Floor division (round toward -inf) for balanced ternary
             long result = a._value / b._value;
             long rem = a._value % b._value;
             if (rem != 0 && ((b._value < 0) != (rem < 0)))
                 result--;
-            return new Word27(result);
+            return new Word18(result);
         }
-        public static Word27 operator %(Word27 a, Word27 b)
+        public static Word18 operator %(Word18 a, Word18 b)
         {
             if (b._value == 0) throw new DivideByZeroException();
             long result = a._value % b._value;
             if (result != 0 && ((b._value < 0) != (result < 0)))
                 result += b._value;
-            return new Word27(result);
+            return new Word18(result);
         }
-        public static Word27 operator -(Word27 t) => new Word27(-t._value);
+        public static Word18 operator -(Word18 t) => new Word18(-t._value);
 
-        public Word27 Negate() => -this;
+        public Word18 Negate() => -this;
 
-        // Shift operators (balanced ternary shifts: multiply/divide by 3^shift)
-        public static Word27 operator <<(Word27 t, int shift)
+        // Shift operators
+        public static Word18 operator <<(Word18 t, int shift)
         {
             if (shift < 0) throw new ArgumentOutOfRangeException(nameof(shift));
-            return new Word27(t._value * Pow3(shift));
+            return new Word18(t._value * Pow3(shift));
         }
-        public static Word27 operator >>(Word27 t, int shift)
+        public static Word18 operator >>(Word18 t, int shift)
         {
             if (shift < 0) throw new ArgumentOutOfRangeException(nameof(shift));
-            // Arithmetic right shift in balanced ternary
             long divisor = Pow3(shift);
             long result = t._value / divisor;
             long rem = t._value % divisor;
             if (rem != 0 && ((divisor < 0) != (rem < 0)))
                 result--;
-            return new Word27(result);
+            return new Word18(result);
         }
 
         // Tritwise logical operations
-        public static Word27 TritAnd(Word27 a, Word27 b)
+        public static Word18 TritAnd(Word18 a, Word18 b)
         {
             long result = 0;
             long power = 1;
@@ -139,10 +143,10 @@ public readonly struct Word27 : IEquatable<Word27>, IT3Word<Word27>
                 tb = (tb - (tb % 3)) / 3;
                 power *= 3;
             }
-            return new Word27(result);
+            return new Word18(result);
         }
 
-        public static Word27 TritOr(Word27 a, Word27 b)
+        public static Word18 TritOr(Word18 a, Word18 b)
         {
             long result = 0;
             long power = 1;
@@ -157,10 +161,10 @@ public readonly struct Word27 : IEquatable<Word27>, IT3Word<Word27>
                 tb = (tb - (tb % 3)) / 3;
                 power *= 3;
             }
-            return new Word27(result);
+            return new Word18(result);
         }
 
-        public static Word27 TritXor(Word27 a, Word27 b)
+        public static Word18 TritXor(Word18 a, Word18 b)
         {
             long result = 0;
             long power = 1;
@@ -177,24 +181,23 @@ public readonly struct Word27 : IEquatable<Word27>, IT3Word<Word27>
                 tb = (tb - (tb % 3)) / 3;
                 power *= 3;
             }
-            return new Word27(result);
+            return new Word18(result);
         }
 
-        // Comparison
-        public override bool Equals(object? obj) => obj is Word27 other && ToInt128() == other.ToInt128();
-        public bool Equals(Word27 other) => _value == other._value;
-        public bool Equals(IT3Word<Word27> other) => ToInt128() == other.ToInt128();
+        public override bool Equals(object? obj) => obj is Word18 other && ToInt128() == other.ToInt128();
+        public bool Equals(Word18 other) => _value == other._value;
+        public bool Equals(IT3Word<Word18> other) => ToInt128() == other.ToInt128();
         public override int GetHashCode() => _value.GetHashCode();
 
-        public static bool operator ==(Word27 left, Word27 right) => left._value == right._value;
-        public static bool operator !=(Word27 left, Word27 right) => left._value != right._value;
-        public static bool operator <(Word27 left, Word27 right) => left._value < right._value;
-        public static bool operator >(Word27 left, Word27 right) => left._value > right._value;
-        public static bool operator <=(Word27 left, Word27 right) => left._value <= right._value;
-        public static bool operator >=(Word27 left, Word27 right) => left._value >= right._value;
+        public static bool operator ==(Word18 left, Word18 right) => left._value == right._value;
+        public static bool operator !=(Word18 left, Word18 right) => left._value != right._value;
+        public static bool operator <(Word18 left, Word18 right) => left._value < right._value;
+        public static bool operator >(Word18 left, Word18 right) => left._value > right._value;
+        public static bool operator <=(Word18 left, Word18 right) => left._value <= right._value;
+        public static bool operator >=(Word18 left, Word18 right) => left._value >= right._value;
 
-        public static implicit operator Word27(long value) => new Word27(value);
-        public static explicit operator long(Word27 w) => w._value;
+        public static implicit operator Word18(long value) => new Word18(value);
+        public static explicit operator long(Word18 w) => w._value;
 
         private static long Pow3(int exp)
         {

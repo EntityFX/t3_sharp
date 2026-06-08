@@ -27,7 +27,7 @@ namespace T3Simulator.InOrder.Tests
         public void StringOutput_IntegrationTest()
         {
             // 1. Setup Assembler and Program
-            var config = T3Config.T3_27;
+            var config = T3Config.T3_18;
             var assembler = new T3InOrderAssembler(config);
             
             // Program that prints a string from memory
@@ -50,11 +50,11 @@ namespace T3Simulator.InOrder.Tests
             ";
 
             List<Int128> binaryInt128 = assembler.Assemble(asm);
-            List<Word27> binary = binaryInt128.Select(v => Word27.FromInt128(v)).ToList();
+            List<Word18> binary = binaryInt128.Select(v => Word18.FromInt128(v)).ToList();
 
             // 2. Setup Processor
-            var processor = new T3InOrderProcessor<Word27>(config);
-            var mockDevice = new MockOutputDevice<Word27>();
+            var processor = new T3InOrderProcessor<Word18>(config);
+            var mockDevice = new MockOutputDevice<Word18>();
             processor.SetOutputDevice(0, mockDevice);
             
             processor.LoadProgram(binary);

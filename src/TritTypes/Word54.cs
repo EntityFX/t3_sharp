@@ -31,6 +31,8 @@ namespace TritTypes
 
         static Word54 IT3Word<Word54>.FromLong(long value) => FromLong(value);
         static Word54 IT3Word<Word54>.FromInt128(Int128 value) => FromInt128(value);
+
+        static Word54 IT3Word<Word54>.FromTritString(string tritString) => Parse(tritString);
         public static Word54 Zero => new Word54(0);
 
         /// <summary>
