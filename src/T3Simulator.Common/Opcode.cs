@@ -58,21 +58,25 @@ namespace T3Simulator.Common
         SHRI = 80,
         CMPI = 81,
         
-        // VLIW SIMD instructions
-        SPEK = 28,
-        COMMIT = 29,
-        ROLLBACK = 30,
-        VADD3 = 31,
-        VSUB3 = 32,
-        VMUL3 = 33,
-        VDOT3 = 34,
-        VCMP = 35,
-        VTRITAND3 = 36,
-        VTRITOR3 = 37,
-        VTRITXOR3 = 38,
-        VSHL3 = 39,
-        VSHR3 = 40,
+        NOP = 63,
 
-        NOP = 63
+        // FPU Instructions
+        FADD = 92,
+        FSUB = 93,
+        FMUL = 94,
+        FDIV = 95,
+        FSQRT = 96,
+        FABS = 97,
+        FNEG = 98,
+        FCMP = 99,
+        FTOI = 100,
+        ITOF = 101,
+        FTOF = 102,
+        FLW = 103,
+        FSW = 104,
+        FMOV = 105,
+        FCLASS = 106,
+        FSWAP = 107,
+        FZERO = 108
     }
 }

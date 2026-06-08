@@ -33,27 +33,26 @@ namespace T3Simulator.InOrder.Tests
         public void SimpleArithmeticTest()
         {
             // Test sequence:
-            // LI A, 10
-            // LI B, 20
-            // ADD A, B, C (A = B + C, but let's use ADD A, B, B for simplicity)
+            // LI RW, 10
+            // LI RX, 20
+            // ADD RW, RX, RY
             // HALT
             
             var proc = CreateProcessor();
             
             // Note: In the new ISA, ADD is R-type: op1 = op2 + op3
-            // We use LI to set B and C, then ADD A, B, C.
             string code = 
-                "LI A, 0\n" + 
-                "LI B, 10\n" + 
-                "LI C, 20\n" + 
-                "ADD A, B, C\n" + 
+                "LI RW, 0\n" + 
+                "LI RX, 10\n" + 
+                "LI RY, 20\n" + 
+                "ADD RW, RX, RY\n" + 
                 "HALT";
             
             proc.LoadProgram(Assemble(code));
             proc.Run();
             
             var state = proc.GetState();
-            // A = 10 + 20 = 30
+            // RW = 10 + 20 = 30
             Assert.AreEqual(30, state.Registers[0].ToLong());
         }
 
@@ -63,9 +62,9 @@ namespace T3Simulator.InOrder.Tests
             var proc = CreateProcessor();
             
             string code = 
-                "LI A, 10\n" + 
-                "ADDI A, A, 5\n" + // A = 10 + 5 = 15
-                "SUBI A, A, 2\n" + // A = 15 - 2 = 13
+                "LI RW, 10\n" + 
+                "ADDI RW, RW, 5\n" + // RW = 10 + 5 = 15
+                "SUBI RW, RW, 2\n" + // RW = 15 - 2 = 13
                 "HALT";
             
             proc.LoadProgram(Assemble(code));
@@ -115,10 +114,10 @@ namespace T3Simulator.InOrder.Tests
             var proc = CreateProcessor();
             
             string code = 
-                "LI A, 100\n" + 
-                "PUSH A\n" + 
-                "LI A, 200\n" + 
-                "POP A\n" + 
+                "LI RW, 100\n" + 
+                "PUSH RW\n" + 
+                "LI RW, 200\n" + 
+                "POP RW\n" + 
                 "HALT";
             
             proc.LoadProgram(Assemble(code));
@@ -135,24 +134,19 @@ namespace T3Simulator.InOrder.Tests
             
             // We'll simulate a device by adding it to the manager
             // Port 10: Echo device (just for this test)
-            // Since DeviceManager is internal/shared, we might need a mock.
-            // For now, let's just check if it doesn't crash and calls the manager.
             
             string code = 
-                "LI A, 42\n" + 
-                "OUT A, B\n" + // port in reg B
+                "LI RW, 42\n" + 
+                "OUT RW, RX\n" + // port in reg RX
                 "HALT";
             
-            // Set B = 10 (port)
+            // Set RX = 10 (port)
             proc.Registers[1] = Word18.FromLong(10);
             
-            // This might fail if no device is at port 10, depending on DeviceManager implementation.
-            // But it verifies the opcode path.
             try {
                 proc.LoadProgram(Assemble(code));
                 proc.Run();
             } catch (Exception ex) {
-                // If it's a "device not found" exception, it's partially a success.
                 Console.WriteLine($"IO Test info: {ex.Message}");
             }
         }

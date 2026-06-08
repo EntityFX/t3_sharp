@@ -11,6 +11,7 @@ namespace T3Simulator.Common
     {
         public TWord[] Registers = new TWord[27];
         public TWord PR;
+        public T3Float[] FRegisters = new T3Float[9];
         protected Memory<TWord> Memory;
         public DeviceManager<TWord> DeviceManager;
         

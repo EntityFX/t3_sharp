@@ -148,12 +148,27 @@ namespace T3Assembler
 
         protected bool IsRegister(string token)
         {
-            return token.Length == 1 && "ABCDEFGHI".Contains(token.ToUpper());
+            string upper = token.ToUpper();
+            return upper == "RW" || upper == "RX" || upper == "RY" || upper == "RZ" ||
+                   upper == "R0" || upper == "R1" || upper == "R2" || upper == "R3" || upper == "R4";
         }
 
         protected int GetRegisterIndex(string token)
         {
-            return "ABCDEFGHI".IndexOf(token.ToUpper());
+            string upper = token.ToUpper();
+            return upper switch
+            {
+                "RW" => 0,
+                "RX" => 1,
+                "RY" => 2,
+                "RZ" => 3,
+                "R0" => 4,
+                "R1" => 5,
+                "R2" => 6,
+                "R3" => 7,
+                "R4" => 8,
+                _ => throw new Exception($"Invalid register name: {token}")
+            };
         }
 
         protected Opcode GetOpcode(string mnemonic)

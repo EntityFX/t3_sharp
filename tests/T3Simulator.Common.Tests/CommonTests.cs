@@ -13,10 +13,12 @@ namespace T3Simulator.Common.Tests
         {
             // Test LI A, 10
             // Opcode LI = 4: "0000++" (6 trits)
-            // Op1 A = 0: "000000" (6 trits)
-            // Op2 10 = 10: "000+0+" (6 trits)
+            // Op1 A = 0: "000" (3 trits)
+            // Op2 10 = 10: "+0+" (3 trits)
+            // Op3 = 0: "000" (3 trits)
+            // Reserve = "000" (3 trits)
             // Total = 18 trits.
-            string instrTritString = "0000++" + "000000" + "000+0+";
+            string instrTritString = "0000++" + "000" + "+0+" + "000" + "000";
             Word18 word = Word18.Parse(instrTritString);
             
             var instr = InstructionDecoder.Decode18(word);

@@ -11,12 +11,13 @@ namespace T3Simulator.Common
         public readonly int Op2;            // Register index
         public readonly int Op3;            // Register index (for R-type)
         public readonly long Immediate;     // Immediate value (for I-type)
+        public readonly int Func;           // Function code (for FPU R-type)
 
         // Aliases for compatibility
         public int Operand1 => Op1;
         public int Operand2 => Op2;
 
-        public Instruction(Opcode opcode, int predicateIndex, int op1, int op2, int op3, long immediate)
+        public Instruction(Opcode opcode, int predicateIndex, int op1, int op2, int op3, long immediate, int func = 0)
         {
             Opcode = opcode;
             PredicateIndex = predicateIndex;
@@ -24,14 +25,15 @@ namespace T3Simulator.Common
             Op2 = op2;
             Op3 = op3;
             Immediate = immediate;
+            Func = func;
         }
 
         // Helper for R-type
         public Instruction(Opcode opcode, int predicateIndex, int op1, int op2, int op3) 
-            : this(opcode, predicateIndex, op1, op2, op3, 0) { }
+            : this(opcode, predicateIndex, op1, op2, op3, 0, 0) { }
 
         // Helper for I-type
         public Instruction(Opcode opcode, int predicateIndex, int op1, int op2, long immediate) 
-            : this(opcode, predicateIndex, op1, op2, 0, immediate) { }
+            : this(opcode, predicateIndex, op1, op2, 0, immediate, 0) { }
     }
 }

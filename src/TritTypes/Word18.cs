@@ -32,7 +32,7 @@ namespace TritTypes
         static Word18 IT3Word<Word18>.FromTritString(string tritString) => Parse(tritString);
 
 
-        static Word18 FromTritString(string tritString) => Parse(tritString);
+        public static Word18 FromTritString(string tritString) => Parse(tritString);
 
         public static Word18 Zero => new Word18(0);
 
