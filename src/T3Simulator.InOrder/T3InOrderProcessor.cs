@@ -259,12 +259,12 @@ namespace T3Simulator.InOrder
                     break;
 
                 case Opcode.CMP:
-                    Cond = T3Alu.Compare(GetRegisterValue((int)op2), GetRegisterValue((int)instr.Op3));
+                    Cond = T3Alu.Compare(GetRegisterValue((int)op1), GetRegisterValue((int)op2));
                     IncrementCycles(1);
                     break;
-
+ 
                 case Opcode.CMPI:
-                    Cond = T3Alu.Compare(GetRegisterValue((int)op2), FromLong(instr.Immediate));
+                    Cond = T3Alu.Compare(GetRegisterValue((int)op1), FromLong(instr.Immediate));
                     IncrementCycles(1);
                     break;
 
@@ -305,18 +305,15 @@ namespace T3Simulator.InOrder
 
                 case Opcode.CALL:
                     TWord targetPC = GetRegisterValue((int)op1);
-                    SP -= 2;
+                    SP -= 1;
                     WriteWord(SP, FromLong(PC + 1));
-                    WriteWord(SP + 1, FromLong(WP));
-                    WP = (int)RegisterWindow.CalculateNextWp(WP);
                     PC = ToLong(targetPC);
                     IncrementCycles(2);
                     break;
 
                 case Opcode.RET:
                     PC = ToLong(ReadWord(SP));
-                    WP = (int)ToLong(ReadWord(SP + 1));
-                    SP += 2;
+                    SP += 1;
                     IncrementCycles(2);
                     break;
 

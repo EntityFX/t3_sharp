@@ -73,6 +73,13 @@ namespace T3Assembler
                 if (parts[1].StartsWith("\"")) return parts[1].Length - 2 + 1;
                 return 1;
             }
+            
+            var instParts = line.Split(new[] { ' ', '\t', ',' }, StringSplitOptions.RemoveEmptyEntries);
+            if (instParts.Length > 0 && instParts[0].ToUpper() == "LIMM")
+            {
+                return 2;
+            }
+            
             return 1;
         }
 
@@ -124,9 +131,35 @@ namespace T3Assembler
                     else
                         imm = (long)ResolveOperandValue(thirdToken);
                 }
+                else if (IsRTypeArithmetic(mnemonic))
+                {
+                    // Support 2-operand form for arithmetic: op1 = op1 <op> op2
+                    int temp = op2;
+                    op2 = op1;
+                    op3 = temp;
+                }
+            }
+
+            if (mnemonic == "LIMM")
+            {
+                return new List<Int128> 
+                { 
+                    Encode(mnemonic, op1, op2, op3, imm), 
+                    ResolveOperandValue(instParts[2]) 
+                };
             }
 
             return new List<Int128> { Encode(mnemonic, op1, op2, op3, imm) };
+        }
+
+        private bool IsRTypeArithmetic(string mnemonic)
+        {
+            return mnemonic switch
+            {
+                "ADD" or "SUB" or "MUL" or "DIV" or "MOD" or 
+                "TRITAND" or "TRITOR" or "TRITXOR" or "SHL" or "SHR" => true,
+                _ => false
+            };
         }
 
         private Int128 Encode(string mnemonic, int op1, int op2, int op3, long imm)
@@ -141,11 +174,7 @@ namespace T3Assembler
             if ((int)opcode >= 64 || opcode == Opcode.LI || opcode == Opcode.LI_I || opcode == Opcode.INI || opcode == Opcode.OUTI)
             {
                 isIType = true;
-                // For encoding, we need the base_R part
-                if ((int)opcode >= 64) baseOpcode = (int)opcode - 64;
-                else if (opcode == Opcode.LI || opcode == Opcode.LI_I) baseOpcode = 4;
-                else if (opcode == Opcode.INI) baseOpcode = 41; // Special case for I/O
-                else if (opcode == Opcode.OUTI) baseOpcode = 42; // Special case for I/O
+                baseOpcode = (int)opcode < 64 ? (int)opcode + 64 : (int)opcode;
             }
             else if (opcode == Opcode.IN || opcode == Opcode.OUT)
             {

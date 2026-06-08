@@ -40,7 +40,8 @@ namespace T3Assembler
             {
                 return GetRegisterIndex(token);
             }
-            if (int.TryParse(token, out int val)) return val;
+            if (Int128.TryParse(token, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out Int128 val)) 
+                return (int)val;
             if (_labels.TryGetValue(token, out int addr)) return addr;
             
             throw new Exception($"Unable to resolve operand: {token}");

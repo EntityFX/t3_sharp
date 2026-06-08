@@ -455,13 +455,12 @@ namespace T3Simulator.InOrder.Tests
 
         private Word54 EncodeInt128(int opcode, int op1, Int128 op2, int pred = 0)
         {
-            long fullOpcode = pred * 45 + opcode;
-            string sOp = ToBalancedTernary(fullOpcode, 6);
-            string sOp1 = ToBalancedTernary(op1, 9);
-            string sOp2 = TritTypes.BalancedTernary.ToTernaryString(op2, 9);
-            string instruction = sOp + sOp1 + sOp2 + "000";
-            string word = instruction.PadLeft(54, '0');
-            return Word54.FromInt128(TritTypes.BalancedTernary.ParseToInt128(word));
+            // Use the same encoding as Word18, then pad to 54 trits
+            // Instruction is encoded in the first 18 trits for T3-54
+            Word18 w18 = Encode(opcode, op1, (long)op2, pred);
+            string s18 = w18.ToTritString();
+            string s54 = s18.PadRight(54, '0');
+            return Word54.FromInt128(TritTypes.BalancedTernary.ParseToInt128(s54));
         }
 
         private class MockDevice : IDevice<Word18>
