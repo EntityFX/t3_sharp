@@ -108,14 +108,22 @@ namespace T3Assembler
             long imm = 0;
 
             if (instParts.Length > 1) op1 = ResolveOperand(instParts[1]);
-            if (instParts.Length > 2) op2 = ResolveOperand(instParts[2]);
-            if (instParts.Length > 3)
+            
+            if (mnemonic == "LI")
             {
-                string thirdToken = instParts[3];
-                if (IsRegister(thirdToken))
-                    op3 = ResolveOperand(thirdToken);
-                else
-                    imm = (long)ResolveOperandValue(thirdToken);
+                if (instParts.Length > 2) imm = (long)ResolveOperandValue(instParts[2]);
+            }
+            else
+            {
+                if (instParts.Length > 2) op2 = ResolveOperand(instParts[2]);
+                if (instParts.Length > 3)
+                {
+                    string thirdToken = instParts[3];
+                    if (IsRegister(thirdToken))
+                        op3 = ResolveOperand(thirdToken);
+                    else
+                        imm = (long)ResolveOperandValue(thirdToken);
+                }
             }
 
             return new List<Int128> { Encode(mnemonic, op1, op2, op3, imm) };
@@ -130,12 +138,12 @@ namespace T3Assembler
             int baseOpcode = (int)opcode;
 
             // Check if it's one of our I-types (64-91) or specific I-type a la LI
-            if ((int)opcode >= 64 || opcode == Opcode.LI_I || opcode == Opcode.INI || opcode == Opcode.OUTI)
+            if ((int)opcode >= 64 || opcode == Opcode.LI || opcode == Opcode.LI_I || opcode == Opcode.INI || opcode == Opcode.OUTI)
             {
                 isIType = true;
                 // For encoding, we need the base_R part
                 if ((int)opcode >= 64) baseOpcode = (int)opcode - 64;
-                else if (opcode == Opcode.LI_I) baseOpcode = 4;
+                else if (opcode == Opcode.LI || opcode == Opcode.LI_I) baseOpcode = 4;
                 else if (opcode == Opcode.INI) baseOpcode = 41; // Special case for I/O
                 else if (opcode == Opcode.OUTI) baseOpcode = 42; // Special case for I/O
             }
@@ -161,9 +169,8 @@ namespace T3Assembler
             string sRest;
             if (isIType)
             {
-                // Imm6: unsigned 0..728 (value + 364)
-                long unsignedImm = imm + 364;
-                sRest = BalancedTernary.ToTernaryString(unsignedImm, 6);
+                // Imm6: signed 6-trit value (-364..364)
+                sRest = BalancedTernary.ToTernaryString(imm, 6);
             }
             else
             {

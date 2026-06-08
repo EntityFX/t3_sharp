@@ -150,7 +150,9 @@ namespace T3Assembler
         {
             string upper = token.ToUpper();
             return upper == "RW" || upper == "RX" || upper == "RY" || upper == "RZ" ||
-                   upper == "R0" || upper == "R1" || upper == "R2" || upper == "R3" || upper == "R4";
+                   upper == "R0" || upper == "R1" || upper == "R2" || upper == "R3" || upper == "R4" ||
+                   upper == "A" || upper == "B" || upper == "C" || upper == "D" || upper == "E" ||
+                   upper == "F" || upper == "G" || upper == "H" || upper == "I";
         }
 
         protected int GetRegisterIndex(string token)
@@ -159,14 +161,23 @@ namespace T3Assembler
             return upper switch
             {
                 "RW" => 0,
+                "A"  => 0,
                 "RX" => 1,
+                "B"  => 1,
                 "RY" => 2,
+                "C"  => 2,
                 "RZ" => 3,
+                "D"  => 3,
                 "R0" => 4,
+                "E"  => 4,
                 "R1" => 5,
+                "F"  => 5,
                 "R2" => 6,
+                "G"  => 6,
                 "R3" => 7,
+                "H"  => 7,
                 "R4" => 8,
+                "I"  => 8,
                 _ => throw new Exception($"Invalid register name: {token}")
             };
         }

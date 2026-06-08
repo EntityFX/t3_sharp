@@ -21,9 +21,9 @@ namespace T3Simulator.Common.Tests
             string instrTritString = "0000++" + "000" + "+0+" + "000" + "000";
             Word18 word = Word18.Parse(instrTritString);
             
-            var instr = InstructionDecoder.Decode18(word);
+            var instr = InstructionDecoder.Decode(word);
             
-            Assert.AreEqual(Opcode.LI, instr.Opcode);
+            Assert.AreEqual(Opcode.LI_I, instr.Opcode);
             Assert.AreEqual(0, instr.PredicateIndex);
             Assert.AreEqual(0, instr.Operand1);
             Assert.AreEqual(10, instr.Operand2);

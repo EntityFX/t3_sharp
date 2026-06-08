@@ -12,11 +12,44 @@ namespace T3Simulator.InOrder.Tests
     {
         private Word18 Encode(int opcode, int op1, long op2, int pred = 0)
         {
-            long fullOpcode = pred * 45 + opcode;
-            string sOp = ToBalancedTernary(fullOpcode, 6);
-            string sOp1 = ToBalancedTernary(op1, 6);
-            string sOp2 = ToBalancedTernary(op2, 6);
-            return Word18.FromLong(BalancedTernary.ParseToLong(sOp + sOp1 + sOp2));
+            // New ISA: Opcode+Pred (6), Op1 (3), Op2 (3), Op3/Imm6 (3/6), Reserve (3)
+            int baseOp = opcode;
+            int fieldOp = pred * 28 + baseOp;
+            string sOp = ToBalancedTernary(fieldOp, 6);
+            string sOp1 = ToBalancedTernary(op1, 3);
+
+            if (opcode == 4) // LI: I-type
+            {
+                // LI Op1, Imm6
+                // Format: [Opcode+Pred] [Op1] [Op2(res)] [Imm6]
+                string sOp2 = "000";
+                string sImm = ToBalancedTernary(op2, 6);
+                return Word18.FromLong(BalancedTernary.ParseToLong(sOp + sOp1 + sOp2 + sImm));
+            }
+            else if (opcode == 11) // NEG: R-type
+            {
+                // NEG Op1, Op2
+                string sOp2 = ToBalancedTernary((int)op2, 3);
+                string sOp3 = "000";
+                string sRes = "000";
+                return Word18.FromLong(BalancedTernary.ParseToLong(sOp + sOp1 + sOp2 + sOp3 + sRes));
+            }
+            else if (opcode >= 6 && opcode <= 16) // Arithmetic/Logical R-type
+            {
+                // Assuming Op1 = Op1 <op> Op2 for these tests
+                string sOp2 = ToBalancedTernary(op1, 3);
+                string sOp3 = ToBalancedTernary((int)op2, 3);
+                string sRes = "000";
+                return Word18.FromLong(BalancedTernary.ParseToLong(sOp + sOp1 + sOp2 + sOp3 + sRes));
+            }
+            else
+            {
+                // General R-type (JMP, CALL, etc.)
+                string sOp2 = ToBalancedTernary((int)op2, 3);
+                string sOp3 = "000";
+                string sRes = "000";
+                return Word18.FromLong(BalancedTernary.ParseToLong(sOp + sOp1 + sOp2 + sOp3 + sRes));
+            }
         }
 
         private string ToBalancedTernary(long value, int digits)

@@ -30,6 +30,7 @@ namespace T3Simulator.InOrder.Tests
         }
 
         [TestMethod]
+        [Timeout(30000)]
         public void SimpleArithmeticTest()
         {
             // Test sequence:
@@ -57,6 +58,7 @@ namespace T3Simulator.InOrder.Tests
         }
 
         [TestMethod]
+        [Timeout(30000)]
         public void ImmediateArithmeticTest()
         {
             var proc = CreateProcessor();
@@ -75,6 +77,7 @@ namespace T3Simulator.InOrder.Tests
         }
 
         [TestMethod]
+        [Timeout(30000)]
         public void PredicationTest()
         {
             var proc = CreateProcessor();
@@ -109,6 +112,7 @@ namespace T3Simulator.InOrder.Tests
         }
 
         [TestMethod]
+        [Timeout(30000)]    
         public void StackTest()
         {
             var proc = CreateProcessor();
@@ -128,6 +132,7 @@ namespace T3Simulator.InOrder.Tests
         }
 
         [TestMethod]
+        [Timeout(30000)]
         public void IOTest()
         {
             var proc = CreateProcessor();

@@ -24,6 +24,7 @@ namespace T3Simulator.InOrder.Tests
     public class T3StringTests
     {
         [TestMethod]
+        [Timeout(30000)]
         public void StringOutput_IntegrationTest()
         {
             // 1. Setup Assembler and Program
