@@ -20,8 +20,24 @@ namespace TritTypes
         public Word54(Int128 value)
         {
             if (value < MinValue || value > MaxValue)
-                throw new ArgumentOutOfRangeException(nameof(value), $"Word54 value must be between {MinValue} and {MaxValue}");
+                throw new ArgumentOutOfRangeException(nameof(value), $"Value must be between {MinValue} and {MaxValue}");
             _value = value;
+        }
+
+        private Word54(Int128 value, bool raw)
+        {
+            _value = value;
+        }
+
+        private static Word54 FromWrapped(Int128 value) => new Word54(Wrap(value), true);
+
+        private static Int128 Wrap(Int128 value)
+        {
+            Int128 range = Pow3(54);
+            Int128 offset = (range - 1) / 2;
+            Int128 normalized = (value + offset) % range;
+            if (normalized < 0) normalized += range;
+            return normalized - offset;
         }
 
         public Int128 ToInt128() => _value;
@@ -82,9 +98,9 @@ namespace TritTypes
         }
 
         // Arithmetic operators
-        public static Word54 operator +(Word54 a, Word54 b) => new Word54(a._value + b._value);
-        public static Word54 operator -(Word54 a, Word54 b) => new Word54(a._value - b._value);
-        public static Word54 operator *(Word54 a, Word54 b) => new Word54(a._value * b._value);
+        public static Word54 operator +(Word54 a, Word54 b) => FromWrapped(a._value + b._value);
+        public static Word54 operator -(Word54 a, Word54 b) => FromWrapped(a._value - b._value);
+        public static Word54 operator *(Word54 a, Word54 b) => FromWrapped(a._value * b._value);
         public static Word54 operator /(Word54 a, Word54 b)
         {
             if (b._value == 0) throw new DivideByZeroException();
@@ -92,7 +108,7 @@ namespace TritTypes
             Int128 rem = a._value % b._value;
             if (rem != 0 && ((b._value < 0) != (rem < 0)))
                 result--;
-            return new Word54(result);
+            return FromWrapped(result);
         }
         public static Word54 operator %(Word54 a, Word54 b)
         {
@@ -101,9 +117,9 @@ namespace TritTypes
             Int128 rem = a._value % b._value;
             if (rem != 0 && ((b._value < 0) != (rem < 0)))
                 result += b._value;
-            return new Word54(result);
+            return FromWrapped(result);
         }
-        public static Word54 operator -(Word54 t) => new Word54(-t._value);
+        public static Word54 operator -(Word54 t) => FromWrapped(-t._value);
 
         public Word54 Negate() => -this;
 
@@ -111,7 +127,7 @@ namespace TritTypes
         public static Word54 operator <<(Word54 t, int shift)
         {
             if (shift < 0) throw new ArgumentOutOfRangeException(nameof(shift));
-            return new Word54(t._value * Pow3(shift));
+            return FromWrapped(t._value * Pow3(shift));
         }
         public static Word54 operator >>(Word54 t, int shift)
         {
@@ -121,7 +137,7 @@ namespace TritTypes
             Int128 rem = t._value % divisor;
             if (rem != 0 && ((divisor < 0) != (rem < 0)))
                 result--;
-            return new Word54(result);
+            return FromWrapped(result);
         }
 
         // Tritwise logical operations
@@ -154,7 +170,7 @@ namespace TritTypes
                 int tb = GetTrit(b._value, i);
                 result = SetTrit(result, i, Math.Min(ta, tb));
             }
-            return new Word54(result);
+            return FromWrapped(result);
         }
 
         public static Word54 TritOr(Word54 a, Word54 b)
@@ -166,7 +182,7 @@ namespace TritTypes
                 int tb = GetTrit(b._value, i);
                 result = SetTrit(result, i, Math.Max(ta, tb));
             }
-            return new Word54(result);
+            return FromWrapped(result);
         }
 
         public static Word54 TritXor(Word54 a, Word54 b)
@@ -176,12 +192,15 @@ namespace TritTypes
             {
                 int ta = GetTrit(a._value, i);
                 int tb = GetTrit(b._value, i);
-                int sum = ta + tb;
-                if (sum > 1) sum -= 3;
-                if (sum < -1) sum += 3;
-                result = SetTrit(result, i, sum);
+                
+                // Spec: (ta + tb) mod 3 with mapping 0->0, 1->1, 2->-1
+                int resTrit = (ta + tb) % 3;
+                if (resTrit == 2) resTrit = -1;
+                else if (resTrit == -2) resTrit = 1;
+                
+                result = SetTrit(result, i, resTrit);
             }
-            return new Word54(result);
+            return FromWrapped(result);
         }
 
         // Comparison

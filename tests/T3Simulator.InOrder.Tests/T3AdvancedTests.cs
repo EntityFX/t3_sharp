@@ -11,7 +11,7 @@ namespace T3Simulator.InOrder.Tests
     [TestClass]
     public class T3AdvancedTests
     {
-        private Word18 Encode(int opcode, int op1, long op2, int pred = 0)
+        private Word18 Encode(int opcode, int op1, long op2, long op3 = 0, int pred = 0)
         {
             // New ISA: [Opcode+Pred (6)] [Op1 (3)] [Op2 (3)] [Op3/Imm6 (3/6)] [Reserve (3)]
             int v = pred * 28 + opcode;
@@ -19,9 +19,7 @@ namespace T3Simulator.InOrder.Tests
             string sOp1 = ToBalancedTernary(op1, 3);
             string sOp2 = ToBalancedTernary(op2, 3);
             
-            // For these tests, we assume R-type unless specified.
-            // For simplicity in this helper, we use 3 trits for op3 and 3 trits for reserve.
-            string sOp3 = "000"; 
+            string sOp3 = ToBalancedTernary(op3, 3);
             string sRes = "000";
             
             return Word18.FromLong(BalancedTernary.ParseToLong(sOp + sOp1 + sOp2 + sOp3 + sRes));
@@ -96,7 +94,8 @@ namespace T3Simulator.InOrder.Tests
                     LOAD R0, RW
                     LOAD R1, RX
                     ADD R2, R0, R1
-                    STOREI R2, RY, R4
+                    ADD R3, RY, R4
+                    STORE R2, R3
                     ADDI R4, R4, 1
                     ADDI RW, RW, 1
                     ADDI RX, RX, 1
@@ -126,9 +125,9 @@ namespace T3Simulator.InOrder.Tests
             proc.LoadProgram(verifyProg);
             proc.Run();
             
-            Assert.AreEqual(5, proc.GetState().Registers[1]);
-            Assert.AreEqual(7, proc.GetState().Registers[2]);
-            Assert.AreEqual(9, proc.GetState().Registers[3]);
+            Assert.AreEqual(5, (long)proc.GetState().Registers[5].ToInt128());
+            Assert.AreEqual(7, (long)proc.GetState().Registers[6].ToInt128());
+            Assert.AreEqual(9, (long)proc.GetState().Registers[7].ToInt128());
         }
 
         [TestMethod]

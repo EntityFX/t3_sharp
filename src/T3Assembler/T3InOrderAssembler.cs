@@ -170,11 +170,20 @@ namespace T3Assembler
             bool isIType = false;
             int baseOpcode = (int)opcode;
 
-            // Check if it's one of our I-types (64-91) or specific I-type a la LI
-            if ((int)opcode >= 64 || opcode == Opcode.LI || opcode == Opcode.LI_I || opcode == Opcode.INI || opcode == Opcode.OUTI)
+            // Check if it's one of our I-types (64-91) or specific I-type a la LI.
+            // LIMM (5) is an R-type that reads the next word, so it must NOT be shifted by 64.
+            if ((int)opcode >= 64 || (opcode == Opcode.LI || opcode == Opcode.LI_I || opcode == Opcode.INI || opcode == Opcode.OUTI))
             {
-                isIType = true;
-                baseOpcode = (int)opcode < 64 ? (int)opcode + 64 : (int)opcode;
+                if (opcode == Opcode.LIMM) 
+                {
+                    isIType = false;
+                    baseOpcode = (int)opcode;
+                }
+                else
+                {
+                    isIType = true;
+                    baseOpcode = (int)opcode < 64 ? (int)opcode + 64 : (int)opcode;
+                }
             }
             else if (opcode == Opcode.IN || opcode == Opcode.OUT)
             {

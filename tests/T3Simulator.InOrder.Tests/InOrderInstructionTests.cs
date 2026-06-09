@@ -300,13 +300,13 @@ namespace T3Simulator.InOrder.Tests
         {
             var proc = CreateProcessor();
             List<Word18> program = new List<Word18>();
-            program.Add(Encode(4, 0, 10)); // PC 0: A = 10
-            program.Add(Encode(4, 1, 4));  // PC 1: R1 = 4 (addr of func)
-            program.Add(Encode(24, 1, 0)); // PC 2: CALL R1
-            program.Add(Encode(0, 0, 0));  // PC 3: HALT
-            program.Add(Encode(4, 1, 1));  // PC 4: B = 1
-            program.Add(Encode(6, 4, 1));  // PC 5: E += B
-            program.Add(Encode(25, 0, 0)); // PC 6: RET
+                program.Add(Encode(4, 0, 10)); // PC 0: A = 10
+                program.Add(Encode(4, 1, 4));  // PC 1: R1 = 4 (addr of func)
+                program.Add(Encode(24, 1, 0)); // PC 2: CALL R1
+                program.Add(Encode(0, 0, 0));  // PC 3: HALT
+                program.Add(Encode(4, 1, 1));  // PC 4: B = 1
+                program.Add(Encode(6, 0, 1));  // PC 5: A += B
+                program.Add(Encode(25, 0, 0)); // PC 6: RET
             
             proc.LoadProgram(program);
             proc.Run();

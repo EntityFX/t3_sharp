@@ -125,5 +125,14 @@ namespace T3Simulator.Common
             }
             Memory.Write(address, value);
         }
+
+        /// <summary>
+        /// Read memory value as long for CLI display purposes
+        /// </summary>
+        public long GetMemoryValue(long address)
+        {
+            var word = ReadWord(address);
+            return ToLong(word);
+        }
     }
 }

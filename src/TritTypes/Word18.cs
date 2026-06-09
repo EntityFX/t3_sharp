@@ -19,8 +19,24 @@ namespace TritTypes
         public Word18(long value)
         {
             if (value < MinValue || value > MaxValue)
-                throw new ArgumentOutOfRangeException(nameof(value), $"Word18 value must be between {MinValue} and {MaxValue}");
+                throw new ArgumentOutOfRangeException(nameof(value), $"Value must be between {MinValue} and {MaxValue}");
             _value = value;
+        }
+
+        private Word18(long value, bool raw)
+        {
+            _value = value;
+        }
+
+        private static Word18 FromWrapped(long value) => new Word18(Wrap(value), true);
+
+        private static long Wrap(long value)
+        {
+            const long range = 387420489; // 3^18
+            const long offset = 193710244; // (3^18 - 1) / 2
+            long normalized = (value + offset) % range;
+            if (normalized < 0) normalized += range;
+            return normalized - offset;
         }
 
         public static Word18 FromLong(long value) => new Word18(value);
@@ -86,9 +102,9 @@ namespace TritTypes
         }
 
         // Arithmetic operators
-        public static Word18 operator +(Word18 a, Word18 b) => new Word18(a._value + b._value);
-        public static Word18 operator -(Word18 a, Word18 b) => new Word18(a._value - b._value);
-        public static Word18 operator *(Word18 a, Word18 b) => new Word18(a._value * b._value);
+        public static Word18 operator +(Word18 a, Word18 b) => FromWrapped(a._value + b._value);
+        public static Word18 operator -(Word18 a, Word18 b) => FromWrapped(a._value - b._value);
+        public static Word18 operator *(Word18 a, Word18 b) => FromWrapped(a._value * b._value);
         public static Word18 operator /(Word18 a, Word18 b)
         {
             if (b._value == 0) throw new DivideByZeroException();
@@ -96,7 +112,7 @@ namespace TritTypes
             long rem = a._value % b._value;
             if (rem != 0 && ((b._value < 0) != (rem < 0)))
                 result--;
-            return new Word18(result);
+            return FromWrapped(result);
         }
         public static Word18 operator %(Word18 a, Word18 b)
         {
@@ -104,9 +120,9 @@ namespace TritTypes
             long result = a._value % b._value;
             if (result != 0 && ((b._value < 0) != (result < 0)))
                 result += b._value;
-            return new Word18(result);
+            return FromWrapped(result);
         }
-        public static Word18 operator -(Word18 t) => new Word18(-t._value);
+        public static Word18 operator -(Word18 t) => FromWrapped(-t._value);
 
         public Word18 Negate() => -this;
 
@@ -114,7 +130,7 @@ namespace TritTypes
         public static Word18 operator <<(Word18 t, int shift)
         {
             if (shift < 0) throw new ArgumentOutOfRangeException(nameof(shift));
-            return new Word18(t._value * Pow3(shift));
+            return FromWrapped(t._value * Pow3(shift));
         }
         public static Word18 operator >>(Word18 t, int shift)
         {
@@ -124,7 +140,7 @@ namespace TritTypes
             long rem = t._value % divisor;
             if (rem != 0 && ((divisor < 0) != (rem < 0)))
                 result--;
-            return new Word18(result);
+            return FromWrapped(result);
         }
 
         // Tritwise logical operations
@@ -143,7 +159,7 @@ namespace TritTypes
                 tb = (tb - (tb % 3)) / 3;
                 power *= 3;
             }
-            return new Word18(result);
+            return FromWrapped(result);
         }
 
         public static Word18 TritOr(Word18 a, Word18 b)
@@ -161,7 +177,7 @@ namespace TritTypes
                 tb = (tb - (tb % 3)) / 3;
                 power *= 3;
             }
-            return new Word18(result);
+            return FromWrapped(result);
         }
 
         public static Word18 TritXor(Word18 a, Word18 b)
@@ -173,15 +189,18 @@ namespace TritTypes
             {
                 int tritA = (int)(ta % 3); if (tritA == 2) tritA = -1; else if (tritA == -2) tritA = 1;
                 int tritB = (int)(tb % 3); if (tritB == 2) tritB = -1; else if (tritB == -2) tritB = 1;
-                int sum = tritA + tritB;
-                if (sum > 1) sum -= 3;
-                if (sum < -1) sum += 3;
-                result += sum * power;
+                
+                // Spec: (ta + tb) mod 3 with mapping 0->0, 1->1, 2->-1
+                int resTrit = (tritA + tritB) % 3;
+                if (resTrit == 2) resTrit = -1;
+                else if (resTrit == -2) resTrit = 1;
+                
+                result += (long)resTrit * power;
                 ta = (ta - (ta % 3)) / 3;
                 tb = (tb - (tb % 3)) / 3;
                 power *= 3;
             }
-            return new Word18(result);
+            return FromWrapped(result);
         }
 
         public override bool Equals(object? obj) => obj is Word18 other && ToInt128() == other.ToInt128();
