@@ -20,8 +20,9 @@ namespace T3Simulator.Common
             }
             else if (s.Length == 54)
             {
-                // For T3-54, the instruction is still encoded in the first 18 trits of the word
-                return Decode18<TWord>(s.Substring(0, 18));
+                // For T3-54, the instruction is encoded in the last 18 trits of the word
+                // to be compatible with Word54.FromInt128(instructionValue)
+                return Decode18<TWord>(s.Substring(s.Length - 18));
             }
             throw new ArgumentException($"Unsupported word length: {s.Length}");
         }

@@ -19,12 +19,12 @@ namespace T3Simulator.Common
 
             switch (op)
             {
-                case Opcode.ADD: return (TWord)(da + db);
-                case Opcode.SUB: return (TWord)(da - db);
-                case Opcode.MUL: return (TWord)(da * db);
-                case Opcode.DIV: return (TWord)(da / db);
-                case Opcode.MOD: return (TWord)(da % db);
-                case Opcode.NEG: return (TWord)(-da);
+            case Opcode.ADD: return (TWord)(object)(da + db);
+            case Opcode.SUB: return (TWord)(object)(da - db);
+            case Opcode.MUL: return (TWord)(object)(da * db);
+            case Opcode.DIV: return (TWord)(object)(da / db);
+            case Opcode.MOD: return (TWord)(object)(da % db);
+            case Opcode.NEG: return (TWord)(object)(-da);
                 case Opcode.MOV: return b;
                 case Opcode.LI: return b;
                 
@@ -36,10 +36,10 @@ namespace T3Simulator.Common
                 // Shifts
                 case Opcode.SHL:
                     int shiftL = (int)db.ToLong();
-                    return (TWord)(da << shiftL);
+                    return (TWord)(object)(da << shiftL);
                 case Opcode.SHR:
                     int shiftR = (int)db.ToLong();
-                    return (TWord)(da >> shiftR);
+                    return (TWord)(object)(da >> shiftR);
                 
                 default:
                     throw new NotSupportedException($"ALU does not support opcode {op}. Use specialized handlers for Control Flow/Memory.");

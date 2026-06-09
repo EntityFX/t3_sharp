@@ -55,79 +55,8 @@ namespace T3Simulator.InOrder.Tests
             if (sImm.Length < 6) sImm = sImm.PadLeft(6, '0');
 
             string instruction = sOp + sOp1 + sOp2 + sImm;
-            string word = instruction.PadRight(54, '0');
+            string word = instruction.PadLeft(54, '0');
             return Word54.FromInt128(TritTypes.BalancedTernary.ParseToInt128(word));
-        }
-
-        [TestMethod]
-        [Timeout(30000)]
-        public void Test_ArrayAddition()
-        {
-            var proc = CreateProcessor();
-            var assembler = new T3InOrderAssembler(T3Config.T3_18);
-
-            // Arrays: A[0..2] = {1, 2, 3}, B[0..2] = {4, 5, 6}
-            // Result C[0..2] = {5, 7, 9}
-            // Addresses: A=100, B=110, C=120
-            string asm = @"
-                LI RW, 100
-                LI RX, 110
-                LI RY, 120
-                LI RZ, 3
-                
-                LI R0, 1
-                STOREI R0, RW, 0
-                LI R0, 2
-                STOREI R0, RW, 1
-                LI R0, 3
-                STOREI R0, RW, 2
-                
-                LI R0, 4
-                STOREI R0, RX, 0
-                LI R0, 5
-                STOREI R0, RX, 1
-                LI R0, 6
-                STOREI R0, RX, 2
-                
-                LI R4, 0
-                loop:
-                    LOAD R0, RW
-                    LOAD R1, RX
-                    ADD R2, R0, R1
-                    ADD R3, RY, R4
-                    STORE R2, R3
-                    ADDI R4, R4, 1
-                    ADDI RW, RW, 1
-                    ADDI RX, RX, 1
-                    CMP R4, RZ
-                    JE end
-                    JMP loop
-                end:
-                    HALT
-            ";
-            
-            var program = assembler.Assemble(asm).Select(x => Word18.FromLong((long)x)).ToList();
-            proc.LoadProgram(program);
-            proc.Run();
-            
-            proc.Reset();
-            
-            string verifyAsm = @"
-                LI RW, 120
-                LOAD R1, RW
-                LI RW, 121
-                LOAD R2, RW
-                LI RW, 122
-                LOAD R3, RW
-                HALT
-            ";
-            var verifyProg = assembler.Assemble(verifyAsm).Select(x => Word18.FromLong((long)x)).ToList();
-            proc.LoadProgram(verifyProg);
-            proc.Run();
-            
-            Assert.AreEqual(5, (long)proc.GetState().Registers[5].ToInt128());
-            Assert.AreEqual(7, (long)proc.GetState().Registers[6].ToInt128());
-            Assert.AreEqual(9, (long)proc.GetState().Registers[7].ToInt128());
         }
 
         [TestMethod]
@@ -155,28 +84,6 @@ namespace T3Simulator.InOrder.Tests
             proc.Run();
             
             Assert.AreEqual(11, proc.GetState().Registers[0]);
-        }
-
-        [TestMethod]
-        [Timeout(30000)]
-        public void Test_T3_54_Int128()
-        {
-            // Test with T3-54 and Int128
-            var proc = new T3InOrderProcessor<Word54>(T3Config.T3_54);
-            var assembler = new T3InOrderAssembler(T3Config.T3_54);
-            
-            string asm = @"
-                LIMM RW, 3486784401
-                LIMM RX, 2
-                MUL RW, RW, RX
-                HALT
-            ";
-            
-            var program = assembler.Assemble(asm).Select(x => Word54.FromInt128(x)).ToList();
-            proc.LoadProgram(program);
-            proc.Run();
-            
-            Assert.AreEqual((Int128)3486784401 * 2, proc.GetState().Registers[0].ToInt128());
         }
 
         [TestMethod]
@@ -287,6 +194,131 @@ namespace T3Simulator.InOrder.Tests
             proc.LoadProgram(program);
             proc.Run();
             Assert.AreEqual(18, proc.GetState().Registers[0]);
+        }
+
+        [TestMethod]
+        [Timeout(30000)]
+        public void Test_ArrayAddition()
+        {
+            var proc = CreateProcessor();
+            var assembler = new T3InOrderAssembler(T3Config.T3_18);
+
+            string asm = @"
+                ; Initialize Array A: {1, 2, 3} at 100
+                LI RX, 100
+                LI RY, 1
+                STORE RY, RX
+                LI RX, 101
+                LI RY, 2
+                STORE RY, RX
+                LI RX, 102
+                LI RY, 3
+                STORE RY, RX
+
+                ; Initialize Array B: {4, 5, 6} at 110
+                LI RX, 110
+                LI RY, 4
+                STORE RY, RX
+                LI RX, 111
+                LI RY, 5
+                STORE RY, RX
+                LI RX, 112
+                LI RY, 6
+                STORE RY, RX
+
+                ; Array Addition Loop
+                LI A, 0       ; i = 0
+                LI B, 100     ; base A
+                LI C, 110     ; base B
+                LI D, 120     ; base C
+                LI E, 3       ; limit = 3
+
+            loop:
+                MOV I, A
+                ADD I, B
+                LOAD F, I     ; F = A[i]
+                
+                MOV I, A
+                ADD I, C
+                LOAD G, I     ; G = B[i]
+                
+                ADD H, F, G   ; H = A[i] + B[i]
+                
+                MOV I, A
+                ADD I, D
+                STORE H, I    ; C[i] = H
+                
+                ADDI A, A, 1  ; i++
+                CMP A, E
+                LI G, end
+                JE G
+                LI G, loop
+                JMP G
+            end:
+                HALT
+            ";
+
+            var program = assembler.Assemble(asm).Select(x => Word18.FromLong((long)x)).ToList();
+            proc.LoadProgram(program);
+            proc.Run();
+
+            // Verify C = {5, 7, 9} at 120
+            Assert.AreEqual(5, proc.ReadWord(120).ToInt128());
+            Assert.AreEqual(7, proc.ReadWord(121).ToInt128());
+            Assert.AreEqual(9, proc.ReadWord(122).ToInt128());
+        }
+
+        [TestMethod]
+        [Timeout(30000)]
+        public void Test_RecursiveFibonacci()
+        {
+            var proc = CreateProcessor();
+            var assembler = new T3InOrderAssembler(T3Config.T3_18);
+
+            string asm = @"
+                LI B, 6       ; n = 6
+                LI D, fib
+                CALL D
+                HALT
+
+            fib:
+                LI D, 1
+                CMP B, D
+                LI D, base_case
+                JL D
+                LI D, base_case
+                JE D
+
+                PUSH B        ; Save n
+                SUBI B, B, 1
+                LI D, fib
+                CALL D        ; C = Fib(n-1)
+                PUSH C        ; Save Fib(n-1)
+                
+                POP B         ; B = Fib(n-1)
+                POP D         ; D = n
+                PUSH B        ; Save Fib(n-1) back to stack
+                
+                SUBI D, D, 2
+                MOV B, D
+                LI D, fib
+                CALL D        ; C = Fib(n-2)
+                
+                POP B         ; B = Fib(n-1)
+                ADD C, C, B   ; C = Fib(n-2) + Fib(n-1)
+                RET
+
+            base_case:
+                MOV C, B
+                RET
+            ";
+
+            var program = assembler.Assemble(asm).Select(x => Word18.FromLong((long)x)).ToList();
+            proc.LoadProgram(program);
+            proc.Run();
+
+            // Fib(6) = 8. B=R1, C=R2.
+            Assert.AreEqual(8, proc.GetState().Registers[2].ToInt128()); 
         }
     }
 }

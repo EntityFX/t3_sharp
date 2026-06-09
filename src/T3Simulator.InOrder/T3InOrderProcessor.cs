@@ -27,7 +27,7 @@ namespace T3Simulator.InOrder
             Instruction<TWord> instr = InstructionDecoder.Decode(currentWord);
 
             // DEBUG: Trace every instruction fetch
-            Console.WriteLine($"STEP: PC={PC} Opcode={instr.Opcode} Pred={instr.PredicateIndex}");
+            // Console.WriteLine($"STEP: PC={PC} Word={currentWord} Opcode={instr.Opcode} Pred={instr.PredicateIndex}");
 
             // 3. Predicate Evaluation
             if (!EvaluatePredicate(instr.PredicateIndex))
@@ -100,7 +100,6 @@ namespace T3Simulator.InOrder
             switch (instr.Opcode)
             {
                 case Opcode.HALT:
-                    Console.WriteLine("EXE HALT");
                     IsHalted = true;
                     IncrementCycles(1);
                     break;
@@ -108,14 +107,12 @@ namespace T3Simulator.InOrder
                 case Opcode.MOV:
                     TWord movVal = GetRegisterValue((int)op2);
                     SetRegisterValue((int)op1, movVal);
-                    Console.WriteLine($"EXE MOV: R{op1} = R{op2} ({movVal})");
                     IncrementCycles(1);
                     break;
 
                 case Opcode.MOVI:
                     TWord moviVal = FromLong(instr.Immediate);
                     SetRegisterValue((int)op1, moviVal);
-                    Console.WriteLine($"EXE MOVI: R{op1} = {moviVal}");
                     IncrementCycles(1);
                     break;
 
@@ -123,7 +120,6 @@ namespace T3Simulator.InOrder
                     long addrLoad = ToLong(GetRegisterValue((int)op2));
                     TWord loadVal = ReadWord(addrLoad);
                     SetRegisterValue((int)op1, loadVal);
-                    Console.WriteLine($"EXE LOAD: R{op1} = mem[{addrLoad}] ({loadVal})");
                     IncrementCycles(2);
                     break;
 
@@ -131,7 +127,6 @@ namespace T3Simulator.InOrder
                     long addrLoadI = ToLong(GetRegisterValue((int)op2)) + instr.Immediate;
                     TWord loadIVal = ReadWord(addrLoadI);
                     SetRegisterValue((int)op1, loadIVal);
-                    Console.WriteLine($"EXE LOADI: R{op1} = mem[{addrLoadI}] ({loadIVal})");
                     IncrementCycles(2);
                     break;
 
@@ -139,7 +134,6 @@ namespace T3Simulator.InOrder
                     long addrStore = ToLong(GetRegisterValue((int)op2));
                     TWord storeVal = GetRegisterValue((int)op1);
                     WriteWord(addrStore, storeVal);
-                    Console.WriteLine($"EXE STORE: mem[{addrStore}] = R{op1} ({storeVal})");
                     IncrementCycles(2);
                     break;
 
@@ -147,7 +141,6 @@ namespace T3Simulator.InOrder
                     long addrStoreI = ToLong(GetRegisterValue((int)op2)) + instr.Immediate;
                     TWord storeIVal = GetRegisterValue((int)op1);
                     WriteWord(addrStoreI, storeIVal);
-                    Console.WriteLine($"EXE STOREI: mem[{addrStoreI}] = R{op1} ({storeIVal})");
                     IncrementCycles(2);
                     break;
 
@@ -155,7 +148,6 @@ namespace T3Simulator.InOrder
                 case Opcode.LI_I:
                     TWord liVal = FromLong(instr.Immediate);
                     SetRegisterValue((int)op1, liVal);
-                    Console.WriteLine($"EXE LI: R{op1} = {liVal}");
                     IncrementCycles(1);
                     break;
 
@@ -163,7 +155,6 @@ namespace T3Simulator.InOrder
                     PC++;
                     TWord immVal = ReadWord(PC);
                     SetRegisterValue((int)op1, immVal);
-                    Console.WriteLine($"EXE LIMM: R{op1} = {immVal} (PC={PC})");
                     IncrementCycles(2);
                     break;
 
@@ -175,7 +166,6 @@ namespace T3Simulator.InOrder
                     TWord v2 = GetRegisterValue((int)op2);
                     TWord v3 = GetRegisterValue((int)instr.Op3);
                     TWord resR = T3Alu.Execute(instr.Opcode, v2, v3, Config);
-                    Console.WriteLine($"EXE {instr.Opcode}: R{op1} = {v2} {instr.Opcode} {v3} = {resR}");
                     SetRegisterValue((int)op1, resR);
                     IncrementCycles(instr.Opcode switch {
                         Opcode.ADD => 1,
@@ -203,7 +193,6 @@ namespace T3Simulator.InOrder
                     TWord v2I = GetRegisterValue((int)op2);
                     TWord immI = FromLong(instr.Immediate);
                     TWord resI = T3Alu.Execute(baseOp, v2I, immI, Config);
-                    Console.WriteLine($"EXE {instr.Opcode}: R{op1} = {v2I} {baseOp} {immI} = {resI}");
                     SetRegisterValue((int)op1, resI);
                     IncrementCycles(baseOp switch {
                         Opcode.ADD => 1,
@@ -287,7 +276,6 @@ namespace T3Simulator.InOrder
                     TWord cmpA = GetRegisterValue((int)op1);
                     TWord cmpB = GetRegisterValue((int)op2);
                     Cond = T3Alu.Compare(cmpA, cmpB);
-                    Console.WriteLine($"EXE CMP: R{op1}({cmpA}) vs R{op2}({cmpB}) -> Cond={Cond}");
                     IncrementCycles(1);
                     break;
  
@@ -295,13 +283,11 @@ namespace T3Simulator.InOrder
                     TWord cmpAI = GetRegisterValue((int)op1);
                     TWord cmpBI = FromLong(instr.Immediate);
                     Cond = T3Alu.Compare(cmpAI, cmpBI);
-                    Console.WriteLine($"EXE CMPI: R{op1}({cmpAI}) vs {instr.Immediate}({cmpBI}) -> Cond={Cond}");
                     IncrementCycles(1);
                     break;
 
                 case Opcode.JMP:
                     long targetJmp = ToLong(GetRegisterValue((int)op1));
-                    Console.WriteLine($"EXE JMP: Target={targetJmp} (PC={PC})");
                     PC = targetJmp;
                     IncrementCycles(1);
                     break;
@@ -309,10 +295,8 @@ namespace T3Simulator.InOrder
                 case Opcode.JE:
                     long targetJe = ToLong(GetRegisterValue((int)op1));
                     if (Cond == 0) {
-                        Console.WriteLine($"EXE JE: Cond={Cond} -> Jump to {targetJe} (PC={PC})");
                         PC = targetJe;
                     } else {
-                        Console.WriteLine($"EXE JE: Cond={Cond} -> No Jump (PC={PC})");
                         PC++;
                     }
                     IncrementCycles(Cond == 0 ? 2 : 1);
@@ -321,10 +305,8 @@ namespace T3Simulator.InOrder
                 case Opcode.JNE:
                     long targetJne = ToLong(GetRegisterValue((int)op1));
                     if (Cond != 0) {
-                        Console.WriteLine($"EXE JNE: Cond={Cond} -> Jump to {targetJne} (PC={PC})");
                         PC = targetJne;
                     } else {
-                        Console.WriteLine($"EXE JNE: Cond={Cond} -> No Jump (PC={PC})");
                         PC++;
                     }
                     IncrementCycles(Cond != 0 ? 2 : 1);
@@ -333,10 +315,8 @@ namespace T3Simulator.InOrder
                 case Opcode.JL:
                     long targetJl = ToLong(GetRegisterValue((int)op1));
                     if (Cond < 0) {
-                        Console.WriteLine($"EXE JL: Cond={Cond} -> Jump to {targetJl} (PC={PC})");
                         PC = targetJl;
                     } else {
-                        Console.WriteLine($"EXE JL: Cond={Cond} -> No Jump (PC={PC})");
                         PC++;
                     }
                     IncrementCycles(Cond < 0 ? 2 : 1);
@@ -345,10 +325,8 @@ namespace T3Simulator.InOrder
                 case Opcode.JG:
                     long targetJg = ToLong(GetRegisterValue((int)op1));
                     if (Cond > 0) {
-                        Console.WriteLine($"EXE JG: Cond={Cond} -> Jump to {targetJg} (PC={PC})");
                         PC = targetJg;
                     } else {
-                        Console.WriteLine($"EXE JG: Cond={Cond} -> No Jump (PC={PC})");
                         PC++;
                     }
                     IncrementCycles(Cond > 0 ? 2 : 1);
@@ -357,10 +335,8 @@ namespace T3Simulator.InOrder
                 case Opcode.JM:
                     long targetJm = ToLong(GetRegisterValue((int)op1));
                     if (Cond == 0) {
-                        Console.WriteLine($"EXE JM: Cond={Cond} -> Jump to {targetJm} (PC={PC})");
                         PC = targetJm;
                     } else {
-                        Console.WriteLine($"EXE JM: Cond={Cond} -> No Jump (PC={PC})");
                         PC++;
                     }
                     IncrementCycles(Cond == 0 ? 2 : 1);

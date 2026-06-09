@@ -459,7 +459,7 @@ namespace T3Simulator.InOrder.Tests
             // Instruction is encoded in the first 18 trits for T3-54
             Word18 w18 = Encode(opcode, op1, (long)op2, pred);
             string s18 = w18.ToTritString();
-            string s54 = s18.PadRight(54, '0');
+            string s54 = s18.PadLeft(54, '0');
             return Word54.FromInt128(TritTypes.BalancedTernary.ParseToInt128(s54));
         }
 
