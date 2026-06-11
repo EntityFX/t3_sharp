@@ -39,7 +39,7 @@ public class MainWindowViewModel : ViewModelBase
         set => SetProperty(ref _logText, value);
     }
 
-    private string _disassembledCode = string.Empty;
+    private string _disassembledCode = "HALT";
     public string DisassembledCode
     {
         get => _disassembledCode;
@@ -82,6 +82,7 @@ public class MainWindowViewModel : ViewModelBase
     }
 
     // Explicit properties for logical registers
+    public RegisterInfo RegPC { get; } = new() { Name = "PC" };
     public RegisterInfo RegRW { get; } = new() { Name = "RW" };
     public RegisterInfo RegRX { get; } = new() { Name = "RX" };
     public RegisterInfo RegRY { get; } = new() { Name = "RY" };
@@ -92,7 +93,6 @@ public class MainWindowViewModel : ViewModelBase
     public RegisterInfo RegR3 { get; } = new() { Name = "R3" };
     public RegisterInfo RegR4 { get; } = new() { Name = "R4" };
 
-    // List for internal mapping and legacy support
     public ObservableCollection<RegisterInfo> LogicalRegisters { get; } = new();
     public ObservableCollection<RegisterInfo> PhysicalRegisters { get; } = new();
     public ObservableCollection<MemoryInfo> Memory { get; } = new();
@@ -157,6 +157,9 @@ public class MainWindowViewModel : ViewModelBase
         {
             PhysicalRegisters.Add(new RegisterInfo { Index = i, Name = $"R{i}", Value = "0" });
         }
+
+        RegPC.IsActive = true;
+        RegPC.Value = "0";
     }
 
     public async System.Threading.Tasks.Task LoadFileAsync()
@@ -174,6 +177,7 @@ public class MainWindowViewModel : ViewModelBase
                 string content = await File.ReadAllTextAsync(filePath);
                 List<Int128> binary = assembler.Assemble(content);
                 foreach (var val in binary) programWords.Add(new Word18((long)val));
+                var dis = T3Disassembler.Disassemble(programWords);
             }
             else if (filePath.EndsWith(".bin", StringComparison.OrdinalIgnoreCase))
             {
@@ -199,8 +203,10 @@ public class MainWindowViewModel : ViewModelBase
                 }
             }
 
+            _processor.Reset();
             _processor.LoadProgram(programWords);
             UpdateState();
+            UpdateDisassembly();
             AppendLog($"Loaded program from {filePath}. Size: {programWords.Count} words.");
         }
         catch (Exception ex)
@@ -230,6 +236,7 @@ public class MainWindowViewModel : ViewModelBase
             while (IsRunning && !_processor.IsHalted && !_cts.Token.IsCancellationRequested)
             {
                 if (!_processor.Step()) break;
+                UpdateDisassembly();
                 UpdateState();
                 await System.Threading.Tasks.Task.Delay(10);
             }
@@ -252,6 +259,7 @@ public class MainWindowViewModel : ViewModelBase
     {
         _processor.Reset();
         UpdateState();
+        AppendLog("Processor reset successful.");
     }
 
     private void UpdateState()
@@ -259,10 +267,15 @@ public class MainWindowViewModel : ViewModelBase
         try 
         {
             var state = _processor.GetState();
-            
+
+           
             PcFormatted = T3Formatter.FormatValue(state.PC, CurrentFormat);
+            RegPC.Value = PcFormatted;
+
             SpFormatted = T3Formatter.FormatValue(state.SP, CurrentFormat);
-            PrFormatted = T3Formatter.FormatValue((long)state.PR, CurrentFormat);
+            
+            // Using ToInt128() safely via cast for PR
+            PrFormatted = T3Formatter.FormatValue((long)state.PR.ToInt128(), CurrentFormat);
             CondFormatted = state.Cond.ToString();
 
             // Update explicit logical registers
@@ -270,28 +283,20 @@ public class MainWindowViewModel : ViewModelBase
             for (int i = 0; i < logicals.Length; i++)
             {
                 int physicalIndex = RegisterWindow.GetPhysicalIndex(i, state.WP);
-                logicals[i].Value = T3Formatter.FormatValue((long)state.Registers[physicalIndex], CurrentFormat);
-                logicals[i].IsActive = (physicalIndex >= state.WP && physicalIndex < state.WP + 9);
-                // Note: IsActive for logical registers is slightly different. 
-                // A logical register is "active" if its current physical mapping is within the window.
-                // Actually, the logical registers ALWAYS map to something. 
-                // Let's mark it as active if the register is currently part of the visible window.
-                // In our case, logical 0-8 always map to WP...WP+8. So they are always active?
-                // Usually, IsActive in the UI should indicate if the physical register is in the window.
-                // Since these ARE the logical registers, they are by definition the ones in the window.
+                // FIX: Use ToInt128() instead of direct (long) cast
+                long val = (long)state.Registers[physicalIndex].ToInt128();
+                logicals[i].Value = T3Formatter.FormatValue(val, CurrentFormat);
                 logicals[i].IsActive = true; 
             }
-            
-            // Correcting IsActive: The user probably wants to see which PHYSICAL registers are active.
-            // But if we show logicals, they are always the window. 
-            // Let's keep the logic from before: just mark them as active.
 
-            UpdateDisassembly();
+
             UpdateMemoryView();
+
+            Thread.Sleep(100);
         }
         catch (Exception ex)
         {
-            AppendLog($"Error updating state: {ex.Message}");
+            AppendLog($"UI State Update Error: {ex.Message}");
         }
     }
 

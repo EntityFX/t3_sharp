@@ -26,6 +26,8 @@ namespace T3Simulator.Common
         protected long _instructionCount;
         protected long _stallCount;
 
+        private readonly long _initialSp;
+
         public long CycleCount => _cycleCount;
         public long InstructionCount => _instructionCount;
         public long StallCount => _stallCount;
@@ -41,17 +43,35 @@ namespace T3Simulator.Common
             Memory = new Memory<TWord>(memSize);
             DeviceManager = new DeviceManager<TWord>();
             
-            SP = memSize - 1;
+            _initialSp = memSize - 1;
+            SP = _initialSp;
+
+            // Initialize registers to default (0)
+            for (int i = 0; i < Registers.Length; i++)
+                Registers[i] = TWord.FromLong(0);
+            
+            PR = TWord.FromLong(0);
         }
 
         public virtual void Reset()
         {
             PC = 0;
             WP = 0;
+            SP = _initialSp;
             IsHalted = false;
             _cycleCount = 0;
             _instructionCount = 0;
             _stallCount = 0;
+
+            // Reset all registers to 0
+            for (int i = 0; i < Registers.Length; i++)
+                Registers[i] = TWord.FromLong(0);
+            
+            PR = TWord.FromLong(0);
+            
+            // Reset FRegisters
+            for (int i = 0; i < FRegisters.Length; i++)
+                FRegisters[i] = T3Float.FromDouble(0);
         }
 
         public virtual void LoadProgram(IEnumerable<TWord> code)

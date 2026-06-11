@@ -144,9 +144,9 @@
                 <Border Grid.Row="0" Margin="10,10,10,0" Background="#252526" CornerRadius="8" BorderBrush="#3f3f46" BorderThickness="1" Padding="15">
                     <DockPanel>
                         <TextBlock DockPanel.Dock="Top" Text="DISASSEMBLY" Classes="Header" />
-                        <TextBox Text="{Binding DisassembledCode}" IsReadOnly="True" 
-                                 AcceptsReturn="True" FontFamily="Cascadia Code,Consolas,Monospace"
-                                 Foreground="#d4d4d4" Background="transparent" BorderThickness="0" 
+                        <TextBlock Text="{Binding DisassembledCode}" 
+                                 FontFamily="Monospace" FontSize="11"
+                                 Foreground="#71717a"
                                  Padding="0" VerticalAlignment="Stretch" />
                     </DockPanel>
                 </Border>
@@ -159,8 +159,8 @@
                             <TextBlock DockPanel.Dock="Top" Text="PROCESSOR STATE" Classes="Header" />
                             <WrapPanel Orientation="Horizontal">
                                 <StackPanel Margin="0,0,25,0">
-                                    <TextBlock Text="PC" Foreground="#71717a" FontSize="11" />
-                                    <TextBlock Text="{Binding PcFormatted}" FontSize="20" FontWeight="Bold" Foreground="#f4f4f5" />
+                                    <TextBlock Text="PC" Foreground="#71717a" FontWeight="SemiBold" FontSize="11" />
+                                    <TextBlock Text="{Binding RegPC.Value}" FontSize="20" FontWeight="Bold" Foreground="#f4f4f5" />
                                 </StackPanel>
                                 <StackPanel Margin="0,0,25,0">
                                     <TextBlock Text="SP" Foreground="#71717a" FontSize="11" />
@@ -206,9 +206,9 @@
             <Border Grid.Column="2" Margin="10" Background="#252526" CornerRadius="8" BorderBrush="#3f3f46" BorderThickness="1" Padding="15">
                 <DockPanel>
                     <TextBlock DockPanel.Dock="Top" Text="EXECUTION LOG" Classes="Header" />
-                    <TextBox Text="{Binding LogText}" IsReadOnly="True" 
-                             AcceptsReturn="True" FontFamily="Cascadia Code,Consolas,Monospace"
-                             Foreground="#d4d4d4" Background="transparent" BorderThickness="0" 
+                    <TextBlock Text="{Binding LogText}"
+                              FontFamily="Cascadia Code,Consolas,Monospace"
+                             Foreground="#d4d4d4" Background="transparent"  
                              Padding="0" VerticalAlignment="Stretch" />
                 </DockPanel>
             </Border>
