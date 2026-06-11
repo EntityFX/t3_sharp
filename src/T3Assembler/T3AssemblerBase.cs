@@ -150,35 +150,28 @@ namespace T3Assembler
         protected bool IsRegister(string token)
         {
             string upper = token.ToUpper();
-            return upper == "RW" || upper == "RX" || upper == "RY" || upper == "RZ" ||
-                   upper == "R0" || upper == "R1" || upper == "R2" || upper == "R3" || upper == "R4" ||
-                   upper == "A" || upper == "B" || upper == "C" || upper == "D" || upper == "E" ||
+            if (upper == "RW" || upper == "RX" || upper == "RY" || upper == "RZ") return true;
+            if (upper.StartsWith("R") && upper.Length > 1 && int.TryParse(upper.Substring(1), out int idx) && idx >= 0 && idx <= 15) return true;
+            return upper == "A" || upper == "B" || upper == "C" || upper == "D" || upper == "E" ||
                    upper == "F" || upper == "G" || upper == "H" || upper == "I";
         }
 
         protected int GetRegisterIndex(string token)
         {
             string upper = token.ToUpper();
+            if (upper == "RW") return 0;
+            if (upper.StartsWith("R") && upper.Length > 1 && int.TryParse(upper.Substring(1), out int idx)) return idx;
             return upper switch
             {
-                "RW" => 0,
                 "A"  => 0,
-                "RX" => 1,
                 "B"  => 1,
-                "RY" => 2,
                 "C"  => 2,
-                "RZ" => 3,
                 "D"  => 3,
-                "R0" => 4,
-                "E"  => 4,
-                "R1" => 5,
-                "F"  => 5,
-                "R2" => 6,
-                "G"  => 6,
-                "R3" => 7,
-                "H"  => 7,
-                "R4" => 8,
-                "I"  => 8,
+                "E"  => 0,
+                "F"  => 1,
+                "G"  => 2,
+                "H"  => 3,
+                "I"  => 4,
                 _ => throw new Exception($"Invalid register name: {token}")
             };
         }

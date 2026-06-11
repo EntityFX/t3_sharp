@@ -25,25 +25,25 @@ namespace T3Simulator.Common
                 TWord word = codeList[index];
                 var instr = InstructionDecoder.Decode(word);
                 
-                string line = FormatInstruction(instr, pc);
-                lines.Add($"{pc:X8}: {line}");
-
                 if (instr.Opcode == Opcode.LIMM)
                 {
+                    string immVal = "[next]";
                     if (index + 1 < codeList.Count)
                     {
-                        TWord imm = codeList[index + 1];
-                        lines.Add($"  -> Immediate: {imm}");
+                        TWord immWord = codeList[index + 1];
+                        immVal = immWord.ToInt128().ToString();
                     }
-                    else
-                    {
-                        lines.Add("  -> [End of memory]");
-                    }
+                    
+                    string line = $"LIMM R{instr.Op1}, {immVal}";
+                    lines.Add($"{pc:X8}: {line}");
+                    
                     pc += 2;
                     index += 2;
                 }
                 else
                 {
+                    string line = FormatInstruction(instr, pc);
+                    lines.Add($"{pc:X8}: {line}");
                     pc += 1;
                     index += 1;
                 }
@@ -67,49 +67,40 @@ namespace T3Simulator.Common
             sb.Append(mnemonic + " ");
 
             // Operands
-            // Note: In T3, Operand1 and Operand2 can be register indices or immediate values.
-            // Here we represent them as generic values.
-            if (mnemonic == "HALT")
+            if (mnemonic == "HALT" || mnemonic == "RET")
             {
                 // No operands
             }
             else if (mnemonic == "LI")
             {
-                sb.Append($"R{instr.Op1}, {instr.Op2}");
+                sb.Append($"R{instr.Op1}, {instr.Immediate}");
             }
-            else if (mnemonic == "LIMM")
+            else if (mnemonic == "NEG")
             {
-                sb.Append($"R{instr.Op1}, [next]");
+                sb.Append($"R{instr.Op1}");
             }
             else if (mnemonic == "MOV" || mnemonic == "ADD" || mnemonic == "SUB" || 
                      mnemonic == "MUL" || mnemonic == "DIV" || mnemonic == "MOD" || 
                      mnemonic == "CMP" || mnemonic == "TRITAND" || mnemonic == "TRITOR" || 
                      mnemonic == "TRITXOR" || mnemonic == "SHL" || mnemonic == "SHR")
             {
-                sb.Append($"R{instr.Op1}, R{instr.Op2}");
-            }
-            else if (mnemonic == "NEG")
-            {
-                sb.Append($"R{instr.Op1}");
+                if (instr.Op1 == instr.Op2)
+                {
+                    sb.Append($"R{instr.Op1}, R{instr.Op3}");
+                }
+                else
+                {
+                    sb.Append($"R{instr.Op1}, R{instr.Op2}, R{instr.Op3}");
+                }
             }
             else if (mnemonic == "LOAD" || mnemonic == "STORE")
             {
-                // LOAD R1, R2 -> R1 = mem[R2]
-                // STORE R1, R2 -> mem[R2] = R1
                 sb.Append($"R{instr.Op1}, R{instr.Op2}");
             }
             else if (mnemonic == "JMP" || mnemonic == "JE" || mnemonic == "JNE" || 
-                     mnemonic == "JL" || mnemonic == "JG" || mnemonic == "JM")
+                     mnemonic == "JL" || mnemonic == "JG" || mnemonic == "JM" || mnemonic == "CALL")
             {
                 sb.Append($"R{instr.Op1}");
-            }
-            else if (mnemonic == "CALL")
-            {
-                sb.Append($"R{instr.Op1}");
-            }
-            else if (mnemonic == "RET")
-            {
-                // No operands
             }
             else if (mnemonic == "PUSH" || mnemonic == "POP")
             {
@@ -121,7 +112,7 @@ namespace T3Simulator.Common
             }
             else if (mnemonic == "INI" || mnemonic == "OUTI")
             {
-                sb.Append($"R{instr.Op1}, {instr.Op2}");
+                sb.Append($"R{instr.Op1}, {instr.Immediate}");
             }
             else
             {
@@ -136,23 +127,23 @@ namespace T3Simulator.Common
             return op switch
             {
                 Opcode.HALT => "HALT",
-                Opcode.LOAD => "LOAD",
-                Opcode.STORE => "STORE",
-                Opcode.MOV => "MOV",
-                Opcode.LI => "LI",
+                Opcode.LOAD or Opcode.LOADI => "LOAD",
+                Opcode.STORE or Opcode.STOREI => "STORE",
+                Opcode.MOV or Opcode.MOVI => "MOV",
+                Opcode.LI or Opcode.LI_I => "LI",
                 Opcode.LIMM => "LIMM",
-                Opcode.ADD => "ADD",
-                Opcode.SUB => "SUB",
-                Opcode.MUL => "MUL",
-                Opcode.DIV => "DIV",
-                Opcode.MOD => "MOD",
-                Opcode.NEG => "NEG",
-                Opcode.TRITAND => "TRITAND",
-                Opcode.TRITOR => "TRITOR",
-                Opcode.TRITXOR => "TRITXOR",
-                Opcode.SHL => "SHL",
-                Opcode.SHR => "SHR",
-                Opcode.CMP => "CMP",
+                Opcode.ADD or Opcode.ADDI => "ADD",
+                Opcode.SUB or Opcode.SUBI => "SUB",
+                Opcode.MUL or Opcode.MULI => "MUL",
+                Opcode.DIV or Opcode.DIVI => "DIV",
+                Opcode.MOD or Opcode.MODI => "MOD",
+                Opcode.NEG or Opcode.NEGI => "NEG",
+                Opcode.TRITAND or Opcode.TRITANDI => "TRITAND",
+                Opcode.TRITOR or Opcode.TRITORI => "TRITOR",
+                Opcode.TRITXOR or Opcode.TRITXORI => "TRITXOR",
+                Opcode.SHL or Opcode.SHLI => "SHL",
+                Opcode.SHR or Opcode.SHRI => "SHR",
+                Opcode.CMP or Opcode.CMPI => "CMP",
                 Opcode.JMP => "JMP",
                 Opcode.JE => "JE",
                 Opcode.JNE => "JNE",

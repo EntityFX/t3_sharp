@@ -120,6 +120,10 @@ namespace T3Assembler
             {
                 if (instParts.Length > 2) imm = (long)ResolveOperandValue(instParts[2]);
             }
+            else if (mnemonic == "LIMM")
+            {
+                // LIMM operand 2 is the immediate in the next word, not a register
+            }
             else
             {
                 if (instParts.Length > 2) op2 = ResolveOperand(instParts[2]);
@@ -156,7 +160,7 @@ namespace T3Assembler
         {
             return mnemonic switch
             {
-                "ADD" or "SUB" or "MUL" or "DIV" or "MOD" or 
+                "MOV" or "CMP" or "ADD" or "SUB" or "MUL" or "DIV" or "MOD" or 
                 "TRITAND" or "TRITOR" or "TRITXOR" or "SHL" or "SHR" => true,
                 _ => false
             };
