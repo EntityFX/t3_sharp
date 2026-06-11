@@ -3,6 +3,7 @@
     <Project Path="src/T3Simulator.InOrder/T3Simulator.InOrder.csproj" />
     <Project Path="src/TritTypes/TritTypes.csproj" />
     <Project Path="src/T3Simulator.Common/T3Simulator.Common.csproj" />
+    <Project Path="src/T3Simulator.GUI/T3Simulator.GUI.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/TritTypes.Tests/TritTypes.Tests.csproj" />

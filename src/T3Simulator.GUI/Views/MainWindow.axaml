@@ -1,0 +1,217 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:T3Simulator.GUI.ViewModels"
+        x:Class="T3Simulator.GUI.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="T3 Ternary Processor Simulator"
+        Width="1300" Height="850"
+        Background="#1e1e1e"
+        Foreground="#d4d4d4">
+
+    <Window.Styles>
+        <Style Selector="Button">
+            <Setter Property="Background" Value="#3f3f46" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="Padding" Value="10,5" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="4" />
+        </Style>
+        <Style Selector="Button:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#52525b" />
+        </Style>
+        <Style Selector="TextBlock.Header">
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Margin" Value="0,0,0,10" />
+            <Setter Property="Foreground" Value="#a1a1aa" />
+        </Style>
+    </Window.Styles>
+
+    <Grid RowDefinitions="Auto, *">
+        <!-- Toolbar -->
+        <Border Grid.Row="0" Background="#2d2d2d" Padding="10" BorderBrush="#3f3f46" BorderThickness="0,0,0,1">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Spacing="8">
+                    <Button Content="📂 Load" Command="{Binding LoadFileCommand}" />
+                    <Button Content="⏭ Step" Command="{Binding StepCommand}" />
+                    <Button Content="▶ Run" Command="{Binding RunCommand}" Foreground="#4ade80" />
+                    <Button Content="⏹ Stop" Command="{Binding StopCommand}" Foreground="#f87171" />
+                    <Button Content="🔄 Reset" Command="{Binding ResetCommand}" />
+                    <Button Content="💾 Save Log" Command="{Binding SaveLogCommand}" />
+                </StackPanel>
+                
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                    <TextBlock Text="Format:" VerticalAlignment="Center" Foreground="#a1a1aa" />
+                    <ComboBox SelectedItem="{Binding CurrentFormat}" Width="120">
+                        <x:String>trinary</x:String>
+                        <x:String>nonary</x:String>
+                        <x:String>27ary</x:String>
+                        <x:String>decimal</x:String>
+                    </ComboBox>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- Main Layout -->
+        <Grid Grid.Row="1" ColumnDefinitions="320, *, 400">
+            
+            <!-- Left Panel: Registers -->
+            <Border Grid.Column="0" Margin="10" Background="#252526" CornerRadius="8" BorderBrush="#3f3f46" BorderThickness="1" Padding="15">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="REGISTERS" Classes="Header" />
+                    <ScrollViewer>
+                        <StackPanel>
+                            <!-- Register RW -->
+                            <Border BorderBrush="#3f3f46" BorderThickness="0,0,0,1" Padding="0,8">
+                                <Grid ColumnDefinitions="60, *, 40">
+                                    <TextBlock Text="{Binding RegRW.Name}" FontWeight="SemiBold" Foreground="#e4e4e7" />
+                                    <TextBlock Grid.Column="1" Text="{Binding RegRW.Value}" Foreground="#4ade80" HorizontalAlignment="Right" FontFamily="Cascadia Code,Consolas,Monospace" />
+                                    <Ellipse Grid.Column="2" Width="12" Height="12" Fill="{Binding RegRW.IsActive, Converter={StaticResource IsActiveToBrushConverter}}" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                                </Grid>
+                            </Border>
+                            <!-- Register RX -->
+                            <Border BorderBrush="#3f3f46" BorderThickness="0,0,0,1" Padding="0,8">
+                                <Grid ColumnDefinitions="60, *, 40">
+                                    <TextBlock Text="{Binding RegRX.Name}" FontWeight="SemiBold" Foreground="#e4e4e7" />
+                                    <TextBlock Grid.Column="1" Text="{Binding RegRX.Value}" Foreground="#4ade80" HorizontalAlignment="Right" FontFamily="Cascadia Code,Consolas,Monospace" />
+                                    <Ellipse Grid.Column="2" Width="12" Height="12" Fill="{Binding RegRX.IsActive, Converter={StaticResource IsActiveToBrushConverter}}" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                                </Grid>
+                            </Border>
+                            <!-- Register RY -->
+                            <Border BorderBrush="#3f3f46" BorderThickness="0,0,0,1" Padding="0,8">
+                                <Grid ColumnDefinitions="60, *, 40">
+                                    <TextBlock Text="{Binding RegRY.Name}" FontWeight="SemiBold" Foreground="#e4e4e7" />
+                                    <TextBlock Grid.Column="1" Text="{Binding RegRY.Value}" Foreground="#4ade80" HorizontalAlignment="Right" FontFamily="Cascadia Code,Consolas,Monospace" />
+                                    <Ellipse Grid.Column="2" Width="12" Height="12" Fill="{Binding RegRY.IsActive, Converter={StaticResource IsActiveToBrushConverter}}" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                                </Grid>
+                            </Border>
+                            <!-- Register RZ -->
+                            <Border BorderBrush="#3f3f46" BorderThickness="0,0,0,1" Padding="0,8">
+                                <Grid ColumnDefinitions="60, *, 40">
+                                    <TextBlock Text="{Binding RegRZ.Name}" FontWeight="SemiBold" Foreground="#e4e4e7" />
+                                    <TextBlock Grid.Column="1" Text="{Binding RegRZ.Value}" Foreground="#4ade80" HorizontalAlignment="Right" FontFamily="Cascadia Code,Consolas,Monospace" />
+                                    <Ellipse Grid.Column="2" Width="12" Height="12" Fill="{Binding RegRZ.IsActive, Converter={StaticResource IsActiveToBrushConverter}}" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                                </Grid>
+                            </Border>
+                            <!-- Register R0 -->
+                            <Border BorderBrush="#3f3f46" BorderThickness="0,0,0,1" Padding="0,8">
+                                <Grid ColumnDefinitions="60, *, 40">
+                                    <TextBlock Text="{Binding RegR0.Name}" FontWeight="SemiBold" Foreground="#e4e4e7" />
+                                    <TextBlock Grid.Column="1" Text="{Binding RegR0.Value}" Foreground="#4ade80" HorizontalAlignment="Right" FontFamily="Cascadia Code,Consolas,Monospace" />
+                                    <Ellipse Grid.Column="2" Width="12" Height="12" Fill="{Binding RegR0.IsActive, Converter={StaticResource IsActiveToBrushConverter}}" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                                </Grid>
+                            </Border>
+                            <!-- Register R1 -->
+                            <Border BorderBrush="#3f3f46" BorderThickness="0,0,0,1" Padding="0,8">
+                                <Grid ColumnDefinitions="60, *, 40">
+                                    <TextBlock Text="{Binding RegR1.Name}" FontWeight="SemiBold" Foreground="#e4e4e7" />
+                                    <TextBlock Grid.Column="1" Text="{Binding RegR1.Value}" Foreground="#4ade80" HorizontalAlignment="Right" FontFamily="Cascadia Code,Consolas,Monospace" />
+                                    <Ellipse Grid.Column="2" Width="12" Height="12" Fill="{Binding RegR1.IsActive, Converter={StaticResource IsActiveToBrushConverter}}" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                                </Grid>
+                            </Border>
+                            <!-- Register R2 -->
+                            <Border BorderBrush="#3f3f46" BorderThickness="0,0,0,1" Padding="0,8">
+                                <Grid ColumnDefinitions="60, *, 40">
+                                    <TextBlock Text="{Binding RegR2.Name}" FontWeight="SemiBold" Foreground="#e4e4e7" />
+                                    <TextBlock Grid.Column="1" Text="{Binding RegR2.Value}" Foreground="#4ade80" HorizontalAlignment="Right" FontFamily="Cascadia Code,Consolas,Monospace" />
+                                    <Ellipse Grid.Column="2" Width="12" Height="12" Fill="{Binding RegR2.IsActive, Converter={StaticResource IsActiveToBrushConverter}}" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                                </Grid>
+                            </Border>
+                            <!-- Register R3 -->
+                            <Border BorderBrush="#3f3f46" BorderThickness="0,0,0,1" Padding="0,8">
+                                <Grid ColumnDefinitions="60, *, 40">
+                                    <TextBlock Text="{Binding RegR3.Name}" FontWeight="SemiBold" Foreground="#e4e4e7" />
+                                    <TextBlock Grid.Column="1" Text="{Binding RegR3.Value}" Foreground="#4ade80" HorizontalAlignment="Right" FontFamily="Cascadia Code,Consolas,Monospace" />
+                                    <Ellipse Grid.Column="2" Width="12" Height="12" Fill="{Binding RegR3.IsActive, Converter={StaticResource IsActiveToBrushConverter}}" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                                </Grid>
+                            </Border>
+                            <!-- Register R4 -->
+                            <Border BorderBrush="#3f3f46" BorderThickness="0,0,0,1" Padding="0,8">
+                                <Grid ColumnDefinitions="60, *, 40">
+                                    <TextBlock Text="{Binding RegR4.Name}" FontWeight="SemiBold" Foreground="#e4e4e7" />
+                                    <TextBlock Grid.Column="1" Text="{Binding RegR4.Value}" Foreground="#4ade80" HorizontalAlignment="Right" FontFamily="Haskin Code,Cascadia Code,Consolas,Monospace" />
+                                    <Ellipse Grid.Column="2" Width="12" Height="12" Fill="{Binding RegR4.IsActive, Converter={StaticResource IsActiveToBrushConverter}}" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                                </Grid>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+                </DockPanel>
+            </Border>
+
+            <!-- Center Panel: Code & Memory -->
+            <Grid Grid.Column="1" RowDefinitions="*, 250">
+                <!-- Disassembly View -->
+                <Border Grid.Row="0" Margin="10,10,10,0" Background="#252526" CornerRadius="8" BorderBrush="#3f3f46" BorderThickness="1" Padding="15">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Top" Text="DISASSEMBLY" Classes="Header" />
+                        <TextBox Text="{Binding DisassembledCode}" IsReadOnly="True" 
+                                 AcceptsReturn="True" FontFamily="Cascadia Code,Consolas,Monospace"
+                                 Foreground="#d4d4d4" Background="transparent" BorderThickness="0" 
+                                 Padding="0" VerticalAlignment="Stretch" />
+                    </DockPanel>
+                </Border>
+                
+                <!-- Bottom: Processor State & Memory -->
+                <Grid Grid.Row="1" ColumnDefinitions="*, *" Margin="10,0,10,10">
+                    <!-- State -->
+                    <Border Grid.Column="0" Margin="0,0,5,0" Background="#252526" CornerRadius="8" BorderBrush="#3f3f46" BorderThickness="1" Padding="15">
+                        <DockPanel>
+                            <TextBlock DockPanel.Dock="Top" Text="PROCESSOR STATE" Classes="Header" />
+                            <WrapPanel Orientation="Horizontal">
+                                <StackPanel Margin="0,0,25,0">
+                                    <TextBlock Text="PC" Foreground="#71717a" FontSize="11" />
+                                    <TextBlock Text="{Binding PcFormatted}" FontSize="20" FontWeight="Bold" Foreground="#f4f4f5" />
+                                </StackPanel>
+                                <StackPanel Margin="0,0,25,0">
+                                    <TextBlock Text="SP" Foreground="#71717a" FontSize="11" />
+                                    <TextBlock Text="{Binding SpFormatted}" FontSize="20" FontWeight="Bold" Foreground="#f4f4f5" />
+                                </StackPanel>
+                                <StackPanel Margin="0,0,25,0">
+                                    <TextBlock Text="PR" Foreground="#71717a" FontSize="11" />
+                                    <TextBlock Text="{Binding PrFormatted}" FontSize="20" FontWeight="Bold" Foreground="#f4f4f5" />
+                                </StackPanel>
+                                <StackPanel Margin="0,0,25,0">
+                                    <TextBlock Text="COND" Foreground="#71717a" FontSize="11" />
+                                    <TextBlock Text="{Binding CondFormatted}" FontSize="20" FontWeight="Bold" Foreground="#f4f4f5" />
+                                </StackPanel>
+                            </WrapPanel>
+                        </DockPanel>
+                    </Border>
+
+                    <!-- Memory View -->
+                    <Border Grid.Column="1" Margin="5,0,0,0" Background="#252526" CornerRadius="8" BorderBrush="#3f3f46" BorderThickness="1" Padding="15">
+                        <DockPanel>
+                            <TextBlock DockPanel.Dock="Top" Text="MEMORY (Top 32)" Classes="Header" />
+                            <ScrollViewer>
+                                <ItemsControl ItemsSource="{Binding Memory}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:MemoryInfo">
+                                            <Grid ColumnDefinitions="80, *" Margin="0,2">
+                                                <TextBlock Text="{Binding Address, StringFormat='0x{0:X8}'}" 
+                                                           Foreground="#71717a" FontSize="12" FontFamily="Cascadia Code,Consolas,Monospace" />
+                                                <TextBlock Grid.Column="1" Text="{Binding Value}" 
+                                                           Foreground="#4ade80" FontSize="12" HorizontalAlignment="Right"
+                                                           FontFamily="Cascadia Code,Consolas,Monospace" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </DockPanel>
+                    </Border>
+                </Grid>
+            </Grid>
+
+            <!-- Right Panel: Execution Log -->
+            <Border Grid.Column="2" Margin="10" Background="#252526" CornerRadius="8" BorderBrush="#3f3f46" BorderThickness="1" Padding="15">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="EXECUTION LOG" Classes="Header" />
+                    <TextBox Text="{Binding LogText}" IsReadOnly="True" 
+                             AcceptsReturn="True" FontFamily="Cascadia Code,Consolas,Monospace"
+                             Foreground="#d4d4d4" Background="transparent" BorderThickness="0" 
+                             Padding="0" VerticalAlignment="Stretch" />
+                </DockPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>
