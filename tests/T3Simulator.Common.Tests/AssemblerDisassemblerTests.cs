@@ -88,11 +88,21 @@ namespace T3Simulator.Common.Tests
             string normalized = NormalizeDisassembly(disassembled);
 
             // We compare line by line since sourceCode has whitespace/newlines
-            var expectedLines = sourceCode.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries)
-                                         .Select(l => l.Trim()).ToList();
+            var expectedLines = sourceCode.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None)
+                                         .Select(l => l.Trim())
+                                         .Where(l => !string.IsNullOrEmpty(l))
+                                         .ToList();
             var actualLines = normalized.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
-                                        .Select(l => l.Trim()).ToList();
-
+                                         .Select(l => l.Trim()).ToList();
+ 
+            if (expectedLines.Count != actualLines.Count)
+            {
+                Console.WriteLine("Expected lines:");
+                expectedLines.ForEach(l => Console.WriteLine($"- {l}"));
+                Console.WriteLine("Actual lines:");
+                actualLines.ForEach(l => Console.WriteLine($"- {l}"));
+            }
+ 
             CollectionAssert.AreEqual(expectedLines, actualLines);
         }
 

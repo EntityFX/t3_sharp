@@ -25,7 +25,8 @@ namespace T3Simulator.CLI
         private const string FORMAT_NONARY = "nonary";       // 9-ричный: W,X,Y,Z,0,1,2,3,4
         private const string FORMAT_27ARY = "27ary";         // 27-ричный: NOPQRSTUVWXYZ0123456789ABCD
 
-{"text": "        // Состояние симулятора\n        private T3InOrderProcessor<Word18> _processor;\n        private List<Word18> _programWords = new List<Word18>();"}
+        private T3InOrderProcessor<Word18> _processor;
+        private List<Word18> _programWords = new List<Word18>();
         private HashSet<long> _breakpoints = new HashSet<long>();
         private bool _traceEnabled = false;
         private Queue<string> _traceBuffer = new Queue<string>();

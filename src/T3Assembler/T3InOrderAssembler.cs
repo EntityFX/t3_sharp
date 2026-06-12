@@ -124,6 +124,10 @@ namespace T3Assembler
             {
                 // LIMM operand 2 is the immediate in the next word, not a register
             }
+            else if (mnemonic == "INI" || mnemonic == "OUTI")
+            {
+                if (instParts.Length > 2) imm = (long)ResolveOperandValue(instParts[2]);
+            }
             else
             {
                 if (instParts.Length > 2) op2 = ResolveOperand(instParts[2]);
@@ -181,6 +185,11 @@ namespace T3Assembler
                 if (opcode == Opcode.LIMM) 
                 {
                     isIType = false;
+                    baseOpcode = (int)opcode;
+                }
+                else if (opcode == Opcode.INI || opcode == Opcode.OUTI)
+                {
+                    isIType = true;
                     baseOpcode = (int)opcode;
                 }
                 else

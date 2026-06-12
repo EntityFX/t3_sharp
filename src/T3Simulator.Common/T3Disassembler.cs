@@ -64,7 +64,7 @@ namespace T3Simulator.Common
 
             // Opcode
             string mnemonic = GetMnemonic(instr.Opcode);
-            sb.Append(mnemonic + " ");
+            sb.Append(mnemonic);
 
             // Operands
             if (mnemonic == "HALT" || mnemonic == "RET")
@@ -73,11 +73,11 @@ namespace T3Simulator.Common
             }
             else if (mnemonic == "LI")
             {
-                sb.Append($"R{instr.Op1}, {instr.Immediate}");
+                sb.Append($" R{instr.Op1}, {instr.Immediate}");
             }
             else if (mnemonic == "NEG")
             {
-                sb.Append($"R{instr.Op1}");
+                sb.Append($" R{instr.Op1}");
             }
             else if (mnemonic == "MOV" || mnemonic == "ADD" || mnemonic == "SUB" || 
                      mnemonic == "MUL" || mnemonic == "DIV" || mnemonic == "MOD" || 
@@ -86,40 +86,40 @@ namespace T3Simulator.Common
             {
                 if (instr.Op1 == instr.Op2)
                 {
-                    sb.Append($"R{instr.Op1}, R{instr.Op3}");
+                    sb.Append($" R{instr.Op1}, R{instr.Op3}");
                 }
                 else
                 {
-                    sb.Append($"R{instr.Op1}, R{instr.Op2}, R{instr.Op3}");
+                    sb.Append($" R{instr.Op1}, R{instr.Op2}, R{instr.Op3}");
                 }
             }
             else if (mnemonic == "LOAD" || mnemonic == "STORE")
             {
-                sb.Append($"R{instr.Op1}, R{instr.Op2}");
+                sb.Append($" R{instr.Op1}, R{instr.Op2}");
             }
             else if (mnemonic == "JMP" || mnemonic == "JE" || mnemonic == "JNE" || 
                      mnemonic == "JL" || mnemonic == "JG" || mnemonic == "JM" || mnemonic == "CALL")
             {
-                sb.Append($"R{instr.Op1}");
+                sb.Append($" R{instr.Op1}");
             }
             else if (mnemonic == "PUSH" || mnemonic == "POP")
             {
-                sb.Append($"R{instr.Op1}");
+                sb.Append($" R{instr.Op1}");
             }
             else if (mnemonic == "IN" || mnemonic == "OUT")
             {
-                sb.Append($"R{instr.Op1}, R{instr.Op2}");
+                sb.Append($" R{instr.Op1}, R{instr.Op2}");
             }
             else if (mnemonic == "INI" || mnemonic == "OUTI")
             {
-                sb.Append($"R{instr.Op1}, {instr.Immediate}");
+                sb.Append($" R{instr.Op1}, {instr.Immediate}");
             }
             else
             {
-                sb.Append($"R{instr.Op1}, R{instr.Op2}");
+                sb.Append($" R{instr.Op1}, R{instr.Op2}");
             }
 
-            return sb.ToString();
+            return sb.ToString().TrimEnd();
         }
 
         private static string GetMnemonic(Opcode op)
