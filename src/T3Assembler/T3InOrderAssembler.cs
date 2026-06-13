@@ -164,7 +164,7 @@ namespace T3Assembler
         {
             return mnemonic switch
             {
-                "MOV" or "CMP" or "ADD" or "SUB" or "MUL" or "DIV" or "MOD" or 
+                "ADD" or "SUB" or "MUL" or "DIV" or "MOD" or 
                 "AND" or "TRITAND" or "OR" or "TRITOR" or "XOR" or "TRITXOR" or "SHL" or "SHR" => true,
                 _ => false
             };
@@ -203,6 +203,13 @@ namespace T3Assembler
                 baseOpcode = (int)opcode;
                 isIType = false;
             }
+            else if ((int)opcode >= 92 && (int)opcode <= 108)
+            {
+                // FPU instructions: use raw opcode (no +64 shift), special encoding
+                baseOpcode = (int)opcode;
+                // FLW (103) and FSW (104) are I-type
+                isIType = (opcode == Opcode.FLW || opcode == Opcode.FSW);
+            }
             else
             {
                 baseOpcode = (int)opcode;
@@ -221,11 +228,13 @@ namespace T3Assembler
             if (isIType)
             {
                 // Imm6: signed 6-trit value (-364..364)
+                // For FPU I-type, imm is the 4th operand (offset)
                 sRest = BalancedTernary.ToTernaryString(imm, 6);
             }
             else
             {
-                // Op3 (3) + Reserve (3)
+                // Op3 (3) + Reserve/Func (3)
+                // For FPU, op3 register stays same; func hardcoded to 0 for simple assembler
                 sRest = BalancedTernary.ToTernaryString(op3, 3) + "000";
             }
 

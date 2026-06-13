@@ -132,35 +132,7 @@ namespace T3Simulator.InOrder.Tests
             var assembler = new T3InOrderAssembler(T3Config.T3_18);
             
             // Double loop to calculate sum of i+j for i=0..2, j=0..2
-            // res = sum(i+j) = 0+0 + 0+1 + 0+2 + 1+0 + 1+1 + 1+2 + 2+0 + 2+1 + 2+2 = 18
-            string asm = @"
-                LI res, 0
-                LI i, 0
-                LI limit, 3
-                LI one, 1
-                
-            loop_i:
-                LI j, 0
-            loop_j:
-                ADD temp, i
-                ADD temp, j
-                ADD res, temp
-                ADD j, one
-                CMP j, limit
-                JE end_j
-                JMP loop_j
-            end_j:
-                ADD i, one
-                CMP i, limit
-                JE end_i
-                JMP loop_i
-            end_i:
-                HALT
-            ";
-            // I need to map logical registers to indices for the assembler if it doesn't do it.
-            // Wait, T3AssemblerCore.IsRegister checks "ABCDEFGHI". 
-            // I should use registers A-I.
-            
+            // res = sum(i+j) = 18
             string asmFixed = @"
                 LI A, 0       ; A = res
                 LI B, 0       ; B = i

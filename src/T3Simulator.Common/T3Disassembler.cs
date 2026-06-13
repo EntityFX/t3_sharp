@@ -84,9 +84,13 @@ namespace T3Simulator.Common
             {
                 sb.Append($" {GetRegName(instr.Op1)}");
             }
-            else if (mnemonic == "MOV" || mnemonic == "ADD" || mnemonic == "SUB" ||
+            else if (mnemonic == "MOV" || mnemonic == "CMP")
+            {
+                sb.Append($" {GetRegName(instr.Op1)}, {GetRegName(instr.Op2)}");
+            }
+            else if (mnemonic == "ADD" || mnemonic == "SUB" ||
                      mnemonic == "MUL" || mnemonic == "DIV" || mnemonic == "MOD" ||
-                     mnemonic == "CMP" || mnemonic == "AND" || mnemonic == "OR" ||
+                     mnemonic == "AND" || mnemonic == "OR" ||
                      mnemonic == "XOR" || mnemonic == "SHL" || mnemonic == "SHR")
             {
                 if (instr.Op1 == instr.Op2)
@@ -163,6 +167,23 @@ namespace T3Simulator.Common
                 Opcode.OUT => "OUT",
                 Opcode.INI => "INI",
                 Opcode.OUTI => "OUTI",
+                Opcode.FADD => "FADD",
+                Opcode.FSUB => "FSUB",
+                Opcode.FMUL => "FMUL",
+                Opcode.FDIV => "FDIV",
+                Opcode.FSQRT => "FSQRT",
+                Opcode.FABS => "FABS",
+                Opcode.FNEG => "FNEG",
+                Opcode.FCMP => "FCMP",
+                Opcode.FTOI => "FTOI",
+                Opcode.ITOF => "ITOF",
+                Opcode.FTOF => "FTOF",
+                Opcode.FLW => "FLW",
+                Opcode.FSW => "FSW",
+                Opcode.FMOV => "FMOV",
+                Opcode.FCLASS => "FCLASS",
+                Opcode.FSWAP => "FSWAP",
+                Opcode.FZERO => "FZERO",
                 _ => "UNKNOWN"
             };
         }

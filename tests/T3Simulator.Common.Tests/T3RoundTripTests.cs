@@ -191,7 +191,7 @@ namespace T3Simulator.Common.Tests
             string mnemonic = parts[0].ToUpper();
             string operandsPart = parts[1];
             
-            string[] arithmetic = { "MOV", "ADD", "SUB", "MUL", "DIV", "MOD", "CMP", "AND", "OR", "XOR", "SHL", "SHR" };
+            string[] arithmetic = { "ADD", "SUB", "MUL", "DIV", "MOD", "AND", "OR", "XOR", "SHL", "SHR" };
             if (arithmetic.Contains(mnemonic))
             {
                 string[] ops = operandsPart.Split(new[] { ',' }, StringSplitOptions.TrimEntries);

@@ -152,6 +152,7 @@ namespace T3Assembler
             string upper = token.ToUpper();
             if (upper == "RW" || upper == "RX" || upper == "RY" || upper == "RZ") return true;
             if (upper.StartsWith("R") && upper.Length > 1 && int.TryParse(upper.Substring(1), out int idx) && idx >= 0 && idx <= 15) return true;
+            if (upper == "FW" || upper == "FX" || upper == "FY" || upper == "FZ") return true;
             return upper == "A" || upper == "B" || upper == "C" || upper == "D" || upper == "E" ||
                    upper == "F" || upper == "G" || upper == "H" || upper == "I";
         }
@@ -159,10 +160,10 @@ namespace T3Assembler
         protected int GetRegisterIndex(string token)
         {
             string upper = token.ToUpper();
-            if (upper == "RW") return 0;
-            if (upper == "RX") return 1;
-            if (upper == "RY") return 2;
-            if (upper == "RZ") return 3;
+            if (upper == "RW" || upper == "FW") return 0;
+            if (upper == "RX" || upper == "FX") return 1;
+            if (upper == "RY" || upper == "FY") return 2;
+            if (upper == "RZ" || upper == "FZ") return 3;
             if (upper.StartsWith("R") && upper.Length > 1 && int.TryParse(upper.Substring(1), out int idx)) return idx;
             return upper switch
             {
@@ -236,6 +237,23 @@ namespace T3Assembler
                 "OUT" => Opcode.OUT,
                 "INI" => Opcode.INI,
                 "OUTI" => Opcode.OUTI,
+                "FADD" => Opcode.FADD,
+                "FSUB" => Opcode.FSUB,
+                "FMUL" => Opcode.FMUL,
+                "FDIV" => Opcode.FDIV,
+                "FSQRT" => Opcode.FSQRT,
+                "FABS" => Opcode.FABS,
+                "FNEG" => Opcode.FNEG,
+                "FCMP" => Opcode.FCMP,
+                "FTOI" => Opcode.FTOI,
+                "ITOF" => Opcode.ITOF,
+                "FTOF" => Opcode.FTOF,
+                "FLW" => Opcode.FLW,
+                "FSW" => Opcode.FSW,
+                "FMOV" => Opcode.FMOV,
+                "FCLASS" => Opcode.FCLASS,
+                "FSWAP" => Opcode.FSWAP,
+                "FZERO" => Opcode.FZERO,
                 _ => throw new Exception($"Unknown mnemonic: {mnemonic}")
             };
         }
