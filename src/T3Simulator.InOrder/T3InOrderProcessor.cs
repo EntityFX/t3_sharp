@@ -22,7 +22,7 @@ namespace T3Simulator.InOrder
 
             // 1. Fetch
             TWord currentWord = ReadWord(PC);
-            
+
             // 2. Decode
             Instruction<TWord> instr = InstructionDecoder.Decode(currentWord);
 
@@ -58,12 +58,12 @@ namespace T3Simulator.InOrder
 
             // 5. Update State
             IncrementInstructions();
-            
+
             // PC is updated inside ExecuteInstruction for branches, 
             // otherwise it's incremented here.
-            if (instr.Opcode != Opcode.JMP && instr.Opcode != Opcode.JE && 
-                instr.Opcode != Opcode.JNE && instr.Opcode != Opcode.JL && 
-                instr.Opcode != Opcode.JG && instr.Opcode != Opcode.JM && 
+            if (instr.Opcode != Opcode.JMP && instr.Opcode != Opcode.JE &&
+                instr.Opcode != Opcode.JNE && instr.Opcode != Opcode.JL &&
+                instr.Opcode != Opcode.JG && instr.Opcode != Opcode.JM &&
                 instr.Opcode != Opcode.CALL && instr.Opcode != Opcode.RET)
             {
                 PC++;
@@ -87,7 +87,7 @@ namespace T3Simulator.InOrder
             // p0: trits 15-17, p1: trits 12-14, p2: trits 9-11.
             int start = 18 - (predIndex * 3);
             string flag = prStr.Substring(start, 3);
-            
+
             return (int)BalancedTernary.ParseToLong(flag);
         }
 
@@ -103,7 +103,7 @@ namespace T3Simulator.InOrder
                     IsHalted = true;
                     IncrementCycles(1);
                     break;
-                
+
                 case Opcode.MOV:
                     TWord movVal = GetRegisterValue((int)op2);
                     SetRegisterValue((int)op1, movVal);
@@ -167,7 +167,8 @@ namespace T3Simulator.InOrder
                     TWord v3 = GetRegisterValue((int)instr.Op3);
                     TWord resR = T3Alu.Execute(instr.Opcode, v2, v3, Config);
                     SetRegisterValue((int)op1, resR);
-                    IncrementCycles(instr.Opcode switch {
+                    IncrementCycles(instr.Opcode switch
+                    {
                         Opcode.ADD => 1,
                         Opcode.SUB => 1,
                         Opcode.MUL => Config == T3Config.T3_18 ? 5 : 8,
@@ -182,7 +183,8 @@ namespace T3Simulator.InOrder
                 case Opcode.MULI:
                 case Opcode.DIVI:
                 case Opcode.MODI:
-                    Opcode baseOp = instr.Opcode switch {
+                    Opcode baseOp = instr.Opcode switch
+                    {
                         Opcode.ADDI => Opcode.ADD,
                         Opcode.SUBI => Opcode.SUB,
                         Opcode.MULI => Opcode.MUL,
@@ -194,7 +196,8 @@ namespace T3Simulator.InOrder
                     TWord immI = FromLong(instr.Immediate);
                     TWord resI = T3Alu.Execute(baseOp, v2I, immI, Config);
                     SetRegisterValue((int)op1, resI);
-                    IncrementCycles(baseOp switch {
+                    IncrementCycles(baseOp switch
+                    {
                         Opcode.ADD => 1,
                         Opcode.SUB => 1,
                         Opcode.MUL => Config == T3Config.T3_18 ? 5 : 8,
@@ -214,36 +217,36 @@ namespace T3Simulator.InOrder
                     IncrementCycles(1);
                     break;
 
-                case Opcode.TRITAND:
+                case Opcode.AND:
                     SetRegisterValue((int)op1, T3Alu.TritAnd(GetRegisterValue((int)op2), GetRegisterValue((int)instr.Op3)));
                     IncrementCycles(1);
                     break;
 
-                case Opcode.TRITANDI:
+                case Opcode.ANDI:
                     SetRegisterValue((int)op1, T3Alu.TritAnd(GetRegisterValue((int)op2), FromLong(instr.Immediate)));
                     IncrementCycles(1);
                     break;
-                
-                case Opcode.TRITOR:
+
+                case Opcode.OR:
                     SetRegisterValue((int)op1, T3Alu.TritOr(GetRegisterValue((int)op2), GetRegisterValue((int)instr.Op3)));
                     IncrementCycles(1);
                     break;
 
-                case Opcode.TRITORI:
+                case Opcode.ORI:
                     SetRegisterValue((int)op1, T3Alu.TritOr(GetRegisterValue((int)op2), FromLong(instr.Immediate)));
                     IncrementCycles(1);
                     break;
-                
-                case Opcode.TRITXOR:
+
+                case Opcode.XOR:
                     SetRegisterValue((int)op1, T3Alu.TritXor(GetRegisterValue((int)op2), GetRegisterValue((int)instr.Op3)));
                     IncrementCycles(1);
                     break;
 
-                case Opcode.TRITXORI:
+                case Opcode.XORI:
                     SetRegisterValue((int)op1, T3Alu.TritXor(GetRegisterValue((int)op2), FromLong(instr.Immediate)));
                     IncrementCycles(1);
                     break;
-                
+
                 case Opcode.SHL:
                     TWord valShl = GetRegisterValue((int)op2);
                     int shiftL = (int)GetRegisterValue((int)instr.Op3).ToInt128();
@@ -257,7 +260,7 @@ namespace T3Simulator.InOrder
                     SetRegisterValue((int)op1, T3Alu.ShiftLeft(valShlI, shiftLI));
                     IncrementCycles(1);
                     break;
-                
+
                 case Opcode.SHR:
                     TWord valShr = GetRegisterValue((int)op2);
                     int shiftR = (int)GetRegisterValue((int)instr.Op3).ToInt128();
@@ -278,7 +281,7 @@ namespace T3Simulator.InOrder
                     Cond = T3Alu.Compare(cmpA, cmpB);
                     IncrementCycles(1);
                     break;
- 
+
                 case Opcode.CMPI:
                     TWord cmpAI = GetRegisterValue((int)op1);
                     TWord cmpBI = FromLong(instr.Immediate);
@@ -294,9 +297,12 @@ namespace T3Simulator.InOrder
 
                 case Opcode.JE:
                     long targetJe = ToLong(GetRegisterValue((int)op1));
-                    if (Cond == 0) {
+                    if (Cond == 0)
+                    {
                         PC = targetJe;
-                    } else {
+                    }
+                    else
+                    {
                         PC++;
                     }
                     IncrementCycles(Cond == 0 ? 2 : 1);
@@ -304,9 +310,12 @@ namespace T3Simulator.InOrder
 
                 case Opcode.JNE:
                     long targetJne = ToLong(GetRegisterValue((int)op1));
-                    if (Cond != 0) {
+                    if (Cond != 0)
+                    {
                         PC = targetJne;
-                    } else {
+                    }
+                    else
+                    {
                         PC++;
                     }
                     IncrementCycles(Cond != 0 ? 2 : 1);
@@ -314,9 +323,12 @@ namespace T3Simulator.InOrder
 
                 case Opcode.JL:
                     long targetJl = ToLong(GetRegisterValue((int)op1));
-                    if (Cond < 0) {
+                    if (Cond < 0)
+                    {
                         PC = targetJl;
-                    } else {
+                    }
+                    else
+                    {
                         PC++;
                     }
                     IncrementCycles(Cond < 0 ? 2 : 1);
@@ -324,9 +336,12 @@ namespace T3Simulator.InOrder
 
                 case Opcode.JG:
                     long targetJg = ToLong(GetRegisterValue((int)op1));
-                    if (Cond > 0) {
+                    if (Cond > 0)
+                    {
                         PC = targetJg;
-                    } else {
+                    }
+                    else
+                    {
                         PC++;
                     }
                     IncrementCycles(Cond > 0 ? 2 : 1);
@@ -334,9 +349,12 @@ namespace T3Simulator.InOrder
 
                 case Opcode.JM:
                     long targetJm = ToLong(GetRegisterValue((int)op1));
-                    if (Cond == 0) {
+                    if (Cond == 0)
+                    {
                         PC = targetJm;
-                    } else {
+                    }
+                    else
+                    {
                         PC++;
                     }
                     IncrementCycles(Cond == 0 ? 2 : 1);
@@ -346,7 +364,7 @@ namespace T3Simulator.InOrder
                     // Push return address onto stack
                     SP -= 1;
                     WriteWord(SP, FromLong(PC + 1));
-                    
+
                     // Jump to target
                     PC = ToLong(GetRegisterValue((int)op1));
                     IncrementCycles(2);
@@ -395,27 +413,27 @@ namespace T3Simulator.InOrder
 
                 case Opcode.FADD:
                     FRegisters[(int)op1] = T3Fpu.Add(FRegisters[(int)op2], FRegisters[(int)instr.Op3]);
-                    IncrementCycles(1);
+                    IncrementCycles(5);
                     break;
 
                 case Opcode.FSUB:
                     FRegisters[(int)op1] = T3Fpu.Sub(FRegisters[(int)op2], FRegisters[(int)instr.Op3]);
-                    IncrementCycles(1);
+                    IncrementCycles(5);
                     break;
 
                 case Opcode.FMUL:
                     FRegisters[(int)op1] = T3Fpu.Mul(FRegisters[(int)op2], FRegisters[(int)instr.Op3]);
-                    IncrementCycles(5);
+                    IncrementCycles(7);
                     break;
 
                 case Opcode.FDIV:
                     FRegisters[(int)op1] = T3Fpu.Div(FRegisters[(int)op2], FRegisters[(int)instr.Op3]);
-                    IncrementCycles(10);
+                    IncrementCycles(15);
                     break;
 
                 case Opcode.FSQRT:
                     FRegisters[(int)op1] = T3Fpu.Sqrt(FRegisters[(int)op2]);
-                    IncrementCycles(10);
+                    IncrementCycles(20);
                     break;
 
                 case Opcode.FABS:
@@ -436,21 +454,19 @@ namespace T3Simulator.InOrder
                 case Opcode.FTOI:
                     long intVal = T3Fpu.ToInt(FRegisters[(int)op2], instr.Func);
                     SetRegisterValue((int)op1, FromLong(intVal));
-                    IncrementCycles(1);
+                    IncrementCycles(3);
                     break;
 
                 case Opcode.ITOF:
                     FRegisters[(int)op1] = T3Fpu.FromInt(ToLong(GetRegisterValue((int)op2)));
-                    IncrementCycles(1);
+                    IncrementCycles(3);
                     break;
 
                 case Opcode.FTOF:
-                    if (instr.Func == 0) // tfloat -> tdouble
-                        FRegisters[(int)op1] = T3Fpu.FromDoublePrecision(T3Fpu.ToDoublePrecision(FRegisters[(int)op2]));
-                    else // tdouble -> tfloat
-                        FRegisters[(int)op1] = T3Fpu.FromDoublePrecision(T3Fpu.ToDoublePrecision(FRegisters[(int)op2])); 
-                    // Note: tdouble requires pairs of registers, omitted for brevity in this simulation
-                    IncrementCycles(1);
+                    // func=0: tfloat→tdouble, func=1: tdouble→tfloat
+                    // Both simulate round-trip through double precision (tdouble uses register pairs in real hw)
+                    FRegisters[(int)op1] = T3Fpu.FromDoublePrecision(T3Fpu.ToDoublePrecision(FRegisters[(int)op2]));
+                    IncrementCycles(2);
                     break;
 
                 case Opcode.FLW:

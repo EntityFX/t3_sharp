@@ -168,14 +168,14 @@ namespace T3Simulator.InOrder.Tests
 
         [TestMethod]
         [Timeout(30000)]
-        public void Test_TRITAND()
+        public void Test_AND()
         {
             var proc = CreateProcessor();
             var program = new List<Word18>
             {
                 Encode(4, 0, 1),  // LI A, 1
                 Encode(4, 1, 0),  // LI B, 0
-                Encode(12, 0, 1), // TRITAND A, B
+                Encode(12, 0, 1), // AND A, B
                 Encode(0, 0, 0)   // HALT
             };
             proc.LoadProgram(program);
@@ -185,14 +185,14 @@ namespace T3Simulator.InOrder.Tests
 
         [TestMethod]
         [Timeout(30000)]
-        public void Test_TRITOR()
+        public void Test_OR()
         {
             var proc = CreateProcessor();
             var program = new List<Word18>
             {
                 Encode(4, 0, 1),  // LI A, 1
                 Encode(4, 1, 0),  // LI B, 0
-                Encode(13, 0, 1), // TRITOR A, B
+                Encode(13, 0, 1), // OR A, B
                 Encode(0, 0, 0)   // HALT
             };
             proc.LoadProgram(program);
@@ -202,14 +202,14 @@ namespace T3Simulator.InOrder.Tests
 
         [TestMethod]
         [Timeout(30000)]
-        public void Test_TRITXOR()
+        public void Test_XOR()
         {
             var proc = CreateProcessor();
             var program = new List<Word18>
             {
                 Encode(4, 0, 1),  // LI A, 1
                 Encode(4, 1, 1),  // LI B, 1
-                Encode(14, 0, 1), // TRITXOR A, B -> 1+1=2 -> -1 (mod 3)
+                Encode(14, 0, 1), // XOR A, B -> 1+1=2 -> -1 (mod 3)
                 Encode(0, 0, 0)   // HALT
             };
             proc.LoadProgram(program);

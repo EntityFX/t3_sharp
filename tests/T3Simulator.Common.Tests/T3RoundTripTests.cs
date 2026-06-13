@@ -30,9 +30,9 @@ namespace T3Simulator.Common.Tests
         [DataRow("DIV R1, R2, R3")]
         [DataRow("MOD R1, R2, R3")]
         [DataRow("NEG R1")]
-        [DataRow("TRITAND R1, R2, R3")]
-        [DataRow("TRITOR R1, R2, R3")]
-        [DataRow("TRITXOR R1, R2, R3")]
+        [DataRow("AND R1, R2, R3")]
+        [DataRow("OR R1, R2, R3")]
+        [DataRow("XOR R1, R2, R3")]
         [DataRow("SHL R1, R2, R3")]
         [DataRow("SHR R1, R2, R3")]
         [DataRow("CMP R1, R2")]
@@ -67,9 +67,9 @@ namespace T3Simulator.Common.Tests
         [DataRow("DIV G, F, C")]
         [DataRow("MOD H, G, A")]
         [DataRow("NEG I")]
-        [DataRow("TRITAND A, B, C")]
-        [DataRow("TRITOR B, C, D")]
-        [DataRow("TRITXOR C, D, E")]
+        [DataRow("AND A, B, C")]
+        [DataRow("OR B, C, D")]
+        [DataRow("XOR C, D, E")]
         [DataRow("SHL D, E, F")]
         [DataRow("SHR E, F, G")]
         [DataRow("CMP F, G")]
@@ -191,7 +191,7 @@ namespace T3Simulator.Common.Tests
             string mnemonic = parts[0].ToUpper();
             string operandsPart = parts[1];
             
-            string[] arithmetic = { "MOV", "ADD", "SUB", "MUL", "DIV", "MOD", "CMP", "TRITAND", "TRITOR", "TRITXOR", "SHL", "SHR" };
+            string[] arithmetic = { "MOV", "ADD", "SUB", "MUL", "DIV", "MOD", "CMP", "AND", "OR", "XOR", "SHL", "SHR" };
             if (arithmetic.Contains(mnemonic))
             {
                 string[] ops = operandsPart.Split(new[] { ',' }, StringSplitOptions.TrimEntries);

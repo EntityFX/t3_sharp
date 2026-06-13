@@ -24,7 +24,7 @@ namespace T3Simulator.Common
             {
                 TWord word = codeList[index];
                 var instr = InstructionDecoder.Decode(word);
-                
+
                 if (instr.Opcode == Opcode.LIMM)
                 {
                     string immVal = "[next]";
@@ -33,10 +33,10 @@ namespace T3Simulator.Common
                         TWord immWord = codeList[index + 1];
                         immVal = immWord.ToInt128().ToString();
                     }
-                    
+
                     string line = $"LIMM {GetRegName(instr.Op1)}, {immVal}";
                     lines.Add($"{pc:X8}: {line}");
-                    
+
                     pc += 2;
                     index += 2;
                 }
@@ -76,53 +76,53 @@ namespace T3Simulator.Common
             {
                 // No operands
             }
-                else if (mnemonic == "LI")
+            else if (mnemonic == "LI")
+            {
+                sb.Append($" {GetRegName(instr.Op1)}, {instr.Immediate}");
+            }
+            else if (mnemonic == "NEG")
+            {
+                sb.Append($" {GetRegName(instr.Op1)}");
+            }
+            else if (mnemonic == "MOV" || mnemonic == "ADD" || mnemonic == "SUB" ||
+                     mnemonic == "MUL" || mnemonic == "DIV" || mnemonic == "MOD" ||
+                     mnemonic == "CMP" || mnemonic == "AND" || mnemonic == "OR" ||
+                     mnemonic == "XOR" || mnemonic == "SHL" || mnemonic == "SHR")
+            {
+                if (instr.Op1 == instr.Op2)
                 {
-                    sb.Append($" {GetRegName(instr.Op1)}, {instr.Immediate}");
-                }
-                else if (mnemonic == "NEG")
-                {
-                    sb.Append($" {GetRegName(instr.Op1)}");
-                }
-                else if (mnemonic == "MOV" || mnemonic == "ADD" || mnemonic == "SUB" || 
-                         mnemonic == "MUL" || mnemonic == "DIV" || mnemonic == "MOD" || 
-                         mnemonic == "CMP" || mnemonic == "TRITAND" || mnemonic == "TRITOR" || 
-                         mnemonic == "TRITXOR" || mnemonic == "SHL" || mnemonic == "SHR")
-                {
-                    if (instr.Op1 == instr.Op2)
-                    {
-                        sb.Append($" {GetRegName(instr.Op1)}, {GetRegName(instr.Op3)}");
-                    }
-                    else
-                    {
-                        sb.Append($" {GetRegName(instr.Op1)}, {GetRegName(instr.Op2)}, {GetRegName(instr.Op3)}");
-                    }
-                }
-                else if (mnemonic == "LOAD" || mnemonic == "STORE")
-                {
-                    sb.Append($" {GetRegName(instr.Op1)}, {GetRegName(instr.Op2)}");
-                }
-                else if (mnemonic == "JMP" || mnemonic == "JE" || mnemonic == "JNE" || 
-                         mnemonic == "JL" || mnemonic == "JG" || mnemonic == "JM" || mnemonic == "CALL")
-                {
-                    sb.Append($" {GetRegName(instr.Op1)}");
-                }
-                else if (mnemonic == "PUSH" || mnemonic == "POP")
-                {
-                    sb.Append($" {GetRegName(instr.Op1)}");
-                }
-                else if (mnemonic == "IN" || mnemonic == "OUT")
-                {
-                    sb.Append($" {GetRegName(instr.Op1)}, {GetRegName(instr.Op2)}");
-                }
-                else if (mnemonic == "INI" || mnemonic == "OUTI")
-                {
-                    sb.Append($" {GetRegName(instr.Op1)}, {instr.Immediate}");
+                    sb.Append($" {GetRegName(instr.Op1)}, {GetRegName(instr.Op3)}");
                 }
                 else
                 {
-                    sb.Append($" {GetRegName(instr.Op1)}, {GetRegName(instr.Op2)}");
+                    sb.Append($" {GetRegName(instr.Op1)}, {GetRegName(instr.Op2)}, {GetRegName(instr.Op3)}");
                 }
+            }
+            else if (mnemonic == "LOAD" || mnemonic == "STORE")
+            {
+                sb.Append($" {GetRegName(instr.Op1)}, {GetRegName(instr.Op2)}");
+            }
+            else if (mnemonic == "JMP" || mnemonic == "JE" || mnemonic == "JNE" ||
+                     mnemonic == "JL" || mnemonic == "JG" || mnemonic == "JM" || mnemonic == "CALL")
+            {
+                sb.Append($" {GetRegName(instr.Op1)}");
+            }
+            else if (mnemonic == "PUSH" || mnemonic == "POP")
+            {
+                sb.Append($" {GetRegName(instr.Op1)}");
+            }
+            else if (mnemonic == "IN" || mnemonic == "OUT")
+            {
+                sb.Append($" {GetRegName(instr.Op1)}, {GetRegName(instr.Op2)}");
+            }
+            else if (mnemonic == "INI" || mnemonic == "OUTI")
+            {
+                sb.Append($" {GetRegName(instr.Op1)}, {instr.Immediate}");
+            }
+            else
+            {
+                sb.Append($" {GetRegName(instr.Op1)}, {GetRegName(instr.Op2)}");
+            }
 
             return sb.ToString().TrimEnd();
         }
@@ -143,9 +143,9 @@ namespace T3Simulator.Common
                 Opcode.DIV or Opcode.DIVI => "DIV",
                 Opcode.MOD or Opcode.MODI => "MOD",
                 Opcode.NEG or Opcode.NEGI => "NEG",
-                Opcode.TRITAND or Opcode.TRITANDI => "TRITAND",
-                Opcode.TRITOR or Opcode.TRITORI => "TRITOR",
-                Opcode.TRITXOR or Opcode.TRITXORI => "TRITXOR",
+                Opcode.AND or Opcode.ANDI => "AND",
+                Opcode.OR or Opcode.ORI => "OR",
+                Opcode.XOR or Opcode.XORI => "XOR",
                 Opcode.SHL or Opcode.SHLI => "SHL",
                 Opcode.SHR or Opcode.SHRI => "SHR",
                 Opcode.CMP or Opcode.CMPI => "CMP",

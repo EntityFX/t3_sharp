@@ -29,9 +29,9 @@ namespace T3Simulator.Common
                 case Opcode.LI: return b;
                 
                 // Tritwise operations
-                case Opcode.TRITAND: return (TWord)TritAndInternal(da, db);
-                case Opcode.TRITOR: return (TWord)TritOrInternal(da, db);
-                case Opcode.TRITXOR: return (TWord)TritXorInternal(da, db);
+                case Opcode.AND: return (TWord)TritAndInternal(da, db);
+                case Opcode.OR: return (TWord)TritOrInternal(da, db);
+                case Opcode.XOR: return (TWord)TritXorInternal(da, db);
                 
                 // Shifts
                 case Opcode.SHL:

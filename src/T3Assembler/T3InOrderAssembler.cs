@@ -165,7 +165,7 @@ namespace T3Assembler
             return mnemonic switch
             {
                 "MOV" or "CMP" or "ADD" or "SUB" or "MUL" or "DIV" or "MOD" or 
-                "TRITAND" or "TRITOR" or "TRITXOR" or "SHL" or "SHR" => true,
+                "AND" or "TRITAND" or "OR" or "TRITOR" or "XOR" or "TRITXOR" or "SHL" or "SHR" => true,
                 _ => false
             };
         }
