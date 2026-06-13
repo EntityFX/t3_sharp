@@ -45,11 +45,11 @@ namespace T3Simulator.CLI
             Console.WriteLine("Type 'help' for commands list");
             Console.WriteLine();
 
-            // Для простоты используем T3-27 In-Order Processor
-            _processor = new T3InOrderProcessor<long>(T3Config.T3_18);
+            // Для простоты используем T3-18 In-Order Processor
+            _processor = new T3InOrderProcessor<Word18>(T3Config.T3_18);
 
             // Attach T-SCII output device to port 0 for text output
-            _processor.SetOutputDevice(0, new TsciiOutputDevice<long>());
+            _processor.SetOutputDevice(0, new TsciiOutputDevice<Word18>());
 
             // Обработка аргументов командной строки
             if (args.Length > 0)
@@ -492,7 +492,7 @@ namespace T3Simulator.CLI
             long start = args.Length > 0 ? ParseAddress(args[0]) : 0;
             int count = args.Length > 1 ? int.Parse(args[1]) : 16;
 
-            var words = new List<long>();
+            var words = new List<Word18>();
             for (long i = start; i < start + count && i < _programWords.Count; i++)
             {
                 words.Add(_programWords[(int)i]);
@@ -502,10 +502,7 @@ namespace T3Simulator.CLI
             Console.WriteLine($"Disassembly [0x{start:X8} .. 0x{start + count - 1:X8}]:");
             Console.WriteLine();
 
-            // Convert to Word18 for disassembly
-            var word18s = words.Select(w => Word18.FromLong(w)).ToList();
-
-            var lines = T3Disassembler.Disassemble(word18s);
+            var lines = T3Disassembler.Disassemble(words);
 
             foreach (var line in lines)
             {
@@ -571,13 +568,14 @@ namespace T3Simulator.CLI
             }
         }
 
-        string FormatValue(long value, string format)
+        string FormatValue(Word18 value, string format)
         {
+            long valLong = value.ToLong();
             return format switch
             {
-                FORMAT_NONARY => FormatAsNonary(value),
-                FORMAT_27ARY => FormatAs27ary(value),
-                _ => FormatAsTrinary(value)
+                FORMAT_NONARY => FormatAsNonary(valLong),
+                FORMAT_27ARY => FormatAs27ary(valLong),
+                _ => FormatAsTrinary(valLong)
             };
         }
 

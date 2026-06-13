@@ -87,13 +87,13 @@ namespace T3Simulator.Common
             // Priority 2: I-type (shifted by 64)
             if (fullOpcodeVal >= 64)
             {
-                long shiftedVal = fullOpcodeVal - 64;
-                finalBaseOpcode = (int)(shiftedVal % 28);
-                finalPredIndex = (int)(shiftedVal / 28);
+                long val = fullOpcodeVal - 64;
+                finalBaseOpcode = (int)(val % 28);
+                finalPredIndex = (int)Math.Floor((double)val / 28);
                 if (finalBaseOpcode < 0)
                 {
                     finalBaseOpcode += 28;
-                    finalPredIndex -= 1;
+                    finalPredIndex--;
                 }
                 isIType = true;
             }
@@ -103,20 +103,24 @@ namespace T3Simulator.Common
                 finalBaseOpcode = (int)fullOpcodeVal;
                 finalPredIndex = 0; 
             }
-            // Priority 4: Base R-type instructions (0-27)
+            // Priority 4: Base R-type instructions (base 0-27)
             else
             {
-                finalBaseOpcode = (int)(fullOpcodeVal % 28);
-                finalPredIndex = (int)(fullOpcodeVal / 28);
+                long val = fullOpcodeVal;
+                finalBaseOpcode = (int)(val % 28);
+                finalPredIndex = (int)Math.Floor((double)val / 28);
                 if (finalBaseOpcode < 0)
                 {
                     finalBaseOpcode += 28;
-                    finalPredIndex -= 1;
+                    finalPredIndex--;
                 }
             }
 
-            if (finalPredIndex < 0 || finalPredIndex > 3)
-                throw new InvalidOperationException($"Invalid predicate index: {finalPredIndex} for field value {fullOpcodeVal}");
+            // Cap predicate index to valid range [0, 3]. 
+            // If it's out of range, we treat it as p0 (or the highest valid p3) 
+            // to avoid crashing the simulator/disassembler on unexpected binary data.
+            if (finalPredIndex < 0) finalPredIndex = 0;
+            if (finalPredIndex > 3) finalPredIndex = 3;
 
             // Special case: LI is always I-type
             if (finalBaseOpcode == 4)

@@ -167,11 +167,11 @@ namespace T3Assembler
                 "B"  => 1,
                 "C"  => 2,
                 "D"  => 3,
-                "E"  => 0,
-                "F"  => 1,
-                "G"  => 2,
-                "H"  => 3,
-                "I"  => 4,
+                "E"  => 4,
+                "F"  => 5,
+                "G"  => 6,
+                "H"  => 7,
+                "I"  => 8,
                 _ => throw new Exception($"Invalid register name: {token}")
             };
         }
