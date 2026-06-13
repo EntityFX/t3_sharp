@@ -1,0 +1,35 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup .NET 8.0
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore T3Sharp.sln
+
+    - name: Build
+      run: dotnet build T3Sharp.sln --configuration Release --no-restore
+
+    - name: Test TritTypes
+      run: dotnet test tests/TritTypes.Tests/TritTypes.Tests.csproj --configuration Release --no-build --logger "console;verbosity=normal"
+
+    - name: Test T3Simulator.Common
+      run: dotnet test tests/T3Simulator.Common.Tests/T3Simulator.Common.Tests.csproj --configuration Release --no-build --logger "console;verbosity=normal"
+
+    - name: Test T3Simulator.InOrder
+      run: dotnet test tests/T3Simulator.InOrder.Tests/T3Simulator.InOrder.Tests.csproj --configuration Release --no-build --logger "console;verbosity=normal"
