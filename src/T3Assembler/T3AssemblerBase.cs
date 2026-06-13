@@ -160,6 +160,9 @@ namespace T3Assembler
         {
             string upper = token.ToUpper();
             if (upper == "RW") return 0;
+            if (upper == "RX") return 1;
+            if (upper == "RY") return 2;
+            if (upper == "RZ") return 3;
             if (upper.StartsWith("R") && upper.Length > 1 && int.TryParse(upper.Substring(1), out int idx)) return idx;
             return upper switch
             {
