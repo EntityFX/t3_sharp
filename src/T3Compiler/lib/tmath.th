@@ -1,0 +1,34 @@
+// T-lang Standard Math Library — tmath.th
+// Balanced ternary mathematical functions.
+
+#ifndef _TMATH_TH
+#define _TMATH_TH
+
+// === Basic operations ===
+tint  t_abs(tint x);
+tint  t_min(tint a, tint b);
+tint  t_max(tint a, tint b);
+tfloat t_sqrt(tfloat x);
+tfloat t_floor(tfloat x);
+tfloat t_ceil(tfloat x);
+
+// === Trigonometric functions ===
+tfloat t_sin(tfloat x);
+tfloat t_cos(tfloat x);
+tfloat t_tan(tfloat x);
+tfloat t_asin(tfloat x);
+tfloat t_acos(tfloat x);
+tfloat t_atan(tfloat x);
+
+// === Exponential and logarithmic ===
+tfloat t_exp(tfloat x);
+tfloat t_log(tfloat x);     // natural log (base e)
+tfloat t_log3(tfloat x);    // log base 3
+tfloat t_pow(tfloat base, tfloat exp);
+
+// === Constants ===
+#define T_PI      3.14159d
+#define T_E       2.71828d
+#define T_SQRT3   1.73205d
+
+#endif // _TMATH_TH

@@ -1,0 +1,33 @@
+// T-lang String Library — tstring.th
+// String manipulation functions for tryte arrays.
+
+#ifndef _TSTRING_TH
+#define _TSTRING_TH
+
+// === Length and comparison ===
+tint  t_strlen(tryte* str);
+tint  t_strcmp(tryte* a, tryte* b);   // returns -1,0,+1
+tint  t_strncmp(tryte* a, tryte* b, tint n);
+
+// === Copy and concatenation ===
+void  t_strcpy(tryte* dest, tryte* src);
+void  t_strncpy(tryte* dest, tryte* src, tint n);
+void  t_strcat(tryte* dest, tryte* src);
+
+// === Search ===
+tryte* t_strchr(tryte* str, tryte c);
+tryte* t_strrchr(tryte* str, tryte c);
+tryte* t_strstr(tryte* haystack, tryte* needle);
+
+// === Conversion ===
+tint   t_atoi(tryte* str);           // string to tint
+tlong  t_atol(tryte* str);           // string to tlong
+tfloat t_atof(tryte* str);           // string to tfloat
+
+// === Formatting (itoa-like) ===
+void   t_itoa(tint value, tryte* buf);         // tint to string
+void   t_ltoa(tlong value, tryte* buf);        // tlong to string
+void   t_baltoa(tint value, tryte* buf);       // to balanced ternary string
+void   t_ftoa(tfloat value, tryte* buf);       // tfloat to string
+
+#endif // _TSTRING_TH

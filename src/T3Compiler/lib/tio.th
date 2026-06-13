@@ -1,0 +1,24 @@
+// T-lang Standard I/O Library — tio.th
+// Provides formatted output/input for ternary types.
+
+#ifndef _TIO_TH
+#define _TIO_TH
+
+// === Output functions ===
+void print_int(tint value);
+void print_long(tlong value);
+void print_float(tfloat value);
+void print_double(tdouble value);
+void print_tryte(tryte value);
+void print_bal(tint value);        // print in balanced ternary format
+void print_str(tryte* str);        // print null-terminated string
+void print_char(tryte c);
+
+// === Input functions ===
+tint  scan_int();
+tlong scan_long();
+tfloat scan_float();
+tdouble scan_double();
+tryte get_char();
+
+#endif // _TIO_TH

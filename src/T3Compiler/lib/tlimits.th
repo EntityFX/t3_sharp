@@ -1,0 +1,28 @@
+// T-lang Limits Library — tlimits.th
+// Defines min/max values for ternary integer and float types.
+
+#ifndef _TLIMITS_TH
+#define _TLIMITS_TH
+
+// === Tryte (6 trits, 1 tryte) ===
+#define TRYTE_MIN  -364
+#define TRYTE_MAX  364
+
+// === Tshort (12 trits, 2 trytes) ===
+#define TSHORT_MIN  -265720
+#define TSHORT_MAX  265720
+
+// === Tint (18 trits, 3 trytes) ===
+#define TINT_MIN   -193710244
+#define TINT_MAX   193710244
+
+// === Tlong (36 trits, 6 trytes) ===
+// Approximate: ±7.6×10^16
+#define TLONG_MIN  -76000000000000000tl
+#define TLONG_MAX  76000000000000000tl
+
+// === Tlong long (54 trits, 9 trytes) ===
+#define TLLONG_MIN -20000000000000000000000000tll
+#define TLLONG_MAX 20000000000000000000000000tll
+
+#endif // _TLIMITS_TH
