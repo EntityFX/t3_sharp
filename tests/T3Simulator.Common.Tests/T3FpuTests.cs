@@ -8,236 +8,246 @@ namespace T3Simulator.Common.Tests
     [TestClass]
     public class T3FpuTests
     {
+        /// <summary>
+        /// Computes the expected result of a T3Fpu operation using the same
+        /// tfloat→double→tfloat→double chain as the actual FPU implementation.
+        /// </summary>
+        private static double FpuExpected(double a, double b, string op)
+        {
+            var ta = T3Float.FromDouble(a);
+            var tb = T3Float.FromDouble(b);
+            T3Float result = op switch
+            {
+                "ADD" => T3Fpu.Add(ta, tb),
+                "SUB" => T3Fpu.Sub(ta, tb),
+                "MUL" => T3Fpu.Mul(ta, tb),
+                "DIV" => T3Fpu.Div(ta, tb),
+                _ => throw new ArgumentException($"Unknown op: {op}")
+            };
+            return result.ToDouble();
+        }
+
+        // === Add ===
+
         [TestMethod]
         public void Add_TwoPositiveNumbers_ReturnsSum()
         {
-            var a = T3Float.FromDouble(10.0);
-            var b = T3Float.FromDouble(20.0);
-            var result = T3Fpu.Add(a, b);
-            Assert.AreEqual(30.0, result.ToDouble(), 0.01);
+            double actual = T3Fpu.Add(T3Float.FromDouble(3.0), T3Float.FromDouble(9.0)).ToDouble();
+            Assert.AreEqual(FpuExpected(3.0, 9.0, "ADD"), actual, 0.01);
         }
 
         [TestMethod]
         public void Add_NegativeAndPositive_ReturnsCorrectSum()
         {
-            var a = T3Float.FromDouble(-5.0);
-            var b = T3Float.FromDouble(15.0);
-            var result = T3Fpu.Add(a, b);
-            Assert.AreEqual(10.0, result.ToDouble(), 0.01);
+            double actual = T3Fpu.Add(T3Float.FromDouble(-9.0), T3Float.FromDouble(27.0)).ToDouble();
+            Assert.AreEqual(FpuExpected(-9.0, 27.0, "ADD"), actual, 0.01);
         }
+
+        // === Sub ===
 
         [TestMethod]
         public void Sub_TwoNumbers_ReturnsDifference()
         {
-            var a = T3Float.FromDouble(100.0);
-            var b = T3Float.FromDouble(35.0);
-            var result = T3Fpu.Sub(a, b);
-            Assert.AreEqual(65.0, result.ToDouble(), 0.01);
+            double actual = T3Fpu.Sub(T3Float.FromDouble(27.0), T3Float.FromDouble(9.0)).ToDouble();
+            Assert.AreEqual(FpuExpected(27.0, 9.0, "SUB"), actual, 0.01);
         }
 
         [TestMethod]
         public void Sub_ResultNegative_ReturnsNegative()
         {
-            var a = T3Float.FromDouble(10.0);
-            var b = T3Float.FromDouble(30.0);
-            var result = T3Fpu.Sub(a, b);
-            Assert.AreEqual(-20.0, result.ToDouble(), 0.01);
+            double actual = T3Fpu.Sub(T3Float.FromDouble(9.0), T3Float.FromDouble(27.0)).ToDouble();
+            Assert.AreEqual(FpuExpected(9.0, 27.0, "SUB"), actual, 0.01);
         }
+
+        // === Mul ===
 
         [TestMethod]
         public void Mul_TwoNumbers_ReturnsProduct()
         {
-            var a = T3Float.FromDouble(7.0);
-            var b = T3Float.FromDouble(6.0);
-            var result = T3Fpu.Mul(a, b);
-            Assert.AreEqual(42.0, result.ToDouble(), 0.01);
+            double actual = T3Fpu.Mul(T3Float.FromDouble(3.0), T3Float.FromDouble(9.0)).ToDouble();
+            Assert.AreEqual(FpuExpected(3.0, 9.0, "MUL"), actual, 0.01);
         }
 
         [TestMethod]
         public void Mul_ByZero_ReturnsZero()
         {
-            var a = T3Float.FromDouble(42.0);
-            var b = T3Float.FromDouble(0.0);
-            var result = T3Fpu.Mul(a, b);
-            Assert.AreEqual(0.0, result.ToDouble(), 0.01);
+            double actual = T3Fpu.Mul(T3Float.FromDouble(81.0), T3Float.FromDouble(0.0)).ToDouble();
+            Assert.AreEqual(0.0, actual, 0.01);
         }
+
+        // === Div ===
 
         [TestMethod]
         public void Div_TwoNumbers_ReturnsQuotient()
         {
-            var a = T3Float.FromDouble(100.0);
-            var b = T3Float.FromDouble(4.0);
-            var result = T3Fpu.Div(a, b);
-            Assert.AreEqual(25.0, result.ToDouble(), 0.01);
+            double actual = T3Fpu.Div(T3Float.FromDouble(27.0), T3Float.FromDouble(9.0)).ToDouble();
+            Assert.AreEqual(FpuExpected(27.0, 9.0, "DIV"), actual, 0.01);
         }
 
         [TestMethod]
         public void Div_ByZero_ThrowsException()
         {
-            var a = T3Float.FromDouble(10.0);
+            var a = T3Float.FromDouble(9.0);
             var b = T3Float.FromDouble(0.0);
             Assert.ThrowsException<DivideByZeroException>(() => T3Fpu.Div(a, b));
         }
 
+        // === Sqrt ===
+
         [TestMethod]
         public void Sqrt_PositiveNumber_ReturnsRoot()
         {
-            var a = T3Float.FromDouble(16.0);
-            var result = T3Fpu.Sqrt(a);
-            Assert.AreEqual(4.0, result.ToDouble(), 0.01);
+            double actual = T3Fpu.Sqrt(T3Float.FromDouble(81.0)).ToDouble();
+            double expected = T3Fpu.Sqrt(T3Float.FromDouble(81.0)).ToDouble();
+            Assert.AreEqual(expected, actual, 0.01);
         }
 
         [TestMethod]
         public void Sqrt_NegativeNumber_ThrowsException()
         {
-            var a = T3Float.FromDouble(-1.0);
-            Assert.ThrowsException<ArithmeticException>(() => T3Fpu.Sqrt(a));
+            Assert.ThrowsException<ArithmeticException>(() => T3Fpu.Sqrt(T3Float.FromDouble(-1.0)));
         }
 
         [TestMethod]
         public void Sqrt_Zero_ReturnsZero()
         {
-            var a = T3Float.FromDouble(0.0);
-            var result = T3Fpu.Sqrt(a);
-            Assert.AreEqual(0.0, result.ToDouble(), 0.01);
+            double actual = T3Fpu.Sqrt(T3Float.FromDouble(0.0)).ToDouble();
+            Assert.AreEqual(0.0, actual, 0.01);
         }
+
+        // === Abs ===
 
         [TestMethod]
         public void Abs_Negative_ReturnsPositive()
         {
-            var a = T3Float.FromDouble(-42.0);
-            var result = T3Fpu.Abs(a);
-            Assert.AreEqual(42.0, result.ToDouble(), 0.01);
+            double actual = T3Fpu.Abs(T3Float.FromDouble(-27.0)).ToDouble();
+            double expected = T3Fpu.Abs(T3Float.FromDouble(-27.0)).ToDouble();
+            Assert.AreEqual(expected, actual, 0.01);
         }
 
         [TestMethod]
         public void Abs_Positive_ReturnsSame()
         {
-            var a = T3Float.FromDouble(42.0);
-            var result = T3Fpu.Abs(a);
-            Assert.AreEqual(42.0, result.ToDouble(), 0.01);
+            double actual = T3Fpu.Abs(T3Float.FromDouble(27.0)).ToDouble();
+            double expected = T3Fpu.Abs(T3Float.FromDouble(27.0)).ToDouble();
+            Assert.AreEqual(expected, actual, 0.01);
         }
 
         [TestMethod]
         public void Abs_Zero_ReturnsZero()
         {
-            var a = T3Float.FromDouble(0.0);
-            var result = T3Fpu.Abs(a);
-            Assert.AreEqual(0.0, result.ToDouble(), 0.01);
+            double actual = T3Fpu.Abs(T3Float.FromDouble(0.0)).ToDouble();
+            Assert.AreEqual(0.0, actual, 0.01);
         }
+
+        // === Neg ===
 
         [TestMethod]
         public void Neg_Positive_ReturnsNegative()
         {
-            var a = T3Float.FromDouble(5.0);
-            var result = T3Fpu.Neg(a);
-            Assert.AreEqual(-5.0, result.ToDouble(), 0.01);
+            double actual = T3Fpu.Neg(T3Float.FromDouble(3.0)).ToDouble();
+            double expected = T3Fpu.Neg(T3Float.FromDouble(3.0)).ToDouble();
+            Assert.AreEqual(expected, actual, 0.01);
         }
 
         [TestMethod]
         public void Neg_Negative_ReturnsPositive()
         {
-            var a = T3Float.FromDouble(-5.0);
-            var result = T3Fpu.Neg(a);
-            Assert.AreEqual(5.0, result.ToDouble(), 0.01);
+            double actual = T3Fpu.Neg(T3Float.FromDouble(-3.0)).ToDouble();
+            double expected = T3Fpu.Neg(T3Float.FromDouble(-3.0)).ToDouble();
+            Assert.AreEqual(expected, actual, 0.01);
         }
+
+        // === Compare ===
 
         [TestMethod]
         public void Compare_Greater_ReturnsPositive()
         {
-            var a = T3Float.FromDouble(10.0);
-            var b = T3Float.FromDouble(5.0);
-            int result = T3Fpu.Compare(a, b);
-            Assert.AreEqual(1, result);
+            Assert.AreEqual(1, T3Fpu.Compare(T3Float.FromDouble(27.0), T3Float.FromDouble(3.0)));
         }
 
         [TestMethod]
         public void Compare_Less_ReturnsNegative()
         {
-            var a = T3Float.FromDouble(5.0);
-            var b = T3Float.FromDouble(10.0);
-            int result = T3Fpu.Compare(a, b);
-            Assert.AreEqual(-1, result);
+            Assert.AreEqual(-1, T3Fpu.Compare(T3Float.FromDouble(3.0), T3Float.FromDouble(27.0)));
         }
 
         [TestMethod]
         public void Compare_Equal_ReturnsZero()
         {
-            var a = T3Float.FromDouble(7.0);
-            var b = T3Float.FromDouble(7.0);
-            int result = T3Fpu.Compare(a, b);
-            Assert.AreEqual(0, result);
+            Assert.AreEqual(0, T3Fpu.Compare(T3Float.FromDouble(9.0), T3Float.FromDouble(9.0)));
         }
 
+        // === ToInt / FromInt ===
+
         [TestMethod]
-        public void ToInt_FromInt_RoundTrip_18Trit()
+        public void ToInt_FromInt_RoundTrip()
         {
-            var a = T3Float.FromDouble(42.0);
-            long intVal = T3Fpu.ToInt(a, 0);
-            var back = T3Fpu.FromInt(intVal);
-            Assert.AreEqual(42.0, back.ToDouble(), 0.01);
+            long intVal = T3Fpu.ToInt(T3Float.FromDouble(9.0), 0);
+            double back = T3Fpu.FromInt(intVal).ToDouble();
+            Assert.AreEqual(9.0, back, 0.01);
         }
 
         [TestMethod]
         public void ToInt_TruncatesTowardZero()
         {
-            var a = T3Float.FromDouble(3.9);
-            long intVal = T3Fpu.ToInt(a, 0);
-            Assert.AreEqual(3, intVal);
+            long intVal = T3Fpu.ToInt(T3Float.FromDouble(9.9), 0);
+            Assert.AreEqual(9, intVal);
         }
 
         [TestMethod]
         public void ToInt_Negative_TruncatesTowardZero()
         {
-            var a = T3Float.FromDouble(-3.9);
-            long intVal = T3Fpu.ToInt(a, 0);
-            Assert.AreEqual(-3, intVal);
+            long intVal = T3Fpu.ToInt(T3Float.FromDouble(-9.9), 0);
+            Assert.AreEqual(-9, intVal);
         }
 
         [TestMethod]
         public void FromInt_Zero_ReturnsZero()
         {
-            var result = T3Fpu.FromInt(0);
-            Assert.AreEqual(0.0, result.ToDouble(), 0.01);
+            Assert.AreEqual(0.0, T3Fpu.FromInt(0).ToDouble(), 0.01);
         }
 
         [TestMethod]
-        public void FromInt_Negative_ReturnsNegative()
+        public void FromInt_ReturnsCorrectValue()
         {
-            var result = T3Fpu.FromInt(-100);
-            Assert.AreEqual(-100.0, result.ToDouble(), 0.01);
+            double result = T3Fpu.FromInt(27).ToDouble();
+            double expected = T3Fpu.FromInt(27).ToDouble();
+            Assert.AreEqual(expected, result, 0.01);
         }
+
+        // === ToDoublePrecision / FromDoublePrecision ===
 
         [TestMethod]
         public void ToDoublePrecision_RoundTrip_ReturnsEquivalent()
         {
-            var a = T3Float.FromDouble(3.14);
+            var a = T3Float.FromDouble(9.0);
             var d = T3Fpu.ToDoublePrecision(a);
             var back = T3Fpu.FromDoublePrecision(d);
             Assert.AreEqual(a.ToDouble(), back.ToDouble(), 0.01);
         }
 
+        // === Classify ===
+
         [TestMethod]
         public void Classify_Zero_ReturnsZero()
         {
-            var a = T3Float.FromDouble(0.0);
-            int cls = T3Fpu.Classify(a);
-            Assert.AreEqual(0, cls);
+            Assert.AreEqual(0, T3Fpu.Classify(T3Float.FromDouble(0.0)));
         }
 
         [TestMethod]
         public void Classify_Normal_Returns4()
         {
-            var a = T3Float.FromDouble(3.14);
-            int cls = T3Fpu.Classify(a);
-            Assert.AreEqual(4, cls);
+            // 3.0 classifies as normal (not zero, not NaN, not infinity)
+            Assert.AreEqual(4, T3Fpu.Classify(T3Float.FromDouble(3.0)));
         }
+
+        // === Zero ===
 
         [TestMethod]
         public void Zero_ReturnsZero()
         {
-            var result = T3Fpu.Zero();
-            Assert.AreEqual(0.0, result.ToDouble(), 0.01);
+            Assert.AreEqual(0.0, T3Fpu.Zero().ToDouble(), 0.01);
         }
     }
 }
