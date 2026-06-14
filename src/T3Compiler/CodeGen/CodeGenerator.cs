@@ -18,6 +18,9 @@ namespace T3Compiler.CodeGen
         private readonly Dictionary<string, List<int>> _arrDims;
         private readonly Dictionary<string, List<Parser.FieldDef>> _structFields;
 
+        // Stack for break/continue: (breakLabel, continueLabel)
+        private readonly Stack<(string breakLabel, string continueLabel)> _loopStack = new();
+
         public CodeGenerator(AstProgram program)
         {
             _program = program;
@@ -85,8 +88,13 @@ namespace T3Compiler.CodeGen
                     if (fs.Condition != null) GenWhile(new WhileStmt { Condition = fs.Condition, Body = Compound(fs.Body, fs.Step) });
                     else GenStmt(fs.Body);
                     break;
+                case BreakStmt: GenBreak(); break;
+                case ContinueStmt: GenContinue(); break;
             }
         }
+
+        void GenBreak() { if (_loopStack.TryPeek(out var labels)) JmpTo(labels.breakLabel); else Emit("    ; break outside loop?"); }
+        void GenContinue() { if (_loopStack.TryPeek(out var labels)) JmpTo(labels.continueLabel); else Emit("    ; continue outside loop?"); }
 
         CompoundStmt Compound(Statement body, AstNode? step)
         {
@@ -97,11 +105,10 @@ namespace T3Compiler.CodeGen
 
         void GenIf(IfStmt s)
         {
-            string lThen = Label("ift"), lEnd = Label("end");
+            string lThen = Label("ift"), lMaybe = s.MaybeBody != null ? Label("ifm") : "", lElse = s.ElseBody != null ? Label("ife") : "", lEnd = Label("end");
             if (s.Condition is BinaryOp bo)
             {
                 int a = GenExpr(bo.Left), b = GenExpr(bo.Right);
-                string lMaybe = Label("ifm"), lElse = Label("ife");
                 Emit($"    CMP R{a}, R{b}");
                 switch (bo.Operator)
                 {
@@ -112,16 +119,22 @@ namespace T3Compiler.CodeGen
                     case "<=": { var skp = Label("skp"); JumpReg("JG", skp); JmpTo(lThen); Emit($"{skp}:"); } break;
                     case ">=": { var skp = Label("skp"); JumpReg("JL", skp); JmpTo(lThen); Emit($"{skp}:"); } break;
                 }
-                if (s.ElseBody != null) GenStmt(s.ElseBody);
-                JmpTo(lEnd);
+                // Fall-through: maybe block or else block
+                if (s.MaybeBody != null) { Emit($"{lMaybe}:"); GenStmt(s.MaybeBody); JmpTo(lEnd); }
+                if (s.ElseBody != null) { Emit($"{lElse}:"); GenStmt(s.ElseBody); JmpTo(lEnd); }
                 Emit($"{lThen}:"); GenStmt(s.ThenBody); JmpTo(lEnd);
             }
             else
             {
                 int c = GenExpr(s.Condition);
-                int r = AllocReg(); Emit($"    LI R{r}, 0"); Emit($"    CMP R{c}, R{r}"); JumpReg("JG", lThen);
-                if (s.ElseBody != null) GenStmt(s.ElseBody);
-                JmpTo(lEnd); Emit($"{lThen}:"); GenStmt(s.ThenBody); JmpTo(lEnd);
+                int r0 = AllocReg(); Emit($"    LI R{r0}, 0"); Emit($"    CMP R{c}, R{r0}");
+                JumpReg("JG", lThen);
+                // maybe branch (== 0)
+                if (s.MaybeBody != null) { JumpReg("JE", lMaybe); }
+                // else branch (< 0)
+                if (s.ElseBody != null) { Emit($"{lElse}:"); GenStmt(s.ElseBody); JmpTo(lEnd); }
+                if (s.MaybeBody != null) { Emit($"{lMaybe}:"); GenStmt(s.MaybeBody); JmpTo(lEnd); }
+                Emit($"{lThen}:"); GenStmt(s.ThenBody); JmpTo(lEnd);
             }
             Emit($"{lEnd}:");
         }
@@ -129,6 +142,7 @@ namespace T3Compiler.CodeGen
         void GenWhile(WhileStmt s)
         {
             string lLoop = Label("loop"), lBody = Label("body"), lEnd = Label("wend");
+            _loopStack.Push((lEnd, lLoop));  // break→lEnd, continue→lLoop
             Emit($"{lLoop}:");
             if (s.Condition is BinaryOp bo)
             {
@@ -150,7 +164,9 @@ namespace T3Compiler.CodeGen
                 int c = GenExpr(s.Condition);
                 int r = AllocReg(); Emit($"    LI R{r}, 0"); Emit($"    CMP R{c}, R{r}"); JumpReg("JG", lBody); JmpTo(lEnd);
             }
-            Emit($"{lBody}:"); GenStmt(s.Body); JmpTo(lLoop); Emit($"{lEnd}:");
+            Emit($"{lBody}:"); GenStmt(s.Body); JmpTo(lLoop);
+            Emit($"{lEnd}:");
+            _loopStack.Pop();
         }
 
         void JumpReg(string cond, string label) { int r = AllocReg(); Emit($"    LI R{r}, {label}"); Emit($"    {cond} R{r}"); }
@@ -168,8 +184,26 @@ namespace T3Compiler.CodeGen
             ArrayAccess aa => EmitArrayAccess(aa),
             FunctionCall fc => EmitFuncCall(fc),
             MemberAccess ma => EmitMemberAccess(ma),
+            TernaryExpr te => GenTernary(te),
             _ => EmitImm(0)
         };
+
+        int GenTernary(TernaryExpr te)
+        {
+            int condR = GenExpr(te.Condition);
+            int r = AllocReg();
+            int r0 = AllocReg(); Emit($"    LI R{r0}, 0");
+            string lt = Label("tert"), lm = Label("term"), ld = Label("terd");
+            Emit($"    CMP R{condR}, R{r0}");
+            JumpReg("JG", lt);
+            JumpReg("JE", lm);
+            // false branch
+            int fR = GenExpr(te.FalseExpr); Emit($"    MOV R{r}, R{fR}"); JmpTo(ld);
+            Emit($"{lm}:"); int mR = GenExpr(te.MaybeExpr); Emit($"    MOV R{r}, R{mR}"); JmpTo(ld);
+            Emit($"{lt}:"); int tR = GenExpr(te.TrueExpr); Emit($"    MOV R{r}, R{tR}");
+            Emit($"{ld}:");
+            return r;
+        }
 
         int EmitMemberAccess(MemberAccess ma)
         {
@@ -269,7 +303,24 @@ namespace T3Compiler.CodeGen
 
         int EmitAssign(Assignment ass)
         {
-            int v = GenExpr(ass.Value);
+            int v;
+            if (ass.Operator == "=")
+            {
+                v = GenExpr(ass.Value);
+            }
+            else
+            {
+                // Compound assignment: target OP= value → target = target OP value
+                int lhs = GenExpr(ass.Target);
+                int rhs = GenExpr(ass.Value);
+                string op = ass.Operator switch {
+                    "+=" => "ADD", "-=" => "SUB", "*=" => "MUL", "/=" => "DIV", "%=" => "MOD",
+                    "&=" => "AND", "|=" => "OR", "^=" => "XOR",
+                    "<<=" => "SHL", ">>=" => "SHR", _ => "ADD"
+                };
+                v = AllocReg();
+                Emit($"    {op} R{v}, R{lhs}, R{rhs}");
+            }
             if (ass.Target is Identifier id) StoreLocal(id.Name, v, 0);
             else if (ass.Target is ArrayAccess aa) EmitArrayStore(aa, v);
             else if (ass.Target is MemberAccess ma) EmitMemberStore(ma, v);
