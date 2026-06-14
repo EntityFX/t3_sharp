@@ -1,0 +1,234 @@
+(* ============================================================
+   Полная EBNF-грамматика языка T
+   (трайт = 6 тритов, сбалансированная троичная система)
+   ============================================================ *)
+
+(* ----------------------------------------------------------
+   1. Лексическая структура
+   ---------------------------------------------------------- *)
+trit_digit         = "-" | "0" | "+" .
+
+(* Идентификаторы: латиница + кириллица *)
+identifier         = ( letter | "_" ) { letter | digit | "_" } .
+letter             = latin_letter | cyrillic_letter .
+latin_letter       = "A".."Z" | "a".."z" .
+cyrillic_letter    = "А".."Я" | "а".."я" | "Ё" | "ё" .
+digit              = "0".."9" .
+
+(* Десятичные целые литералы (суффикс определяет тип) *)
+decimal_suffix     = "y" | "s" | "t" | "tl" | "tll" .
+decimal_literal    = [ "+" | "-" ] digit { digit } decimal_suffix .
+
+(* Сбалансированные троичные литералы *)
+balanced_prefix    = "0t" .
+balanced_digits    = trit_digit { trit_digit } [ "_" trit_digit ] .
+balanced_literal   = balanced_prefix balanced_digits .
+
+(* 27-ричные литералы (tryx): тройки тритов *)
+tryx_prefix        = "0y" .
+tryx_digit         = "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V"
+                   | "W" | "X" | "Y" | "Z"
+                   | "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
+                   | "A" | "B" | "C" | "D"
+                   | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v"
+                   | "w" | "x" | "y" | "z"
+                   | "a" | "b" | "c" | "d" .
+tryx_literal       = tryx_prefix tryx_digit { tryx_digit } .
+
+(* 9-ричные литералы: пары тритов *)
+nine_prefix        = "0n" .
+nine_digit         = "W" | "X" | "Y" | "Z" | "0" | "1" | "2" | "3" | "4"
+                   | "w" | "x" | "y" | "z" .
+nine_literal       = nine_prefix nine_digit { nine_digit } .
+
+integer_literal    = decimal_literal | balanced_literal | tryx_literal | nine_literal .
+
+(* Вещественные литералы *)
+float_suffix       = "f" | "d" .
+decimal_float      = [ "+" | "-" ] digit { digit } "." digit { digit }
+                     [ "e" [ "+" | "-" ] digit { digit } ] [ float_suffix ] .
+balanced_float     = balanced_prefix mantissa_part "e" exponent_part float_suffix .
+mantissa_part      = trit_digit { trit_digit } [ "_" trit_digit ]
+                     "." trit_digit { trit_digit } .
+exponent_part      = trit_digit { trit_digit } .
+float_literal      = decimal_float | balanced_float .
+
+(* Символьные константы *)
+char_literal       = "'" ( trit_digit | any_character ) "'" .
+(* Символы '+','0','-' дают тип trit, остальные — tryte *)
+
+(* Строковые литералы *)
+string_literal     = '"' { any_character } '"' .
+
+(* Константы *)
+true_const         = "true" | "истина" .
+false_const        = "false" | "ложь" .
+maybe_const        = "maybe" | "может" .
+constant           = integer_literal | float_literal | char_literal
+                   | string_literal | true_const | false_const | maybe_const .
+
+(* ----------------------------------------------------------
+   2. Выражения
+   ---------------------------------------------------------- *)
+primary_expr       = identifier | constant | "(" expression ")" .
+
+postfix_expr       = primary_expr
+                   | postfix_expr "[" expression "]"
+                   | postfix_expr "(" [ argument_list ] ")"
+                   | postfix_expr "." identifier
+                   | postfix_expr "->" identifier
+                   | postfix_expr "++"
+                   | postfix_expr "--" .
+argument_list      = expression { "," expression } .
+
+unary_expr         = postfix_expr
+                   | "++" unary_expr
+                   | "--" unary_expr
+                   | unary_operator unary_expr .
+unary_operator     = "+" | "-" | "!" | "~" | "*" | "&"
+                   | "sizeof" | "размер" .
+
+multiplicative_expr = unary_expr { ( "*" | "/" | "%" ) unary_expr } .
+additive_expr      = multiplicative_expr { ( "+" | "-" ) multiplicative_expr } .
+shift_expr         = additive_expr { ( "<<" | ">>" ) additive_expr } .
+
+relational_expr    = shift_expr { ( "<" | ">" | "<=" | ">=" ) shift_expr } .
+equality_expr      = relational_expr { ( "==" | "!=" ) relational_expr } .
+
+(* Потритовые операторы *)
+bitwise_and_expr   = equality_expr { "&" equality_expr } .
+bitwise_xor_expr   = bitwise_and_expr { "^" bitwise_and_expr } .
+bitwise_or_expr    = bitwise_xor_expr { "|" bitwise_xor_expr } .
+
+logical_and_expr   = bitwise_or_expr { "&&" bitwise_or_expr } .
+logical_or_expr    = logical_and_expr { "||" logical_and_expr } .
+
+ternary_expr       = logical_or_expr
+                     "??" expression ":?" expression ":!" expression .
+
+assignment_expr    = ternary_expr
+                   | unary_expr assignment_operator assignment_expr .
+assignment_operator = "=" | "+=" | "-=" | "*=" | "/=" | "%="
+                     | "<<=" | ">>=" | "&=" | "|=" | "^=" .
+expression         = assignment_expr .
+
+(* ----------------------------------------------------------
+   3. Объявления
+   ---------------------------------------------------------- *)
+(* Спецификаторы типов (английские и русские) *)
+void_type          = "void" | "пусто" .
+tryte_type         = "tryte" | "трайт" .
+tshort_type        = "tshort" | "ткоротк" .
+tint_type          = "tint" | "тцел" .
+tlong_type         = "tlong" | "тдлин" .
+tlong_long_type    = "tlong" | "long" | "тдлиндлин" .
+tfloat_type        = "tfloat" | "твещ" .
+tdouble_type       = "tdouble" | "тдвойн" .
+trit_type          = "trit" | "трит" .
+tril_type          = "tril" | "трил" .
+signed_spec        = "signed" | "знак" .
+unsigned_spec      = "unsigned" | "беззнак" .
+
+type_specifier     = void_type | tryte_type | tshort_type | tint_type
+                   | tlong_type | tlong_long_type
+                   | tfloat_type | tdouble_type
+                   | trit_type | tril_type
+                   | signed_spec | unsigned_spec
+                   | struct_or_union_specifier | enum_specifier
+                   | typedef_name .
+
+struct_or_union    = "struct" | "структура" | "union" | "объединение" .
+struct_or_union_specifier
+    = struct_or_union [ identifier ] "{" { struct_declaration } "}"
+    | struct_or_union identifier .
+struct_declaration = type_specifier struct_declarator_list ";" .
+struct_declarator_list = struct_declarator { "," struct_declarator } .
+struct_declarator  = declarator | [ declarator ] ":" expression .
+
+enum_kw            = "enum" | "перечисление" .
+enum_specifier     = enum_kw [ identifier ] "{" enumerator_list "}"
+                   | enum_kw identifier .
+enumerator_list    = enumerator { "," enumerator } .
+enumerator         = identifier [ "=" expression ] .
+
+type_qualifier     = "const" | "конст" | "volatile" | "изменч" .
+
+declaration_specifiers = ( type_specifier | type_qualifier )
+                         { type_specifier | type_qualifier } .
+declarator         = pointer_decl direct_declarator | direct_declarator .
+direct_declarator  = identifier
+                   | "(" declarator ")"
+                   | direct_declarator "[" [ expression ] "]"
+                   | direct_declarator "(" parameter_list ")"
+                   | direct_declarator "(" ")" .
+pointer_decl       = "*" [ type_qualifier { type_qualifier } ] [ pointer_decl ] .
+parameter_list     = parameter_declaration { "," parameter_declaration } .
+parameter_declaration = declaration_specifiers [ declarator | abstract_declarator ] .
+abstract_declarator = pointer_decl [ direct_abstract_declarator ]
+                    | direct_abstract_declarator .
+direct_abstract_declarator = "(" abstract_declarator ")"
+                           | "[" [ expression ] "]"
+                           | "(" [ parameter_list ] ")" .
+initializer        = expression | "{" initializer_list [ "," ] "}" .
+initializer_list   = initializer { "," initializer } .
+declaration        = declaration_specifiers [ init_declarator_list ] ";" .
+init_declarator_list = init_declarator { "," init_declarator } .
+init_declarator    = declarator [ "=" initializer ] .
+
+(* ----------------------------------------------------------
+   4. Операторы
+   ---------------------------------------------------------- *)
+if_kw              = "if" | "если" .
+maybe_kw           = "maybe" | "может" .
+else_kw            = "else" | "иначе" .
+switch_kw          = "switch" | "выбор" .
+case_kw            = "case" | "случай" .
+default_kw         = "default" | "умолчание" .
+while_kw           = "while" | "пока" .
+do_kw              = "do" | "делать" .
+for_kw             = "for" | "для" .
+continue_kw        = "continue" | "продолжить" .
+break_kw           = "break" | "прервать" .
+return_kw          = "return" | "возврат" .
+goto_kw            = "goto" | "перейти" .
+
+statement          = expression_statement
+                   | compound_statement
+                   | selection_statement
+                   | switch_statement
+                   | labeled_statement
+                   | iteration_statement
+                   | jump_statement .
+expression_statement = [ expression ] ";" .
+compound_statement   = "{" { declaration | statement } "}" .
+selection_statement  = if_kw "(" expression ")" statement
+                       ( [ maybe_kw statement ] [ else_kw statement ]
+                       | [ else_kw statement ] [ maybe_kw statement ] ) .
+switch_statement     = switch_kw "(" expression ")" statement .
+case_label           = case_kw expression ":" .
+default_label        = default_kw ":" .
+labeled_statement    = case_label statement | default_label statement .
+iteration_statement  = while_kw "(" expression ")" statement
+                     | do_kw statement while_kw "(" expression ")" ";"
+                     | for_kw "(" [ expression ] ";" [ expression ] ";"
+                               [ expression ] ")" statement .
+jump_statement       = continue_kw ";"
+                     | break_kw ";"
+                     | return_kw [ expression ] ";"
+                     | goto_kw identifier ";" .
+
+(* ----------------------------------------------------------
+   5. Внешние определения
+   ---------------------------------------------------------- *)
+extern_kw          = "extern" | "внеш" .
+static_kw          = "static" | "статич" .
+auto_kw            = "auto" | "авто" .
+register_kw        = "register" | "регистр" .
+inline_kw          = "inline" | "встроен" .
+typedef_kw         = "typedef" | "типрег" .
+
+translation_unit   = { external_definition } .
+external_definition = function_definition | declaration .
+function_definition  = declaration_specifiers declarator
+                      [ declaration_list ] compound_statement .
+declaration_list    = { declaration } .
