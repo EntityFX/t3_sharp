@@ -7,19 +7,12 @@ using TritTypes;
 
 namespace T3Compiler.CodeGen
 {
-    /// <summary>
-    /// Generates T3 assembly code from the parsed AST.
-    /// Uses 9 GP registers (R0-R8) mapped as:
-    ///   R0 = RW (workspace/accumulator), R1..R5 = temporaries, R6-R8 = saved
-    /// Functions: params passed via stack (PUSH before CALL, POP inside callee)
-    /// </summary>
     public class CodeGenerator
     {
         private readonly AstProgram _program;
         private readonly StringBuilder _output;
         private int _labelCounter;
-        private readonly Dictionary<string, int> _varSlots; // variable name → stack offset
-        private int _nextStackSlot;
+        private readonly Dictionary<string, int> _varSlots;
 
         public CodeGenerator(AstProgram program)
         {
@@ -27,337 +20,243 @@ namespace T3Compiler.CodeGen
             _output = new StringBuilder();
             _labelCounter = 0;
             _varSlots = new Dictionary<string, int>();
-            _nextStackSlot = 0;
         }
 
         public string Generate()
         {
-            EmitLine("; T-lang compiled output → T3 assembly");
-            EmitLine("; ====================================");
-            EmitLine();
-
-            // Entry point at address 0: CALL main so RET works properly
-            EmitLine("__entry:");
-            EmitLine("    LI R0, main");
-            EmitLine("    CALL R0");
-            EmitLine("    HALT");       // if main returns, halt cleanly
-            EmitLine();
-
-            // Generate all functions (including main)
-            foreach (var func in _program.Functions)
-            {
-                GenerateFunction(func);
-            }
-
-            // If no main, halt
-            EmitLine("    HALT");
-            EmitLine();
-
+            Emit("; T-lang compiled output → T3 assembly");
+            Emit("; ====================================");
+            Emit();
+            Emit("__entry:");
+            Emit("    LI R0, main");
+            Emit("    CALL R0");
+            Emit("    HALT");
+            Emit();
+            foreach (var func in _program.Functions) GenerateFunction(func);
             return _output.ToString();
         }
 
-        private void GenerateFunction(FunctionDef func)
+        void GenerateFunction(FunctionDef func)
         {
             _varSlots.Clear();
-            _nextStackSlot = 0;
-
-            EmitLine();
-            EmitLine($"; === Function: {func.Name} ===");
-            EmitLine($"{func.Name}:");
-
-            // Allocate stack frame
-            if (_nextStackSlot > 0)
-                EmitLine($"    ; stack frame: {_nextStackSlot} slots");
-
-            // Generate body statements
-            foreach (var stmt in func.Body.Body)
-            {
-                GenerateStatement(stmt);
-            }
-
-            EmitLine("    RET");
-            EmitLine();
+            Emit($"{func.Name}:");
+            foreach (var s in func.Body.Body) GenStmt(s);
+            Emit("    RET");
+            Emit();
         }
 
-        private void GenerateStatement(Statement stmt)
+        void GenStmt(Statement s)
         {
-            switch (stmt)
+            switch (s)
             {
                 case ExpressionStmt es:
-                    if (es.Expression != null)
-                        GenerateExpr(es.Expression, 0);
-                    break;
-
+                    if (es.Expression != null) GenExpr(es.Expression); break;
                 case VarDeclaration vd:
                     AllocLocal(vd.Name);
-                    if (vd.Initializer != null)
-                    {
-                        int reg = GenerateExpr(vd.Initializer, 0);
-                        StoreLocal(vd.Name, reg);
-                    }
+                    if (vd.Initializer != null) { int r = GenExpr(vd.Initializer); StoreLocal(vd.Name, r); }
                     break;
-
                 case ReturnStmt rs:
-                    if (rs.Value != null)
-                    {
-                        int r = GenerateExpr(rs.Value, 0);
-                        EmitLine($"    MOV R2, R{r}    ; return value");
-                    }
-                    EmitLine("    RET");
-                    break;
-
+                    if (rs.Value != null) { int r = GenExpr(rs.Value); Emit($"    MOV R2, R{r}"); }
+                    Emit("    RET"); break;
                 case CompoundStmt cs:
-                    foreach (var s in cs.Body)
-                        GenerateStatement(s);
-                    break;
-
-                case IfStmt ifs:
-                    {
-                        int condReg = GenerateExpr(ifs.Condition, 0);
-                        string labelElse = NewLabel("else");
-                        string labelEnd = NewLabel("endif");
-                        // if cond ≈ true (+), jump to then; else jump to maybe/else
-                        EmitLine($"    ; if R{condReg}");
-                        EmitLine($"    LI R1, 0");
-                        EmitLine($"    CMP R{condReg}, R1");
-                        EmitLine($"    LI R2, {labelElse}");
-                        EmitLine($"    JL R2          ; false => else");
-                        EmitLine($"    JE R2          ; maybe (0) => else");
-                        GenerateStatement(ifs.ThenBody);
-                        EmitLine($"    LI R2, {labelEnd}");
-                        EmitLine($"    JMP R2");
-                        EmitLine($"{labelElse}:");
-                        if (ifs.ElseBody != null) GenerateStatement(ifs.ElseBody);
-                        EmitLine($"{labelEnd}:");
-                    }
-                    break;
-
-                case WhileStmt ws:
-                    {
-                        string labelLoop = NewLabel("loop");
-                        string labelEnd = NewLabel("endloop");
-                        EmitLine($"{labelLoop}:");
-                        int condReg = GenerateExpr(ws.Condition, 0);
-                        EmitLine($"    LI R1, 0");
-                        EmitLine($"    CMP R{condReg}, R1");
-                        EmitLine($"    LI R2, {labelEnd}");
-                        EmitLine($"    JL R2");
-                        EmitLine($"    JE R2");
-                        GenerateStatement(ws.Body);
-                        EmitLine($"    LI R2, {labelLoop}");
-                        EmitLine($"    JMP R2");
-                        EmitLine($"{labelEnd}:");
-                    }
-                    break;
-
+                    foreach (var ss in cs.Body) GenStmt(ss); break;
+                case IfStmt ifs: GenIf(ifs); break;
+                case WhileStmt ws: GenWhile(ws); break;
                 case ForStmt fs:
-                    {
-                        if (fs.Init != null) GenerateExpr(fs.Init, 0);
-                        string labelLoop = NewLabel("forloop");
-                        string labelEnd = NewLabel("forend");
-                        EmitLine($"{labelLoop}:");
-                        if (fs.Condition != null)
-                        {
-                            int cr = GenerateExpr(fs.Condition, 0);
-                            EmitLine($"    LI R1, 0");
-                            EmitLine($"    CMP R{cr}, R1");
-                            EmitLine($"    LI R2, {labelEnd}");
-                            EmitLine($"    JL R2");
-                            EmitLine($"    JE R2");
-                        }
-                        GenerateStatement(fs.Body);
-                        if (fs.Step != null) GenerateExpr(fs.Step, 0);
-                        EmitLine($"    LI R2, {labelLoop}");
-                        EmitLine($"    JMP R2");
-                        EmitLine($"{labelEnd}:");
-                    }
+                    if (fs.Init != null) GenExpr(fs.Init);
+                    if (fs.Condition is BinaryOp bo)
+                        GenWhile(new WhileStmt { Condition = bo, Body = new CompoundStmt { Body = new List<Statement> { fs.Body, MakeExprStmt(fs.Step) } } });
+                    else if (fs.Step == null) GenStmt(fs.Body);
                     break;
             }
         }
 
-        /// <summary>
-        /// Generate code for an expression, returns the register containing the result.
-        /// targetReg: 0 means auto-allocate, otherwise try to place result there.
-        /// </summary>
-        private int GenerateExpr(AstNode node, int targetReg)
+        ExpressionStmt MakeExprStmt(AstNode? node) => new ExpressionStmt { Expression = node };
+
+        // === IF ===
+        void GenIf(IfStmt s)
         {
-            if (targetReg == 0) targetReg = AllocReg();
-
-            switch (node)
+            string lEnd = Label("end");
+            if (s.Condition is BinaryOp bo)
             {
-                case IntegerLiteral il:
-                    // Parse t-lang literal to decimal integer for LI
-                    long intVal = ParseIntegerLiteral(il);
-                    EmitLine($"    LI R{targetReg}, {intVal}   ; {il.Value}{il.Suffix ?? ""}");
-                    return targetReg;
-
-                case FloatLiteral fl:
-                    // Store float in memory, load via FLW
-                    EmitLine($"    LI R{targetReg}, 0    ; float literal (simplified)");
-                    return targetReg;
-
-                case Identifier id:
-                    LoadLocal(id.Name, targetReg);
-                    return targetReg;
-
-                case BooleanLiteral bl:
-                    int bv = bl.Value == true ? 1 : (bl.Value == false ? -1 : 0);
-                    EmitLine($"    LI R{targetReg}, {bv}   ; boolean");
-                    return targetReg;
-
-                case BinaryOp bo:
-                    int left = GenerateExpr(bo.Left, 0);
-                    int right = GenerateExpr(bo.Right, 0);
-                    string op = bo.Operator switch
-                    {
-                        "+" => "ADD", "-" => "SUB", "*" => "MUL", "/" => "DIV", "%" => "MOD",
-                        "&" => "AND", "|" => "OR", "^" => "XOR",
-                        "<<" => "SHL", ">>" => "SHR",
-                        "==" or "!=" or "<" or ">" or "<=" or ">=" => "CMP",
-                        _ => "ADD"
-                    };
-                    if (op == "CMP")
-                    {
-                        EmitLine($"    CMP R{left}, R{right}");
-                        EmitLine($"    ; condition result in Cond (R{targetReg} set after)");
-                        // Store Cond in register via branching
-                        string labelT = NewLabel("cmpT"), labelF = NewLabel("cmpF"), labelD = NewLabel("cmpD");
-                        EmitLine($"    LI R1, {labelT}");
-                        EmitLine($"    {GetJumpCond(bo.Operator)} R1");
-                        EmitLine($"    LI R{targetReg}, -1   ; false");
-                        EmitLine($"    LI R1, {labelD}");
-                        EmitLine($"    JMP R1");
-                        EmitLine($"{labelT}:");
-                        EmitLine($"    LI R{targetReg}, 1    ; true");
-                        EmitLine($"{labelD}:");
-                    }
-                    else
-                    {
-                        EmitLine($"    {op} R{targetReg}, R{left}, R{right}");
-                    }
-                    return targetReg;
-
-                case UnaryOp uo:
-                    int opReg = GenerateExpr(uo.Operand, 0);
-                    string unOp = uo.Operator switch { "-" => "NEG", "!" => "NEG", "~" => "NEG", _ => "MOV" };
-                    EmitLine($"    {unOp} R{targetReg}, R{opReg}");
-                    return targetReg;
-
-                case Assignment ass:
-                    int valReg = GenerateExpr(ass.Value, 0);
-                    if (ass.Target is Identifier id2)
-                    {
-                        StoreLocal(id2.Name, valReg);
-                    }
-                    EmitLine($"    MOV R{targetReg}, R{valReg}   ; assign");
-                    return targetReg;
-
-                case FunctionCall fc:
-                    // Push args right-to-left, CALL, pop result
-                    for (int i = fc.Arguments.Count - 1; i >= 0; i--)
-                    {
-                        int argReg = GenerateExpr(fc.Arguments[i], 0);
-                        EmitLine($"    PUSH R{argReg}     ; arg {i}");
-                    }
-                    EmitLine($"    LI R1, {fc.FunctionName}");
-                    EmitLine($"    CALL R1");
-                    for (int i = 0; i < fc.Arguments.Count; i++)
-                        EmitLine($"    POP R0             ; discard arg"); // simplified
-                    EmitLine($"    MOV R{targetReg}, R2   ; return value");
-                    return targetReg;
-
-                default:
-                    EmitLine($"    LI R{targetReg}, 0    ; unhandled node");
-                    return targetReg;
+                int a = GenExpr(bo.Left), b = GenExpr(bo.Right);
+                string lThen = Label("ift");
+                Emit($"    CMP R{a}, R{b}");
+                EmitCondJump(bo.Operator, lThen, true);   // if true → then
+                // else path
+                if (s.ElseBody != null) GenStmt(s.ElseBody);
+                JmpTo(lEnd);
+                // then path
+                Emit($"{lThen}:");
+                GenStmt(s.ThenBody);
+                JmpTo(lEnd);
             }
+            else
+            {
+                int c = GenExpr(s.Condition);
+                string lThen = Label("ift");
+                Emit($"    LI R1, 0");
+                Emit($"    CMP R{c}, R1");
+                Jump("JG", lThen);   // value >0 → true
+                if (s.ElseBody != null) GenStmt(s.ElseBody);
+                JmpTo(lEnd);
+                Emit($"{lThen}:");
+                GenStmt(s.ThenBody);
+                JmpTo(lEnd);
+            }
+            Emit($"{lEnd}:");
         }
 
-        private string GetJumpCond(string op) => op switch
+        // === WHILE ===
+        void GenWhile(WhileStmt s)
         {
-            "==" => "JE", "!=" => "JNE", "<" => "JL", ">" => "JG", "<=" => "JL", ">=" => "JG",
-            _ => "JE"
+            string lLoop = Label("loop"), lBody = Label("body"), lEnd = Label("wend");
+            Emit($"{lLoop}:");
+            if (s.Condition is BinaryOp bo)
+            {
+                int a = GenExpr(bo.Left), b = GenExpr(bo.Right);
+                Emit($"    CMP R{a}, R{b}");
+                EmitCondJump(bo.Operator, lBody, true);
+                JmpTo(lEnd);
+            }
+            else
+            {
+                int c = GenExpr(s.Condition);
+                Emit($"    LI R1, 0");
+                Emit($"    CMP R{c}, R1");
+                Jump("JG", lBody);
+                JmpTo(lEnd);
+            }
+            Emit($"{lBody}:");
+            GenStmt(s.Body);
+            JmpTo(lLoop);
+            Emit($"{lEnd}:");
+        }
+
+        // === Expressions ===
+        int GenExpr(AstNode n) => n switch
+        {
+            IntegerLiteral il => EmitImm(ParseInt(il.Value)),
+            Identifier id => LoadLocal(id.Name),
+            BooleanLiteral bl => EmitImm(bl.Value == true ? 1 : (bl.Value == false ? -1 : 0)),
+            BinaryOp bo => GenBinOp(bo),
+            UnaryOp uo => GenUnary(uo),
+            Assignment ass => EmitAssign(ass),
+            _ => EmitImm(0)
         };
 
-        private long ParseIntegerLiteral(IntegerLiteral il)
+        int GenBinOp(BinaryOp bo)
         {
-            string val = il.Value;
-            // 0t+-0 style
-            if (val.StartsWith("0t"))
-                return BalancedTernary.ParseToLong(val.Substring(2).Replace("_", ""));
-            // 0y style (27-ary)
-            if (val.StartsWith("0y"))
-                return ParseTryxToLong(val.Substring(2));
-            // 0n style (9-ary)
-            if (val.StartsWith("0n"))
-                return ParseNinaryToLong(val.Substring(2));
-            // Decimal with optional sign
-            return long.TryParse(val, out long n) ? n : 0;
-        }
-
-        private long ParseTryxToLong(string s)
-        {
-            char[] alpha = "NOPQRSTUVWXYZ0123456789ABCD".ToCharArray();
-            string trits = "";
-            foreach (char c in s.ToUpper())
+            int a = GenExpr(bo.Left), b = GenExpr(bo.Right);
+            if (IsCompare(bo.Operator))
             {
-                int idx = Array.IndexOf(alpha, c);
-                if (idx < 0) continue;
-                int t1 = idx / 9 - 1, t2 = (idx / 3) % 3 - 1, t3 = idx % 3 - 1;
-                trits += TritChar(t1) + TritChar(t2) + TritChar(t3);
+                int r = AllocReg();
+                Emit($"    CMP R{a}, R{b}");
+                string lt = Label("cmpt"), ld = Label("cmpd");
+                EmitCondJump(bo.Operator, lt, true);
+                Emit($"    LI R{r}, -1");
+                JmpTo(ld);
+                Emit($"{lt}:");
+                Emit($"    LI R{r}, 1");
+                Emit($"{ld}:");
+                return r;
             }
-            return BalancedTernary.ParseToLong(trits);
+            int r2 = AllocReg();
+            string op = bo.Operator switch { "+" => "ADD", "-" => "SUB", "*" => "MUL", "/" => "DIV", "%" => "MOD", "&" => "AND", "|" => "OR", "^" => "XOR", "<<" => "SHL", ">>" => "SHR", _ => "ADD" };
+            Emit($"    {op} R{r2}, R{a}, R{b}");
+            return r2;
         }
 
-        private long ParseNinaryToLong(string s)
+        int GenUnary(UnaryOp uo)
         {
-            string trits = "";
-            foreach (char c in s.ToUpper())
-            {
-                trits += c switch
-                {
-                    'W' => "--", 'X' => "-0", 'Y' => "-+", 'Z' => "0-",
-                    '0' => "00", '1' => "0+", '2' => "+-", '3' => "+0", '4' => "++",
-                    _ => "00"
-                };
-            }
-            return BalancedTernary.ParseToLong(trits);
+            int o = GenExpr(uo.Operand), r = AllocReg();
+            Emit($"    {(uo.Operator == "-" ? "NEG" : "MOV")} R{r}, R{o}");
+            return r;
         }
 
-        private string TritChar(int t) => t == -1 ? "-" : (t == 1 ? "+" : "0");
-
-        // === Register allocation (simplified: round-robin R0-R5) ===
-        private int _nextReg = 0;
-        private int AllocReg() { int r = _nextReg; _nextReg = (_nextReg + 1) % 6; return r; }
-
-        // === Local variable slots (stack-based) ===
-        private void AllocLocal(string name)
+        int EmitAssign(Assignment ass)
         {
-            if (!_varSlots.ContainsKey(name))
+            int v = GenExpr(ass.Value);
+            if (ass.Target is Identifier id) StoreLocal(id.Name, v);
+            return v;
+        }
+
+        // === Cond jump via register (T3 JE/JL/JG operate on registers) ===
+        void EmitCondJump(string op, string label, bool trueCase)
+        {
+            int r = AllocReg();
+            Emit($"    LI R{r}, {label}");
+            string j = op switch { "==" => "JE", "!=" => "JNE", "<" => "JL", ">" => "JG", "<=" => "JLE", ">=" => "JGE", _ => "JE" };
+            if (!trueCase) j = InvertCond(j);
+            // T3 only has JE/JNE/JL/JG. LE/GE need two-jump pattern.
+            if (j == "JLE") { Emit($"    JG R{r}"); Emit($"    LI R{r}, {label}"); Emit($"    JE R{r}"); }
+            else if (j == "JGE") { Emit($"    JL R{r}"); Emit($"    LI R{r}, {label}"); Emit($"    JE R{r}"); }
+            else Emit($"    {j} R{r}");
+        }
+
+        void Jump(string cond, string label)
+        {
+            int r = AllocReg();
+            Emit($"    LI R{r}, {label}");
+            Emit($"    {cond} R{r}");
+        }
+
+        void JmpTo(string label) { int r = AllocReg(); Emit($"    LI R{r}, {label}"); Emit($"    JMP R{r}"); }
+
+        static string InvertCond(string j) => j switch { "JE" => "JNE", "JNE" => "JE", "JL" => "JGE", "JG" => "JLE", "JLE" => "JG", "JGE" => "JL", _ => "JE" };
+
+        static bool IsCompare(string op) => op is "==" or "!=" or "<" or ">" or "<=" or ">=";
+
+        // === Variables ===
+        int _nextVarAddr = 150;  // far from program code area (0-50)
+        const int AddrReg = 4;  // R4 dedicated for address calculations
+        void AllocLocal(string name) { if (!_varSlots.ContainsKey(name)) _varSlots[name] = _nextVarAddr++; }
+        int LoadLocal(string name)
+        {
+            int r = AllocReg();
+            if (_varSlots.TryGetValue(name, out int a))
             {
-                _varSlots[name] = _nextStackSlot++;
+                Emit($"    LI R{AddrReg}, {a}");
+                Emit($"    LOAD R{r}, R{AddrReg}");
+            }
+            else Emit($"    LI R{r}, 0");
+            return r;
+        }
+        void StoreLocal(string name, int reg)
+        {
+            if (_varSlots.TryGetValue(name, out int a))
+            {
+                Emit($"    LI R{AddrReg}, {a}");
+                Emit($"    STORE R{reg}, R{AddrReg}");
             }
         }
 
-        private void StoreLocal(string name, int reg)
+        // === Literals ===
+        long ParseInt(string v)
         {
-            if (_varSlots.TryGetValue(name, out int slot))
-            {
-                EmitLine($"    ; store local '{name}' (slot {slot}) — simplified: kept in reg");
-                EmitLine($"    MOV R{reg+1}, R{reg}  ; preserve in next reg");
-            }
+            if (v.StartsWith("0t")) return BalancedTernary.ParseToLong(v.Substring(2).Replace("_", ""));
+            if (v.StartsWith("0y")) return Parse27(v.Substring(2));
+            if (v.StartsWith("0n")) return Parse9(v.Substring(2));
+            return long.TryParse(v, out long n) ? n : 0;
         }
+        long Parse27(string s) { char[] a = "NOPQRSTUVWXYZ0123456789ABCD".ToCharArray(); string t = ""; foreach (char c in s.ToUpper()) { int i = Array.IndexOf(a, c); if (i >= 0) t += TritChar(i / 9 - 1) + TritChar(i / 3 % 3 - 1) + TritChar(i % 3 - 1); } return BalancedTernary.ParseToLong(t); }
+        long Parse9(string s) { string t = ""; foreach (char c in s.ToUpper()) t += c switch { 'W' => "--", 'X' => "-0", 'Y' => "-+", 'Z' => "0-", '0' => "00", '1' => "0+", '2' => "+-", '3' => "+0", '4' => "++", _ => "00" }; return BalancedTernary.ParseToLong(t); }
+        static string TritChar(int t) => t == -1 ? "-" : (t == 1 ? "+" : "0");
 
-        private void LoadLocal(string name, int targetReg)
+        // === Reg alloc ===
+        int _nextReg = 0;
+        int AllocReg()
         {
-            if (_varSlots.TryGetValue(name, out int slot))
-            {
-                EmitLine($"    ; load local '{name}' (slot {slot}) — simplified");
-                EmitLine($"    MOV R{targetReg}, R{targetReg}  ; placeholder");
-            }
+            // Skip R4 (address register). Registers: R0, R1, R2, R3, R5.
+            int r = _nextReg switch { 4 => 5, _ => _nextReg };
+            _nextReg = (_nextReg + 1) % 6;
+            if (_nextReg == 4) _nextReg = 5;  // skip R4
+            return r;
         }
+        int EmitImm(long val) { int r = AllocReg(); if (val >= -364 && val <= 364) Emit($"    LI R{r}, {val}"); else Emit($"    LIMM R{r}, {val}"); return r; }
 
         // === Helpers ===
-        private string NewLabel(string prefix) => $"{prefix}_{_labelCounter++}";
-        private void EmitLine(string line = "") => _output.AppendLine(line);
+        string Label(string prefix) => $"{prefix}_{_labelCounter++}";
+        void Emit(string s = "") => _output.AppendLine(s);
     }
 }

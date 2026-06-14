@@ -129,9 +129,10 @@ namespace T3Simulator.InOrder.Tests
             string source = @"
                 tint main() {
                     tint sum = 0;
-                    tint i = 0;
-                    for (i = 1; i <= 5; i = i + 1) {
+                    tint i = 1;
+                    while (i < 6) {
                         sum = sum + i;
+                        i = i + 1;
                     }
                     return sum;
                 }
