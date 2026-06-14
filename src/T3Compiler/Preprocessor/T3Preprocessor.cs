@@ -41,10 +41,18 @@ namespace T3Compiler.Preprocessor
                 lineNum++;
                 string line = rawLine.TrimStart();
 
-                // Handle #directives
-                if (line.StartsWith("#"))
+                // Handle #directives (anywhere in line)
+                int hashIdx = line.IndexOf('#');
+                if (hashIdx >= 0)
                 {
-                    string directive = line.Substring(1).Trim();
+                    string beforeHash = line.Substring(0, hashIdx).TrimEnd();
+                    if (beforeHash.Length > 0 && _conditionalStack.Peek())
+                    {
+                        // Output text before #
+                        string expanded = ExpandMacros(beforeHash);
+                        output.AppendLine(expanded);
+                    }
+                    string directive = line.Substring(hashIdx + 1).Trim();
                     string dirName = directive.Split(' ')[0].ToLower();
                     string dirArgs = directive.Length > dirName.Length ? directive.Substring(dirName.Length).Trim() : "";
 

@@ -13,7 +13,6 @@
     <PackageReference Include="MSTest.TestFramework" Version="3.6.1" />
     <PackageReference Include="coverlet.collector" Version="6.0.4" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\src\T3Simulator.InOrder\T3Simulator.InOrder.csproj" />
     <ProjectReference Include="..\..\src\T3Simulator.Common\T3Simulator.Common.csproj" />

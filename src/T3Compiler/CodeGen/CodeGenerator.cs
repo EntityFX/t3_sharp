@@ -14,8 +14,9 @@ namespace T3Compiler.CodeGen
         private readonly StringBuilder _output;
         private int _labelCounter;
         private readonly Dictionary<string, int> _varSlots;
+        private readonly Dictionary<string, int> _varSizes;
         private readonly Dictionary<string, List<int>> _arrDims;
-        private readonly Dictionary<string, List<Parser.FieldDef>> _structFields; // varName → fields list
+        private readonly Dictionary<string, List<Parser.FieldDef>> _structFields;
 
         public CodeGenerator(AstProgram program)
         {
@@ -23,10 +24,10 @@ namespace T3Compiler.CodeGen
             _output = new StringBuilder();
             _labelCounter = 0;
             _varSlots = new Dictionary<string, int>();
+            _varSizes = new Dictionary<string, int>();
             _arrDims = new Dictionary<string, List<int>>();
             _structFields = new Dictionary<string, List<Parser.FieldDef>>();
 
-            // Register struct types from program
             foreach (var sd in _program.Structs)
             {
                 if (!_structDefs.ContainsKey(sd.Name))
@@ -38,7 +39,7 @@ namespace T3Compiler.CodeGen
 
         public string Generate()
         {
-            Emit("; T-lang compiled output → T3 assembly");
+            Emit("; T-lang compiled output -> T3 assembly");
             Emit("; ====================================");
             Emit();
             Emit("__entry:");
@@ -53,8 +54,11 @@ namespace T3Compiler.CodeGen
         void GenerateFunction(FunctionDef func)
         {
             _varSlots.Clear();
+            _varSizes.Clear();
             _arrDims.Clear();
             _structFields.Clear();
+            _nextReg = 0;
+            _nextVarAddr = 100;
             Emit($"{func.Name}:");
             foreach (var s in func.Body.Body) GenStmt(s);
             Emit("    RET");
@@ -93,13 +97,21 @@ namespace T3Compiler.CodeGen
 
         void GenIf(IfStmt s)
         {
-            string lEnd = Label("end");
+            string lThen = Label("ift"), lEnd = Label("end");
             if (s.Condition is BinaryOp bo)
             {
                 int a = GenExpr(bo.Left), b = GenExpr(bo.Right);
-                string lThen = Label("ift");
+                string lMaybe = Label("ifm"), lElse = Label("ife");
                 Emit($"    CMP R{a}, R{b}");
-                EmitCondJump(bo.Operator, lThen);
+                switch (bo.Operator)
+                {
+                    case "==": JumpReg("JE", lThen); break;
+                    case "!=": JumpReg("JNE", lThen); break;
+                    case "<":  JumpReg("JL", lThen); break;
+                    case ">":  JumpReg("JG", lThen); break;
+                    case "<=": { var skp = Label("skp"); JumpReg("JG", skp); JmpTo(lThen); Emit($"{skp}:"); } break;
+                    case ">=": { var skp = Label("skp"); JumpReg("JL", skp); JmpTo(lThen); Emit($"{skp}:"); } break;
+                }
                 if (s.ElseBody != null) GenStmt(s.ElseBody);
                 JmpTo(lEnd);
                 Emit($"{lThen}:"); GenStmt(s.ThenBody); JmpTo(lEnd);
@@ -107,8 +119,7 @@ namespace T3Compiler.CodeGen
             else
             {
                 int c = GenExpr(s.Condition);
-                string lThen = Label("ift");
-                Emit($"    LI R1, 0"); Emit($"    CMP R{c}, R1"); JumpReg("JG", lThen);
+                int r = AllocReg(); Emit($"    LI R{r}, 0"); Emit($"    CMP R{c}, R{r}"); JumpReg("JG", lThen);
                 if (s.ElseBody != null) GenStmt(s.ElseBody);
                 JmpTo(lEnd); Emit($"{lThen}:"); GenStmt(s.ThenBody); JmpTo(lEnd);
             }
@@ -122,27 +133,24 @@ namespace T3Compiler.CodeGen
             if (s.Condition is BinaryOp bo)
             {
                 int a = GenExpr(bo.Left), b = GenExpr(bo.Right);
-                Emit($"    CMP R{a}, R{b}"); EmitCondJump(bo.Operator, lBody); JmpTo(lEnd);
+                Emit($"    CMP R{a}, R{b}");
+                switch (bo.Operator)
+                {
+                    case "==": JumpReg("JE", lBody); break;
+                    case "!=": JumpReg("JNE", lBody); break;
+                    case "<":  JumpReg("JL", lBody); break;
+                    case ">":  JumpReg("JG", lBody); break;
+                    case "<=": { var skp = Label("skp"); JumpReg("JG", skp); JmpTo(lBody); Emit($"{skp}:"); } break;
+                    case ">=": { var skp = Label("skp"); JumpReg("JL", skp); JmpTo(lBody); Emit($"{skp}:"); } break;
+                }
+                JmpTo(lEnd);
             }
             else
             {
                 int c = GenExpr(s.Condition);
-                Emit($"    LI R1, 0"); Emit($"    CMP R{c}, R1"); JumpReg("JG", lBody); JmpTo(lEnd);
+                int r = AllocReg(); Emit($"    LI R{r}, 0"); Emit($"    CMP R{c}, R{r}"); JumpReg("JG", lBody); JmpTo(lEnd);
             }
             Emit($"{lBody}:"); GenStmt(s.Body); JmpTo(lLoop); Emit($"{lEnd}:");
-        }
-
-        void EmitCondJump(string op, string label)
-        {
-            switch (op)
-            {
-                case "==": JumpReg("JE", label); break;
-                case "!=": JumpReg("JNE", label); break;
-                case "<": JumpReg("JL", label); break;
-                case ">": JumpReg("JG", label); break;
-                case "<=": { var s = Label("skp"); JumpReg("JG", s); JmpTo(label); Emit($"{s}:"); } break;
-                case ">=": { var s = Label("skp"); JumpReg("JL", s); JmpTo(label); Emit($"{s}:"); } break;
-            }
         }
 
         void JumpReg(string cond, string label) { int r = AllocReg(); Emit($"    LI R{r}, {label}"); Emit($"    {cond} R{r}"); }
@@ -177,19 +185,56 @@ namespace T3Compiler.CodeGen
             return EmitImm(0);
         }
 
+        void EmitMemberStore(MemberAccess ma, int valReg)
+        {
+            if (ma.Object is Identifier id && _varSlots.TryGetValue(id.Name, out int baseAddr) && _structFields.TryGetValue(id.Name, out var fields))
+            {
+                int offset = fields.FindIndex(f => f.Name == ma.MemberName);
+                if (offset >= 0)
+                {
+                    Emit($"    LI R{AddrReg}, {baseAddr + offset}");
+                    Emit($"    STORE R{valReg}, R{AddrReg}");
+                }
+            }
+        }
+
         int GenUnary(UnaryOp uo)
         {
             if (uo.Operator == "&")
             {
-                if (uo.Operand is Identifier id && _varSlots.TryGetValue(id.Name, out int a)) return EmitImm(a);
+                // Address-of: return base address of variable/field/array element
+                if (uo.Operand is Identifier id && _varSlots.TryGetValue(id.Name, out int a))
+                    return EmitImm(a);
+                if (uo.Operand is MemberAccess ma)
+                {
+                    if (ma.Object is Identifier id2 && _varSlots.TryGetValue(id2.Name, out int baseAddr2) && _structFields.TryGetValue(id2.Name, out var fields))
+                    {
+                        int offset = fields.FindIndex(f => f.Name == ma.MemberName);
+                        return EmitImm(baseAddr2 + offset);
+                    }
+                    return EmitImm(0);
+                }
+                if (uo.Operand is ArrayAccess aa)
+                {
+                    if (!_varSlots.TryGetValue(aa.ArrayName, out int arrBase)) arrBase = _nextVarAddr;
+                    // Compute index offset
+                    int idxR = ComputeFlatIndex(aa);
+                    int raddr = AllocReg();
+                    Emit($"    LI R{raddr}, {arrBase}");
+                    Emit($"    ADD R{raddr}, R{raddr}, R{idxR}");
+                    return raddr;
+                }
                 return EmitImm(0);
             }
             if (uo.Operator == "*")
             {
-                int ptrR = GenExpr(uo.Operand); int r = AllocReg();
-                Emit($"    LOAD R{r}, R{ptrR}"); return r;
+                int ptrR = GenExpr(uo.Operand);
+                int r = AllocReg();
+                Emit($"    LOAD R{r}, R{ptrR}");
+                return r;
             }
-            int o = GenExpr(uo.Operand); int r2 = AllocReg();
+            int o = GenExpr(uo.Operand);
+            int r2 = AllocReg();
             Emit($"    {(uo.Operator == "-" ? "NEG" : "MOV")} R{r2}, R{o}");
             return r2;
         }
@@ -197,17 +242,29 @@ namespace T3Compiler.CodeGen
         int GenBinOp(BinaryOp bo)
         {
             int a = GenExpr(bo.Left), b = GenExpr(bo.Right);
+            int r = AllocReg();
             if (IsCompare(bo.Operator))
             {
-                int r = AllocReg(); Emit($"    CMP R{a}, R{b}");
-                string lt = Label("cmpt"), ld = Label("cmpd"); EmitCondJump(bo.Operator, lt);
-                Emit($"    LI R{r}, -1"); JmpTo(ld); Emit($"{lt}:"); Emit($"    LI R{r}, 1"); Emit($"{ld}:");
+                // CMP + set result: 1 (true) or -1 (false)
+                Emit($"    CMP R{a}, R{b}");
+                string lt = Label("cmpt"), ld = Label("cmpd");
+                switch (bo.Operator)
+                {
+                    case "==": JumpReg("JE", lt); break;
+                    case "!=": JumpReg("JNE", lt); break;
+                    case "<":  JumpReg("JL", lt); break;
+                    case ">":  JumpReg("JG", lt); break;
+                    case "<=": { var skp = Label("skp"); JumpReg("JG", skp); JmpTo(lt); Emit($"{skp}:"); } break;
+                    case ">=": { var skp = Label("skp"); JumpReg("JL", skp); JmpTo(lt); Emit($"{skp}:"); } break;
+                }
+                Emit($"    LI R{r}, -1"); JmpTo(ld);
+                Emit($"{lt}:"); Emit($"    LI R{r}, 1");
+                Emit($"{ld}:");
                 return r;
             }
-            int r2 = AllocReg();
             string op = bo.Operator switch { "+" => "ADD", "-" => "SUB", "*" => "MUL", "/" => "DIV", "%" => "MOD", "&" => "AND", "|" => "OR", "^" => "XOR", "<<" => "SHL", ">>" => "SHR", _ => "ADD" };
-            Emit($"    {op} R{r2}, R{a}, R{b}");
-            return r2;
+            Emit($"    {op} R{r}, R{a}, R{b}");
+            return r;
         }
 
         int EmitAssign(Assignment ass)
@@ -215,6 +272,7 @@ namespace T3Compiler.CodeGen
             int v = GenExpr(ass.Value);
             if (ass.Target is Identifier id) StoreLocal(id.Name, v, 0);
             else if (ass.Target is ArrayAccess aa) EmitArrayStore(aa, v);
+            else if (ass.Target is MemberAccess ma) EmitMemberStore(ma, v);
             return v;
         }
 
@@ -226,19 +284,29 @@ namespace T3Compiler.CodeGen
             int r = AllocReg(); Emit($"    MOV R{r}, R2"); return r;
         }
 
+        /// <summary>Compute flat index for array access, handling multi-dimensional.</summary>
+        int ComputeFlatIndex(ArrayAccess aa)
+        {
+            if (!_varSlots.TryGetValue(aa.ArrayName, out int baseAddr)) baseAddr = _nextVarAddr;
+            if (_arrDims.TryGetValue(aa.ArrayName, out var dims) && dims.Count > 1 && aa.Indices.Count >= 2)
+            {
+                int iR = GenExpr(aa.Indices[0]);
+                int jR = GenExpr(aa.Indices[1]);
+                int strideR = AllocReg(); Emit($"    LI R{strideR}, {dims[1]}");
+                int tmp = AllocReg(); Emit($"    MUL R{tmp}, R{iR}, R{strideR}");
+                int r = AllocReg(); Emit($"    ADD R{r}, R{tmp}, R{jR}");
+                return r;
+            }
+            // Single dimension or flat access via expression
+            return GenExpr(aa.Indices[0]);
+        }
+
         int EmitArrayAccess(ArrayAccess aa)
         {
             if (!_varSlots.TryGetValue(aa.ArrayName, out int baseAddr)) baseAddr = _nextVarAddr;
-            int r = AllocReg();
-            if (_arrDims.TryGetValue(aa.ArrayName, out var dims) && dims.Count > 1)
-            {
-                int iR = GenExpr(aa.Indices[0]), jR = GenExpr(aa.Indices[1]);
-                int strideR = AllocReg(); Emit($"    LI R{strideR}, {dims[1]}");
-                int tmp = AllocReg(); Emit($"    MUL R{tmp}, R{iR}, R{strideR}");
-                Emit($"    ADD R{r}, R{tmp}, R{jR}");
-            }
-            else r = GenExpr(aa.Indices[0]);
-            Emit($"    LI R{AddrReg}, {baseAddr}"); Emit($"    ADD R{AddrReg}, R{AddrReg}, R{r}");
+            int offR = ComputeFlatIndex(aa);
+            Emit($"    LI R{AddrReg}, {baseAddr}");
+            Emit($"    ADD R{AddrReg}, R{AddrReg}, R{offR}");
             int res = AllocReg(); Emit($"    LOAD R{res}, R{AddrReg}");
             return res;
         }
@@ -246,21 +314,14 @@ namespace T3Compiler.CodeGen
         void EmitArrayStore(ArrayAccess aa, int valReg)
         {
             if (!_varSlots.TryGetValue(aa.ArrayName, out int baseAddr)) baseAddr = _nextVarAddr;
-            int offR;
-            if (_arrDims.TryGetValue(aa.ArrayName, out var dims) && dims.Count > 1)
-            {
-                int iR = GenExpr(aa.Indices[0]), jR = GenExpr(aa.Indices[1]);
-                int sR = AllocReg(); Emit($"    LI R{sR}, {dims[1]}");
-                int t = AllocReg(); Emit($"    MUL R{t}, R{iR}, R{sR}");
-                offR = AllocReg(); Emit($"    ADD R{offR}, R{t}, R{jR}");
-            }
-            else offR = GenExpr(aa.Indices[0]);
-            Emit($"    LI R{AddrReg}, {baseAddr}"); Emit($"    ADD R{AddrReg}, R{AddrReg}, R{offR}");
+            int offR = ComputeFlatIndex(aa);
+            Emit($"    LI R{AddrReg}, {baseAddr}");
+            Emit($"    ADD R{AddrReg}, R{AddrReg}, R{offR}");
             Emit($"    STORE R{valReg}, R{AddrReg}");
         }
 
         // === Variables ===
-        int _nextVarAddr = 150;
+        int _nextVarAddr = 100;
         const int AddrReg = 4;
 
         void AllocLocal(string name, TypeSpec ts)
@@ -268,9 +329,20 @@ namespace T3Compiler.CodeGen
             if (!_varSlots.ContainsKey(name))
             {
                 _varSlots[name] = _nextVarAddr;
-                int size = ts.Dims.Count == 0 ? 1 : ts.Dims.Aggregate(1, (a, b) => a * b);
+                int size;
+                if (ts.StructName != null && _structDefs.TryGetValue(ts.StructName, out var sf))
+                {
+                    size = sf.Count;
+                    _structFields[name] = sf;
+                }
+                else if (ts.Dims.Count > 0)
+                {
+                    size = ts.Dims.Aggregate(1, (a, b) => a * b);
+                    _arrDims[name] = ts.Dims;
+                }
+                else size = 1;
+                _varSizes[name] = size;
                 _nextVarAddr += size;
-                if (ts.Dims.Count > 0) _arrDims[name] = ts.Dims;
             }
         }
 
@@ -309,7 +381,13 @@ namespace T3Compiler.CodeGen
         static string TCh(int t) => t==-1?"-":(t==1?"+":"0");
 
         int _nextReg = 0;
-        int AllocReg() { int r = _nextReg switch { 4 => 5, _ => _nextReg }; _nextReg = (_nextReg+1)%6; if (_nextReg==4) _nextReg=5; return r; }
+        int AllocReg() {
+            // Reserve R2 (return) and R4 (address). Cycle 0-12 (13 regs).
+            while (_nextReg == 2 || _nextReg == 4) _nextReg = (_nextReg + 1) % 13;
+            int r = _nextReg;
+            _nextReg = (_nextReg + 1) % 13;
+            return r;
+        }
         int EmitImm(long val) { int r = AllocReg(); if (val>=-364&&val<=364) Emit($"    LI R{r}, {val}"); else Emit($"    LIMM R{r}, {val}"); return r; }
         string Label(string prefix) => $"{prefix}_{_labelCounter++}";
         void Emit(string s = "") => _output.AppendLine(s);

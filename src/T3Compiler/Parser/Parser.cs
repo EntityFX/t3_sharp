@@ -54,7 +54,7 @@ namespace T3Compiler.Parser
                 var ft = ParseType(); string fn = Expect(TokenType.Identifier).Value; Expect(TokenType.Semicolon);
                 sd.Fields.Add(new FieldDef { Type = ft, Name = fn });
             }
-            Expect(TokenType.RBrace); Expect(TokenType.Semicolon);
+            Expect(TokenType.RBrace); Match(TokenType.Semicolon);
             p.Structs.Add(sd);
         }
 
@@ -142,7 +142,7 @@ namespace T3Compiler.Parser
         AstNode ParseShift() { var l = ParseAdd(); while (Match(TokenType.OpLShift) || Match(TokenType.OpRShift)) l = new BinaryOp { Operator = Peek(-1).Value, Left = l, Right = ParseAdd() }; return l; }
         AstNode ParseAdd() { var l = ParseMul(); while (Match(TokenType.OpPlus) || Match(TokenType.OpMinus)) l = new BinaryOp { Operator = Peek(-1).Value, Left = l, Right = ParseMul() }; return l; }
         AstNode ParseMul() { var l = ParseUn(); while (Match(TokenType.OpStar) || Match(TokenType.OpSlash) || Match(TokenType.OpPercent)) l = new BinaryOp { Operator = Peek(-1).Value, Left = l, Right = ParseUn() }; return l; }
-        AstNode ParseUn() { if (Peek().Type is TokenType.OpMinus or TokenType.OpPlus or TokenType.OpExclamation or TokenType.OpTilde or TokenType.OpPlusPlus or TokenType.OpMinusMinus) { string o = Next().Value; return new UnaryOp { Operator = o, Operand = ParseUn() }; } return ParsePost(); }
+        AstNode ParseUn() { if (Peek().Type is TokenType.OpMinus or TokenType.OpPlus or TokenType.OpExclamation or TokenType.OpTilde or TokenType.OpPlusPlus or TokenType.OpMinusMinus or TokenType.OpStar or TokenType.OpAmpersand) { string o = Next().Value; return new UnaryOp { Operator = o, Operand = ParseUn() }; } return ParsePost(); }
 
         AstNode ParsePost()
         {
