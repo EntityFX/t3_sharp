@@ -164,7 +164,15 @@ namespace T3Assembler
             if (upper == "RX" || upper == "FX") return 1;
             if (upper == "RY" || upper == "FY") return 2;
             if (upper == "RZ" || upper == "FZ") return 3;
-            if (upper.StartsWith("R") && upper.Length > 1 && int.TryParse(upper.Substring(1), out int idx)) return idx;
+            
+            if (upper.StartsWith("R") && upper.Length > 1 && int.TryParse(upper.Substring(1), out int idx)) 
+            {
+                // Support R0-R4 as 4-8 for the new spec
+                if (idx >= 0 && idx <= 4) return idx + 4; 
+                // R5 and above must start from index 9 to avoid overlap with R0-R4
+                if (idx >= 5 && idx <= 26) return idx + 4; 
+                throw new Exception($"Register R{idx} is out of range (0-26).");
+            }
             return upper switch
             {
                 "A"  => 0,

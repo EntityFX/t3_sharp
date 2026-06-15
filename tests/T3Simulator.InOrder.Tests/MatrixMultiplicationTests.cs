@@ -13,7 +13,7 @@ namespace T3Simulator.InOrder.Tests
     public class MatrixMultiplicationTests
     {
         [TestMethod]
-        [Timeout(60000)] 
+        [Timeout(30000)]
         public void MatrixMultiplication_IntegrationTest()
         {
             // 1. Setup Assembler and Processor

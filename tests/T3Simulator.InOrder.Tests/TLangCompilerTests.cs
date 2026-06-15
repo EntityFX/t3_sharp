@@ -36,46 +36,60 @@ namespace T3Simulator.InOrder.Tests
         }
 
         // === Arithmetic ===
-        [TestMethod] public void Compile_SimpleArithmetic_Returns42()
+        [TestMethod]
+        [Timeout(30000)]
+        public void Compile_SimpleArithmetic_Returns42()
         {
             Assert.AreEqual(42, CompileAndRun("tint main() { tint x = 40; tint y = 2; return x + y; }"), "40+2=42");
         }
 
         // === While / For ===
-        [TestMethod] public void Compile_While_SumTo5()
+        [TestMethod]
+        [Timeout(30000)]
+        public void Compile_While_SumTo5()
         {
             string s = "tint main() { tint sum = 0; tint i = 1; while (i <= 5) { sum = sum + i; i = i + 1; } return sum; }";
             Assert.AreEqual(15, CompileAndRun(s), "sum 1..5=15");
         }
 
-        [TestMethod] public void Compile_For_Factorial()
+        [TestMethod]
+        [Timeout(30000)]
+        public void Compile_For_Factorial()
         {
             string s = "tint main() { tint r = 1; tint i = 1; while (i <= 5) { r = r * i; i = i + 1; } return r; }";
             Assert.AreEqual(120, CompileAndRun(s), "5!=120");
         }
 
-        [TestMethod] public void Compile_NestedWhile_SumProd()
+        [TestMethod]
+        [Timeout(30000)]
+        public void Compile_NestedWhile_SumProd()
         {
             string s = @"tint main() { tint s=0; tint i=1; while(i<=3){tint j=1; while(j<=3){s=s+i*j; j=j+1;} i=i+1;} return s;}";
             Assert.AreEqual(36, CompileAndRun(s), "sum i*j = 36");
         }
 
         // === If/Else ===
-        [TestMethod] public void Compile_IfElse_Branch()
+        [TestMethod]
+        [Timeout(30000)]
+        public void Compile_IfElse_Branch()
         {
             Assert.AreEqual(1, CompileAndRun("tint main() { tint x = 10; if (x > 5) { return 1; } else { return -1; } }"));
             Assert.AreEqual(-1, CompileAndRun("tint main() { tint x = 3; if (x > 5) { return 1; } else { return -1; } }"));
         }
 
         // === Fibonacci ===
-        [TestMethod] public void Compile_Fibonacci_Returns55()
+        [TestMethod]
+        [Timeout(30000)]
+        public void Compile_Fibonacci_Returns55()
         {
             string s = "tint main() { tint n=10; tint a=0; tint b=1; tint i=0; while(i<n){tint t=a+b; a=b; b=t; i=i+1;} return a; }";
             Assert.AreEqual(55, CompileAndRun(s), "fib(10)=55");
         }
 
         // === Arrays ===
-        [TestMethod] public void Compile_Array_Sum()
+        [TestMethod]
+        [Timeout(30000)]
+        public void Compile_Array_Sum()
         {
             string s = @"tint main() { tint arr[5]; arr[0]=1; arr[1]=2; arr[2]=3; arr[3]=4; arr[4]=5;
                 return arr[0]+arr[1]+arr[2]+arr[3]+arr[4]; }";
@@ -83,7 +97,9 @@ namespace T3Simulator.InOrder.Tests
         }
 
         // === Struct ===
-        [TestMethod] public void Compile_Struct_FieldAccess()
+        [TestMethod]
+        [Timeout(30000)]
+        public void Compile_Struct_FieldAccess()
         {
             string s = @"struct Point { tint x; tint y; }
                 tint main() { struct Point p; p.x = 10; p.y = 20; return p.x + p.y; }";
@@ -92,14 +108,18 @@ namespace T3Simulator.InOrder.Tests
         }
 
         // === Pointers ===
-        [TestMethod] public void Compile_Pointer_Deref()
+        [TestMethod]
+        [Timeout(30000)]
+        public void Compile_Pointer_Deref()
         {
             string s = @"tint main() { tint v = 42; tint* ptr = &v; return *ptr; }";
             long r = CompileAndRun(s);
             Assert.AreEqual(42, r, "pointer deref = 42");
         }
 
-        [TestMethod] public void Compile_Pointer_Arithmetic()
+        [TestMethod]
+        [Timeout(30000)]
+        public void Compile_Pointer_Arithmetic()
         {
             string s = @"tint main() { tint arr[5]; arr[0]=1; arr[1]=2; tint* p = &arr[0];
                 p = p + 1; return *p; }";
@@ -108,7 +128,9 @@ namespace T3Simulator.InOrder.Tests
         }
 
         // === Matrix multiply ===
-        [TestMethod] public void Compile_MatrixMul_2x2()
+        [TestMethod]
+        [Timeout(30000)]
+        public void Compile_MatrixMul_2x2()
         {
             string s = @"
                 tint main() {
@@ -139,7 +161,9 @@ namespace T3Simulator.InOrder.Tests
         }
 
         // === Nested for (via while) with triangular numbers ===
-        [TestMethod] public void Compile_TriangularSum()
+        [TestMethod]
+        [Timeout(30000)]
+        public void Compile_TriangularSum()
         {
             string s = @"
                 tint main() {
@@ -160,7 +184,9 @@ namespace T3Simulator.InOrder.Tests
         }
 
         // === Boolean (tril) logic ===
-        [TestMethod] public void Compile_BooleanOps()
+        [TestMethod]
+        [Timeout(30000)]
+        public void Compile_BooleanOps()
         {
             // true=1, false=-1
             string s = @"
@@ -174,27 +200,35 @@ namespace T3Simulator.InOrder.Tests
         }
 
         // === Preprocessor ===
-        [TestMethod] public void Compile_Preprocessor_Define()
+        [TestMethod]
+        [Timeout(30000)]
+        public void Compile_Preprocessor_Define()
         {
             string s = "#define ANSWER 42\ntint main() { return ANSWER; }";
             Assert.AreEqual(42, CompileAndRun(s));
         }
 
-        [TestMethod] public void Compile_Preprocessor_IfDef()
+        [TestMethod]
+        [Timeout(30000)]
+        public void Compile_Preprocessor_IfDef()
         {
             string s = "tint main() { #ifdef SKIP\nreturn -1; #else\nreturn 1; #endif\n}";
             Assert.AreEqual(1, CompileAndRun(s));
         }
 
         // === Ternary literal ===
-        [TestMethod] public void Compile_TernaryLiteral()
+        [TestMethod]
+        [Timeout(30000)]
+        public void Compile_TernaryLiteral()
         {
             // 0t+-- = 9 + (-3) + (-1) = 5
             Assert.AreEqual(5, CompileAndRun("tint main() { return 0t+--; }"), "0t+-- = 5");
         }
 
         // === File-based factorial ===
-        [TestMethod] public void Compile_FromFile_Factorial()
+        [TestMethod]
+        [Timeout(30000)]
+        public void Compile_FromFile_Factorial()
         {
             string asmPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
                 "..", "..", "..", "..", "..", "src", "T3Compiler", "examples", "factorial.t");
@@ -209,7 +243,9 @@ namespace T3Simulator.InOrder.Tests
         }
 
         // === Pointer + array + struct combo ===
-        [TestMethod] public void Compile_PointerArrayStruct()
+        [TestMethod]
+        [Timeout(30000)]
+        public void Compile_PointerArrayStruct()
         {
             string s = @"
                 struct Vec { tint a; tint b; }

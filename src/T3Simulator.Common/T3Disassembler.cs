@@ -54,7 +54,20 @@ namespace T3Simulator.Common
 
         private static string GetRegName(int index)
         {
-            return $"R{index}";
+            return index switch
+            {
+                0 => "RW",
+                1 => "RX",
+                2 => "RY",
+                3 => "RZ",
+                4 => "R0",
+                5 => "R1",
+                6 => "R2",
+                7 => "R3",
+                8 => "R4",
+                _ when index >= 9 && index <= 30 => $"R{index - 4}",
+                _ => $"R{index}"
+            };
         }
 
         private static string FormatInstruction<TWord>(Instruction<TWord> instr, long pc)
@@ -106,11 +119,19 @@ namespace T3Simulator.Common
             {
                 sb.Append($" {GetRegName(instr.Op1)}, {GetRegName(instr.Op2)}");
             }
-            else if (mnemonic == "JMP" || mnemonic == "JE" || mnemonic == "JNE" ||
-                     mnemonic == "JL" || mnemonic == "JG" || mnemonic == "JM" || mnemonic == "CALL")
-            {
-                sb.Append($" {GetRegName(instr.Op1)}");
-            }
+                else if (mnemonic == "JMP" || mnemonic == "JE" || mnemonic == "JNE" ||
+                      mnemonic == "JL" || mnemonic == "JG" || mnemonic == "JM" || 
+                      mnemonic == "JLE" || mnemonic == "JGE" || mnemonic == "CALL")
+                {
+                    if (instr.Immediate == 0)
+                    {
+                        sb.Append($" {GetRegName(instr.Op2)}");
+                    }
+                    else
+                    {
+                        sb.Append($" {instr.Immediate}");
+                    }
+                }
             else if (mnemonic == "PUSH" || mnemonic == "POP")
             {
                 sb.Append($" {GetRegName(instr.Op1)}");
@@ -136,23 +157,38 @@ namespace T3Simulator.Common
             return op switch
             {
                 Opcode.HALT => "HALT",
-                Opcode.LOAD or Opcode.LOADI => "LOAD",
-                Opcode.STORE or Opcode.STOREI => "STORE",
-                Opcode.MOV or Opcode.MOVI => "MOV",
-                Opcode.LI or Opcode.LI_I => "LI",
+                Opcode.LOAD => "LOAD",
+                Opcode.LOADI => "LOADI",
+                Opcode.STORE => "STORE",
+                Opcode.STOREI => "STOREI",
+                Opcode.MOV => "MOV",
+                Opcode.MOVI => "MOVI",
+                Opcode.LI => "LI",
                 Opcode.LIMM => "LIMM",
-                Opcode.ADD or Opcode.ADDI => "ADD",
-                Opcode.SUB or Opcode.SUBI => "SUB",
-                Opcode.MUL or Opcode.MULI => "MUL",
-                Opcode.DIV or Opcode.DIVI => "DIV",
-                Opcode.MOD or Opcode.MODI => "MOD",
-                Opcode.NEG or Opcode.NEGI => "NEG",
-                Opcode.AND or Opcode.ANDI => "AND",
-                Opcode.OR or Opcode.ORI => "OR",
-                Opcode.XOR or Opcode.XORI => "XOR",
-                Opcode.SHL or Opcode.SHLI => "SHL",
-                Opcode.SHR or Opcode.SHRI => "SHR",
-                Opcode.CMP or Opcode.CMPI => "CMP",
+                Opcode.ADD => "ADD",
+                Opcode.ADDI => "ADDI",
+                Opcode.SUB => "SUB",
+                Opcode.SUBI => "SUBI",
+                Opcode.MUL => "MUL",
+                Opcode.MULI => "MULI",
+                Opcode.DIV => "DIV",
+                Opcode.DIVI => "DIVI",
+                Opcode.MOD => "MOD",
+                Opcode.MODI => "MODI",
+                Opcode.NEG => "NEG",
+                Opcode.NEGI => "NEGI",
+                Opcode.AND => "AND",
+                Opcode.ANDI => "ANDI",
+                Opcode.OR => "OR",
+                Opcode.ORI => "ORI",
+                Opcode.XOR => "XOR",
+                Opcode.XORI => "XORI",
+                Opcode.SHL => "SHL",
+                Opcode.SHLI => "SHLI",
+                Opcode.SHR => "SHR",
+                Opcode.SHRI => "SHRI",
+                Opcode.CMP => "CMP",
+                Opcode.CMPI => "CMPI",
                 Opcode.JMP => "JMP",
                 Opcode.JE => "JE",
                 Opcode.JNE => "JNE",

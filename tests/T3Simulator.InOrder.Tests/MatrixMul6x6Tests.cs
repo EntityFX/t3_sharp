@@ -14,7 +14,7 @@ namespace T3Simulator.InOrder.Tests
     public class MatrixMul6x6Tests
     {
         [TestMethod]
-        [Timeout(120000)] 
+        [Timeout(30000)]
         public void MatrixMultiplication_6x6_InOrder_Test()
         {
             // 1. Setup

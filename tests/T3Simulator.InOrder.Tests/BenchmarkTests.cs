@@ -23,6 +23,7 @@ namespace T3Simulator.InOrder.Tests
         }
 
         [TestMethod]
+        [Timeout(30000)]
         public void CounterReset_ResetCounters_ResetsToZero()
         {
             var proc = new T3InOrderProcessor<Word18>(T3Config.T3_18);
@@ -38,6 +39,7 @@ HALT";
         }
 
         [TestMethod]
+        [Timeout(30000)]
         public void RunIterations_AccumulatesCounters()
         {
             string asm = @"start: LI R0, 100
@@ -53,6 +55,7 @@ HALT";
         }
 
         [TestMethod]
+        [Timeout(30000)]
         public void Dhrystone_Core_ExecutesCorrectly()
         {
             string asm = @"
@@ -88,6 +91,7 @@ HALT";
         }
 
         [TestMethod]
+        [Timeout(30000)]
         public void Dhrystone_10Iterations_Benchmark()
         {
             string asm = @"
@@ -144,6 +148,7 @@ HALT";
         }
 
         [TestMethod]
+        [Timeout(30000)]
         public void Whetstone_FPU_ExecutesCorrectly()
         {
             string asm = @"
@@ -182,6 +187,7 @@ HALT";
         }
 
         [TestMethod]
+        [Timeout(30000)]
         public void Whetstone_10Iterations_Benchmark()
         {
             string asm = @"
@@ -225,6 +231,7 @@ HALT";
         }
 
         [TestMethod]
+        [Timeout(30000)]
         public void MWMIPS_MemFill_ExecutesCorrectly()
         {
             string asm = @"
@@ -254,6 +261,7 @@ HALT";
         }
 
         [TestMethod]
+        [Timeout(30000)]
         public void MWMIPS_10Iterations_Benchmark()
         {
             string asm = @"
@@ -306,6 +314,7 @@ HALT";
         }
 
         [TestMethod]
+        [Timeout(30000)]
         public void AllBenchmarks_Combined()
         {
             var asmObj = new T3InOrderAssembler(T3Config.T3_18);

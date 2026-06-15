@@ -61,11 +61,7 @@ namespace T3Simulator.InOrder
 
             // PC is updated inside ExecuteInstruction for branches, 
             // otherwise it's incremented here.
-            if (instr.Opcode != Opcode.JMP && instr.Opcode != Opcode.JE &&
-                instr.Opcode != Opcode.JNE && instr.Opcode != Opcode.JL &&
-                instr.Opcode != Opcode.JG && instr.Opcode != Opcode.JM &&
-                instr.Opcode != Opcode.JLE && instr.Opcode != Opcode.JGE &&
-                instr.Opcode != Opcode.CALL && instr.Opcode != Opcode.RET)
+            if (!IsJumpInstruction(instr.Opcode))
             {
                 PC++;
             }
@@ -76,17 +72,29 @@ namespace T3Simulator.InOrder
         private bool EvaluatePredicate(int predIndex)
         {
             if (predIndex == 0) return true; // Unconditional
-            if (predIndex < 1 || predIndex > 8) return false;
+            if (predIndex < 0 || predIndex > 3) return false;
 
             return GetPredicateFlag(predIndex) == 1;
+        }
+
+        private bool IsJumpInstruction(Opcode op)
+        {
+            return op switch
+            {
+                Opcode.JMP or Opcode.JE or Opcode.JNE or Opcode.JL or Opcode.JG or 
+                Opcode.JM or Opcode.JLE or Opcode.JGE or Opcode.CALL or Opcode.RET or Opcode.LIMM => true,
+                _ => false
+            };
         }
 
         private int GetPredicateFlag(int predIndex)
         {
             string prStr = PR.ToTritString();
-            // Predicates are the least significant trits of the PR word.
-            // p0: trits 15-17, p1: trits 12-14, p2: trits 9-11.
-            int start = 18 - (predIndex * 3);
+            // Predicates are encoded in the PR word.
+            // p1: trits 12-14, p2: trits 9-11, p3: trits 6-8
+            // (p0 is unconditional)
+            int start = 15 - (predIndex * 3); 
+            if (start < 0) return 0;
             string flag = prStr.Substring(start, 3);
 
             return (int)BalancedTernary.ParseToLong(flag);
@@ -106,56 +114,40 @@ namespace T3Simulator.InOrder
                     break;
 
                 case Opcode.MOV:
-                    TWord movVal = GetRegisterValue((int)op2);
-                    SetRegisterValue((int)op1, movVal);
+                    SetRegisterValue((int)op1, GetRegisterValue((int)op2));
                     IncrementCycles(1);
                     break;
-
+                
                 case Opcode.MOVI:
-                    TWord moviVal = FromLong(instr.Immediate);
-                    SetRegisterValue((int)op1, moviVal);
-                    IncrementCycles(1);
-                    break;
-
-                case Opcode.LOAD:
-                    long addrLoad = ToLong(GetRegisterValue((int)op2));
-                    TWord loadVal = ReadWord(addrLoad);
-                    SetRegisterValue((int)op1, loadVal);
-                    IncrementCycles(2);
-                    break;
-
-                case Opcode.LOADI:
-                    long addrLoadI = ToLong(GetRegisterValue((int)op2)) + instr.Immediate;
-                    TWord loadIVal = ReadWord(addrLoadI);
-                    SetRegisterValue((int)op1, loadIVal);
-                    IncrementCycles(2);
-                    break;
-
-                case Opcode.STORE:
-                    long addrStore = ToLong(GetRegisterValue((int)op2));
-                    TWord storeVal = GetRegisterValue((int)op1);
-                    WriteWord(addrStore, storeVal);
-                    IncrementCycles(2);
-                    break;
-
-                case Opcode.STOREI:
-                    long addrStoreI = ToLong(GetRegisterValue((int)op2)) + instr.Immediate;
-                    TWord storeIVal = GetRegisterValue((int)op1);
-                    WriteWord(addrStoreI, storeIVal);
-                    IncrementCycles(2);
-                    break;
-
                 case Opcode.LI:
-                case Opcode.LI_I:
-                    TWord liVal = FromLong(instr.Immediate);
-                    SetRegisterValue((int)op1, liVal);
+                    SetRegisterValue((int)op1, FromLong(instr.Immediate));
                     IncrementCycles(1);
                     break;
 
                 case Opcode.LIMM:
+                    // LIMM reads the next word in memory as a constant
                     PC++;
-                    TWord immVal = ReadWord(PC);
-                    SetRegisterValue((int)op1, immVal);
+                    SetRegisterValue((int)op1, ReadWord(PC));
+                    IncrementCycles(2);
+                    break;
+
+                case Opcode.LOAD:
+                    SetRegisterValue((int)op1, ReadWord(ToLong(GetRegisterValue((int)op2))));
+                    IncrementCycles(2);
+                    break;
+                
+                case Opcode.LOADI:
+                    SetRegisterValue((int)op1, ReadWord(ToLong(GetRegisterValue((int)op2)) + instr.Immediate));
+                    IncrementCycles(2);
+                    break;
+                
+                case Opcode.STORE:
+                    WriteWord(ToLong(GetRegisterValue((int)op2)), GetRegisterValue((int)op1));
+                    IncrementCycles(2);
+                    break;
+                
+                case Opcode.STOREI:
+                    WriteWord(ToLong(GetRegisterValue((int)op2)) + instr.Immediate, GetRegisterValue((int)op1));
                     IncrementCycles(2);
                     break;
 
@@ -164,21 +156,17 @@ namespace T3Simulator.InOrder
                 case Opcode.MUL:
                 case Opcode.DIV:
                 case Opcode.MOD:
-                    TWord v2 = GetRegisterValue((int)op2);
-                    TWord v3 = GetRegisterValue((int)instr.Op3);
-                    TWord resR = T3Alu.Execute(instr.Opcode, v2, v3, Config);
+                    TWord resR = T3Alu.Execute(instr.Opcode, GetRegisterValue((int)op2), GetRegisterValue((int)instr.Op3), Config);
                     SetRegisterValue((int)op1, resR);
                     IncrementCycles(instr.Opcode switch
                     {
-                        Opcode.ADD => 1,
-                        Opcode.SUB => 1,
+                        Opcode.ADD or Opcode.SUB => 1,
                         Opcode.MUL => Config == T3Config.T3_18 ? 5 : 8,
-                        Opcode.DIV => Config == T3Config.T3_18 ? 10 : 15,
-                        Opcode.MOD => Config == T3Config.T3_18 ? 10 : 15,
+                        Opcode.DIV or Opcode.MOD => Config == T3Config.T3_18 ? 10 : 15,
                         _ => 1
                     });
                     break;
-
+                
                 case Opcode.ADDI:
                 case Opcode.SUBI:
                 case Opcode.MULI:
@@ -193,17 +181,13 @@ namespace T3Simulator.InOrder
                         Opcode.MODI => Opcode.MOD,
                         _ => Opcode.ADD
                     };
-                    TWord v2I = GetRegisterValue((int)op2);
-                    TWord immI = FromLong(instr.Immediate);
-                    TWord resI = T3Alu.Execute(baseOp, v2I, immI, Config);
+                    TWord resI = T3Alu.Execute(baseOp, GetRegisterValue((int)op2), FromLong(instr.Immediate), Config);
                     SetRegisterValue((int)op1, resI);
                     IncrementCycles(baseOp switch
                     {
-                        Opcode.ADD => 1,
-                        Opcode.SUB => 1,
+                        Opcode.ADD or Opcode.SUB => 1,
                         Opcode.MUL => Config == T3Config.T3_18 ? 5 : 8,
-                        Opcode.DIV => Config == T3Config.T3_18 ? 10 : 15,
-                        Opcode.MOD => Config == T3Config.T3_18 ? 10 : 15,
+                        Opcode.DIV or Opcode.MOD => Config == T3Config.T3_18 ? 10 : 15,
                         _ => 1
                     });
                     break;
@@ -291,88 +275,82 @@ namespace T3Simulator.InOrder
                     break;
 
                 case Opcode.JMP:
-                    long targetJmp = ToLong(GetRegisterValue((int)op1));
-                    PC = targetJmp;
+                    if (instr.Operand2 != 0 && instr.Immediate == 0)
+                    {
+                        dynamic regVal = GetRegisterValue((int)op2);
+                        PC = (int)regVal.ToLong();
+                    }
+                    else
+                        PC += instr.Immediate;
                     IncrementCycles(1);
                     break;
-
+                
                 case Opcode.JE:
-                    long targetJe = ToLong(GetRegisterValue((int)op1));
-                    if (Cond == 0)
-                    {
-                        PC = targetJe;
-                    }
-                    else
-                    {
-                        PC++;
-                    }
+                    if (Cond == 0) {
+                        if (instr.Operand2 != 0 && instr.Immediate == 0) PC = (int)ToLong(GetRegisterValue((int)instr.Operand2));
+                        else PC += instr.Immediate;
+                    } else PC++;
                     IncrementCycles(Cond == 0 ? 2 : 1);
                     break;
-
+                
                 case Opcode.JNE:
-                    long targetJne = ToLong(GetRegisterValue((int)op1));
-                    if (Cond != 0)
-                    {
-                        PC = targetJne;
-                    }
-                    else
-                    {
-                        PC++;
-                    }
+                    if (Cond != 0) {
+                        if (instr.Operand2 != 0 && instr.Immediate == 0) PC = (int)ToLong(GetRegisterValue((int)instr.Operand2));
+                        else PC += instr.Immediate;
+                    } else PC++;
                     IncrementCycles(Cond != 0 ? 2 : 1);
                     break;
-
+                
                 case Opcode.JL:
-                    long targetJl = ToLong(GetRegisterValue((int)op1));
-                    if (Cond < 0)
-                    {
-                        PC = targetJl;
-                    }
-                    else
-                    {
-                        PC++;
-                    }
+                    if (Cond < 0) {
+                        if (instr.Operand2 != 0 && instr.Immediate == 0) PC = (int)ToLong(GetRegisterValue((int)instr.Operand2));
+                        else PC += instr.Immediate;
+                    } else PC++;
                     IncrementCycles(Cond < 0 ? 2 : 1);
                     break;
-
+                
                 case Opcode.JG:
-                    long targetJg = ToLong(GetRegisterValue((int)op1));
-                    if (Cond > 0) { PC = targetJg; } else { PC++; }
+                    if (Cond > 0) {
+                        if (instr.Operand2 != 0 && instr.Immediate == 0) PC = (int)ToLong(GetRegisterValue((int)instr.Operand2));
+                        else PC += instr.Immediate;
+                    } else PC++;
                     IncrementCycles(Cond > 0 ? 2 : 1);
                     break;
-
+                
                 case Opcode.JLE:
-                    long targetJle = ToLong(GetRegisterValue((int)op1));
-                    if (Cond <= 0) { PC = targetJle; } else { PC++; }
+                    if (Cond <= 0) {
+                        if (instr.Operand2 != 0 && instr.Immediate == 0) PC = (int)ToLong(GetRegisterValue((int)instr.Operand2));
+                        else PC += instr.Immediate;
+                    } else PC++;
                     IncrementCycles(Cond <= 0 ? 2 : 1);
                     break;
-
+                
                 case Opcode.JGE:
-                    long targetJge = ToLong(GetRegisterValue((int)op1));
-                    if (Cond >= 0) { PC = targetJge; } else { PC++; }
+                    if (Cond >= 0) {
+                        if (instr.Operand2 != 0 && instr.Immediate == 0) PC = (int)ToLong(GetRegisterValue((int)instr.Operand2));
+                        else PC += instr.Immediate;
+                    } else PC++;
                     IncrementCycles(Cond >= 0 ? 2 : 1);
                     break;
-
+                
                 case Opcode.JM:
-                    long targetJm = ToLong(GetRegisterValue((int)op1));
-                    if (Cond == 0)
-                    {
-                        PC = targetJm;
-                    }
-                    else
-                    {
-                        PC++;
-                    }
+                    if (Cond == 0) {
+                        if (instr.Operand2 != 0 && instr.Immediate == 0) PC = (int)ToLong(GetRegisterValue((int)instr.Operand2));
+                        else PC += instr.Immediate;
+                    } else PC++;
                     IncrementCycles(Cond == 0 ? 2 : 1);
                     break;
-
+                
                 case Opcode.CALL:
-                    // Push return address onto stack
                     SP -= 1;
                     WriteWord(SP, FromLong(PC + 1));
-
-                    // Jump to target
-                    PC = ToLong(GetRegisterValue((int)op1));
+                    if (instr.Operand2 != 0 && instr.Immediate == 0)
+                    {
+                        dynamic regVal = GetRegisterValue((int)op2);
+                        PC = (int)regVal.ToLong();
+                    }
+                    else
+                        PC += instr.Immediate;
                     IncrementCycles(2);
                     break;
 

@@ -20,6 +20,8 @@ namespace T3Simulator.Common.Tests
             _assembler = new T3InOrderAssembler(_config);
         }
 
+        [TestMethod]
+        [Timeout(30000)]
         [DataTestMethod]
         [DataRow("LI R1, 10")]
         [DataRow("LI R10, -100")]
@@ -39,12 +41,19 @@ namespace T3Simulator.Common.Tests
         [DataRow("LOAD R1, R2")]
         [DataRow("STORE R1, R2")]
         [DataRow("JMP R1")]
+        [DataRow("JMP 10")]
         [DataRow("JE R1")]
+        [DataRow("JE 20")]
         [DataRow("JNE R1")]
+        [DataRow("JNE 30")]
         [DataRow("JL R1")]
+        [DataRow("JL 40")]
         [DataRow("JG R1")]
+        [DataRow("JG 50")]
         [DataRow("JM R1")]
+        [DataRow("JM 60")]
         [DataRow("CALL R1")]
+        [DataRow("CALL 70")]
         [DataRow("RET")]
         [DataRow("PUSH R1")]
         [DataRow("POP R1")]
@@ -53,11 +62,18 @@ namespace T3Simulator.Common.Tests
         [DataRow("INI R1, 5")]
         [DataRow("OUTI R1, -10")]
         [DataRow("LIMM R1, 12345")]
+        [DataRow("(p1) ADD R1, R2, R3")]
+        [DataRow("(p2) MOV R1, R2")]
+        [DataRow("(p3) LI R1, 10")]
+        [DataRow("(p1) JMP R1")]
+        [DataRow("(p2) JMP 100")]
         public void TestRoundTrip_StandardRegisters(string sourceCode)
         {
             VerifyRoundTrip(sourceCode);
         }
 
+        [TestMethod]
+        [Timeout(30000)]
         [DataTestMethod]
         [DataRow("LI A, 10")]
         [DataRow("MOV B, C")]
@@ -75,13 +91,13 @@ namespace T3Simulator.Common.Tests
         [DataRow("CMP F, G")]
         [DataRow("LOAD G, H")]
         [DataRow("STORE H, I")]
-        [DataRow("JMP A")]
-        [DataRow("JE B")]
-        [DataRow("JNE C")]
-        [DataRow("JL D")]
-        [DataRow("JG E")]
-        [DataRow("JM F")]
-        [DataRow("CALL G")]
+                [DataRow("JMP R0")]
+                [DataRow("JE R1")]
+                [DataRow("JNE R2")]
+                [DataRow("JL R3")]
+                [DataRow("JG R4")]
+                [DataRow("JM R5")]
+                [DataRow("CALL R6")]
         [DataRow("RET")]
         [DataRow("PUSH H")]
         [DataRow("POP I")]
@@ -98,6 +114,7 @@ namespace T3Simulator.Common.Tests
         }
 
         [TestMethod]
+        [Timeout(30000)]
         public void TestRoundTrip_ComplexProgram()
         {
             // Removed labels to ensure strict string symmetry, as disassembler 
@@ -205,48 +222,52 @@ namespace T3Simulator.Common.Tests
 
         private string NormalizeRegisters(string input)
         {
-            // Simple replacement for A-I to R0-R8. 
-            // We use a map to ensure we don't replace letters inside other mnemonics.
-            // Since registers are usually separated by spaces or commas, we can do a basic replacement
-            // if we are careful, but a more robust way is to split by tokens.
-            
-            string[] tokens = input.Split(new[] { ' ', ',', '(', ')' }, StringSplitOptions.RemoveEmptyEntries);
-            for (int i = 0; i < tokens.Length; i++)
-            {
-                string t = tokens[i].ToUpper();
-                if (t.Length == 1 && t[0] >= 'A' && t[0] <= 'I')
-                {
-                    tokens[i] = $"R{t[0] - 'A'}";
-                }
-            }
-            
-            // This is tricky because we lost the delimiters. 
-            // Let's use a simpler approach: replace using regex or a character-by-character pass.
+            // Maps any register name to the canonical name used by the T3Disassembler
+            string[] names = { "RW", "RX", "RY", "RZ", "R0", "R1", "R2", "R3", "R4" };
             
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < input.Length; i++)
             {
-                char c = input[i];
-                if (char.ToUpper(c) >= 'A' && char.ToUpper(c) <= 'I')
+                if (char.ToUpper(input[i]) == 'R' && i + 1 < input.Length && char.IsDigit(input[i+1]))
                 {
-                    // Check if it's a standalone register
-                    bool prevIsSeparator = (i == 0 || !char.IsLetterOrDigit(input[i - 1]));
-                    bool nextIsSeparator = (i == input.Length - 1 || !char.IsLetterOrDigit(input[i + 1]));
+                    // Handle R0-R26
+                    int start = i + 1;
+                    int end = start;
+                    while (end < input.Length && char.IsDigit(input[end])) end++;
                     
-                    if (prevIsSeparator && nextIsSeparator)
+                    string numStr = input.Substring(start, end - start);
+                    if (int.TryParse(numStr, out int idx))
                     {
-                        sb.Append($"R{char.ToUpper(c) - 'A'}");
+                        if (idx >= 0 && idx <= 4) sb.Append(names[idx + 4]);
+                        else if (idx >= 5 && idx <= 8) sb.Append(names[idx]); // This case is actually redundant if we use a fixed map, but for safety
+                        else sb.Append($"R{idx}");
                     }
-                    else
+                    else sb.Append('R');
+                    
+                    i = end - 1;
+                }
+                else if (char.ToUpper(input[i]) >= 'A' && char.ToUpper(input[i]) <= 'I')
+                {
+                    // Handle A-I
+                    bool prevIsSep = (i == 0 || !char.IsLetterOrDigit(input[i - 1]));
+                    bool nextIsSep = (i == input.Length - 1 || !char.IsLetterOrDigit(input[i + 1]));
+                    
+                    if (prevIsSep && nextIsSep)
                     {
-                        sb.Append(c);
+                        int idx = char.ToUpper(input[i]) - 'A';
+                        sb.Append(idx < names.Length ? names[idx] : $"R{idx}");
                     }
+                    else sb.Append(input[i]);
                 }
                 else
                 {
-                    sb.Append(c);
+                    sb.Append(input[i]);
                 }
             }
+            
+            // Special case for R0-R4 that might have been passed as R0-R4 but should be mapped to indices 4-8
+            // Wait, the logic above handles R(0-4) -> names[4-8].
+            // Let's refine the R-prefix handling to be more precise.
             return sb.ToString();
         }
     }

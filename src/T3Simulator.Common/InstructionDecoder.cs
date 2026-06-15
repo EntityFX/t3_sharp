@@ -5,12 +5,10 @@ namespace T3Simulator.Common
 {
     /// <summary>
     /// Decodes ternary words into executable Instructions based on the T3 (18-trit) specification.
+    /// Format: [Pred (3)] [Opcode (6)] [Args (9)]
     /// </summary>
     public static class InstructionDecoder
     {
-        /// <summary>
-        /// Decodes an 18-trit word into an instruction.
-        /// </summary>
         public static Instruction<TWord> Decode<TWord>(TWord word) where TWord : IT3Word<TWord>
         {
             string s = word.ToTritString();
@@ -20,16 +18,12 @@ namespace T3Simulator.Common
             }
             else if (s.Length == 54)
             {
-                // For T3-54, the instruction is encoded in the last 18 trits of the word
-                // to be compatible with Word54.FromInt128(instructionValue)
+                // For T3-54, the instruction is encoded in the last 18 trits
                 return Decode18<TWord>(s.Substring(s.Length - 18));
             }
             throw new ArgumentException($"Unsupported word length: {s.Length}");
         }
 
-        /// <summary>
-        /// Specifically decodes an 18-trit string into an instruction.
-        /// </summary>
         public static Instruction<TWord> Decode18<TWord>(string s)
         {
             if (s.Length != 18)
@@ -37,111 +31,105 @@ namespace T3Simulator.Common
                 throw new ArgumentException($"T3-18 decoder expects 18 trits, but got {s.Length}");
             }
 
-            // Layout: [Opcode+Pred (6)] [Op1 (3)] [Op2 (3)] [Op3 (3) / Imm6 (6)] [Reserve (3)]
-            string opPart = s.Substring(0, 6);
-            string op1Part = s.Substring(6, 3);
-            string op2Part = s.Substring(9, 3);
+            // [Pred (0-2)] [Op (3-8)] [Args (9-17)]
+            string predPart = s.Substring(0, 3);
+            string opPart = s.Substring(3, 6);
+            string argsPart = s.Substring(9, 9);
+
+            int predIndex = (int)BalancedTernary.ParseToLong(predPart);
+            int opVal = (int)BalancedTernary.ParseToLong(opPart);
             
-            long fullOpcodeVal = BalancedTernary.ParseToLong(opPart);
-            
-            int finalBaseOpcode = 0;
-            int finalPredIndex = 0;
-            bool isIType = false;
-            int func = 0;
+            // Cap predicate index to valid range [0, 3] to prevent simulator crashes
+            if (predIndex < 0) predIndex = 0;
+            if (predIndex > 3) predIndex = 3;
 
-            // Priority 1: FPU (92-108)
-            if (fullOpcodeVal >= 92 && fullOpcodeVal <= (108 + 3 * 28))
+            Opcode op = (Opcode)opVal;
+
+            // Decode arguments based on Opcode type
+            if (IsRType(op))
             {
-                for (int p = 0; p <= 3; p++)
+                int op1 = (int)BalancedTernary.ParseToLong(argsPart.Substring(0, 3));
+                int op2 = (int)BalancedTernary.ParseToLong(argsPart.Substring(3, 3));
+                int op3 = (int)BalancedTernary.ParseToLong(argsPart.Substring(6, 3));
+                return new Instruction<TWord>(op, predIndex, op1, op2, op3, 0, 0);
+            }
+            else if (IsIType(op))
+            {
+                int op1 = (int)BalancedTernary.ParseToLong(argsPart.Substring(0, 3));
+                long imm = BalancedTernary.ParseToLong(argsPart.Substring(3, 6));
+                return new Instruction<TWord>(op, predIndex, op1, 0, 0, imm, 0);
+            }
+            else if (IsRType(op) && (op == Opcode.ITOF))
+            {
+                int op1 = (int)BalancedTernary.ParseToLong(argsPart.Substring(0, 3));
+                int op2 = (int)BalancedTernary.ParseToLong(argsPart.Substring(3, 3));
+                return new Instruction<TWord>(op, predIndex, op1, op2, 0, 0, 0);
+            }
+            else if (IsJType(op))
+            {
+                string regPart = argsPart.Substring(0, 3);
+                string immPart = argsPart.Substring(3, 6);
+
+                if (immPart == "000000")
                 {
-                    int baseOp = (int)(fullOpcodeVal - p * 28);
-                    if (baseOp >= 92 && baseOp <= 108)
-                    {
-                        finalBaseOpcode = baseOp;
-                        finalPredIndex = p;
-                        
-                        // FPU specific logic
-                        if (finalBaseOpcode == 103 || finalBaseOpcode == 104) isIType = true;
-                        
-                        string reservePart = s.Substring(15, 3);
-                        func = (int)BalancedTernary.ParseToLong(reservePart);
-                        
-                        Opcode fOp = (Opcode)finalBaseOpcode;
-                        int fOp1 = (int)BalancedTernary.ParseToLong(op1Part);
-                        int fOp2 = (int)BalancedTernary.ParseToLong(op2Part);
-                        
-                        if (isIType)
-                        {
-                            long imm = BalancedTernary.ParseToLong(s.Substring(12, 6));
-                            return new Instruction<TWord>(fOp, finalPredIndex, fOp1, fOp2, 0, imm, func);
-                        }
-                        else
-                        {
-                            int fOp3 = (int)BalancedTernary.ParseToLong(s.Substring(12, 3));
-                            return new Instruction<TWord>(fOp, finalPredIndex, fOp1, fOp2, fOp3, 0, func);
-                        }
-                    }
+                    int regIdx = (int)BalancedTernary.ParseToLong(regPart);
+                    return new Instruction<TWord>(op, predIndex, 0, regIdx, 0, 0, 0);
                 }
-            }
-
-            // Priority 2: I-type (shifted by 64)
-            if (fullOpcodeVal >= 64)
-            {
-                long val = fullOpcodeVal - 64;
-                finalBaseOpcode = (int)(val % 28);
-                finalPredIndex = (int)Math.Floor((double)val / 28);
-                if (finalBaseOpcode < 0)
+                else
                 {
-                    finalBaseOpcode += 28;
-                    finalPredIndex--;
+                    long target = BalancedTernary.ParseToLong(argsPart);
+                    return new Instruction<TWord>(op, predIndex, (int)target, 0, 0, target, 0);
                 }
-                isIType = true;
-            }
-            // Priority 3: I/O Instructions (base 41-44)
-            else if (fullOpcodeVal >= 41 && fullOpcodeVal <= 44)
-            {
-                finalBaseOpcode = (int)fullOpcodeVal;
-                finalPredIndex = 0; 
-            }
-            // Priority 4: Base R-type instructions (base 0-27)
-            else
-            {
-                long val = fullOpcodeVal;
-                finalBaseOpcode = (int)(val % 28);
-                finalPredIndex = (int)Math.Floor((double)val / 28);
-                if (finalBaseOpcode < 0)
-                {
-                    finalBaseOpcode += 28;
-                    finalPredIndex--;
-                }
-            }
-
-            // Cap predicate index to valid range [0, 3]. 
-            // If it's out of range, we treat it as p0 (or the highest valid p3) 
-            // to avoid crashing the simulator/disassembler on unexpected binary data.
-            if (finalPredIndex < 0) finalPredIndex = 0;
-            if (finalPredIndex > 3) finalPredIndex = 3;
-
-            // Special case: LI is always I-type
-            if (finalBaseOpcode == 4)
-            {
-                isIType = true;
-            }
-
-            Opcode op = isIType ? (Opcode)(finalBaseOpcode + 64) : (Opcode)finalBaseOpcode;
-            int op1 = (int)BalancedTernary.ParseToLong(op1Part);
-            int op2 = (int)BalancedTernary.ParseToLong(op2Part);
-            
-            if (isIType || op == Opcode.INI || op == Opcode.OUTI)
-            {
-                long imm = BalancedTernary.ParseToLong(s.Substring(12, 6));
-                return new Instruction<TWord>(op, finalPredIndex, op1, op2, 0, imm, func);
             }
             else
             {
-                int op3 = (int)BalancedTernary.ParseToLong(s.Substring(12, 3));
-                return new Instruction<TWord>(op, finalPredIndex, op1, op2, op3, 0, func);
+                // Default fallback for unknown or simple opcodes (like HALT, RET)
+                // For instructions that might use the 'func' field (last 3 trits of argsPart)
+                int func = (int)BalancedTernary.ParseToLong(argsPart.Substring(6, 3));
+                return new Instruction<TWord>(op, predIndex, 0, 0, 0, 0, func);
             }
+        }
+
+        private static bool IsRType(Opcode op)
+        {
+            return op switch
+            {
+                Opcode.ADD or Opcode.SUB or Opcode.MUL or Opcode.DIV or Opcode.MOD or Opcode.NEG or
+                Opcode.AND or Opcode.OR or Opcode.XOR or 
+                Opcode.SHL or Opcode.SHR or 
+                Opcode.MOV or Opcode.CMP or
+                Opcode.LOAD or Opcode.STORE or Opcode.PUSH or Opcode.POP or
+                Opcode.IN or Opcode.OUT or
+                Opcode.FADD or Opcode.FSUB or Opcode.FMUL or 
+                Opcode.FABS or Opcode.FNEG or Opcode.FCMP or Opcode.FTOF or Opcode.FSWAP or
+                Opcode.FMOV or Opcode.FTOI or Opcode.FCLASS => true,
+                _ => false
+            };
+        }
+
+        private static bool IsIType(Opcode op)
+        {
+            return op switch
+            {
+                Opcode.MOVI or Opcode.LI or Opcode.LIMM or 
+                Opcode.ADDI or Opcode.SUBI or Opcode.MULI or Opcode.DIVI or Opcode.MODI or Opcode.NEGI or
+                Opcode.ANDI or Opcode.ORI or Opcode.XORI or 
+                Opcode.SHLI or Opcode.SHRI or 
+                Opcode.LOADI or Opcode.STOREI or
+                Opcode.CMPI or Opcode.INI or Opcode.OUTI or
+                Opcode.FLW or Opcode.FSW or Opcode.FZERO => true,
+                _ => false
+            };
+        }
+
+        private static bool IsJType(Opcode op)
+        {
+            return op switch
+            {
+                Opcode.JMP or Opcode.JE or Opcode.JNE or Opcode.JL or Opcode.JG or Opcode.JM or Opcode.JLE or Opcode.JGE or 
+                Opcode.CALL => true,
+                _ => false
+            };
         }
     }
 }
