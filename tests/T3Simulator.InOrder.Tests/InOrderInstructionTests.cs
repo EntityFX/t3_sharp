@@ -17,7 +17,7 @@ namespace T3Simulator.InOrder.Tests
             string sOp = ToBalancedTernary((int)opcode, 6);
             string sArgs = "";
 
-            if (opcode == Opcode.LI || opcode == Opcode.MOVI) // I-type
+            if (opcode == Opcode.LI || opcode == Opcode.MOVI || opcode == Opcode.INI || opcode == Opcode.OUTI) // I-type
             {
                 // [Op1 (3)] [Imm (6)]
                 sArgs = ToBalancedTernary(op1, 3) + ToBalancedTernary(op2, 6);

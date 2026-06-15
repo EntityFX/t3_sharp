@@ -126,7 +126,12 @@ namespace T3Compiler.CodeGen
         long P27(string s) { var a = "NOPQRSTUVWXYZ0123456789ABCD".ToCharArray(); string t = ""; foreach (char c in s.ToUpper()) { int i = Array.IndexOf(a, c); if (i >= 0) t += TCh(i / 9 - 1) + TCh(i / 3 % 3 - 1) + TCh(i % 3 - 1); } return BalancedTernary.ParseToLong(t); }
         long P9(string s) { string t = ""; foreach (char c in s.ToUpper()) t += c switch { 'W' => "--", 'X' => "-0", 'Y' => "-+", 'Z' => "0-", '0' => "00", '1' => "0+", '2' => "+-", '3' => "+0", '4' => "++", _ => "00" }; return BalancedTernary.ParseToLong(t); }
         static string TCh(int t) => t == -1 ? "-" : t == 1 ? "+" : "0";
-        int _nextReg; int AllocR() { while (_nextReg == 2 || _nextReg == 4 || _nextReg > 8) _nextReg = (_nextReg + 1) % 9; int r = _nextReg; _nextReg = (_nextReg + 1) % 9; return r; }
+        int _nextReg; int AllocR() {
+            // Only 9 physical registers. CodeGen emits R{r}, assembler maps R0→4, R1→5, R2→6, R3→7, R4→8
+            // RW/RZ are reserved, RY=frame ptr, AddrReg=4 (R0). Use R1(1)=RX, R3(3)=RZ as temp
+            while (_nextReg == 0 || _nextReg == 2 || _nextReg == 4) _nextReg = (_nextReg + 1) % 5;
+            int r = _nextReg; _nextReg = (_nextReg + 1) % 5; return r;
+        }
         int Imm(long v) { int r = AllocR(); if (v >= -364 && v <= 364) Emit($"    LI R{r}, {v}"); else Emit($"    LIMM R{r}, {v}"); return r; }
         string Lbl(string pfx) => $"{pfx}_{_labelCounter++}"; void Emit(string s = "") => _output.AppendLine(s);
     }

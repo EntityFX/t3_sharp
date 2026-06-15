@@ -151,28 +151,34 @@ namespace T3Assembler
         {
             string upper = token.ToUpper();
             if (upper == "RW" || upper == "RX" || upper == "RY" || upper == "RZ") return true;
-            if (upper.StartsWith("R") && upper.Length > 1 && int.TryParse(upper.Substring(1), out int idx) && idx >= 0 && idx <= 15) return true;
             if (upper == "FW" || upper == "FX" || upper == "FY" || upper == "FZ") return true;
-            return upper == "A" || upper == "B" || upper == "C" || upper == "D" || upper == "E" ||
-                   upper == "F" || upper == "G" || upper == "H" || upper == "I";
+            if (upper.StartsWith("R") && upper.Length > 1 && int.TryParse(upper.Substring(1), out int idx) && idx >= 0 && idx <= 4) return true;
+            if (upper.StartsWith("F") && upper.Length > 1 && int.TryParse(upper.Substring(1), out int fidx) && fidx >= 0 && fidx <= 4) return true;
+            return new HashSet<string> { "A", "B", "C", "D", "E", "F", "G", "H", "I" }.Contains(upper);
         }
 
         protected int GetRegisterIndex(string token)
         {
             string upper = token.ToUpper();
+            // Named registers map to physical indices 0-3
             if (upper == "RW" || upper == "FW") return 0;
             if (upper == "RX" || upper == "FX") return 1;
             if (upper == "RY" || upper == "FY") return 2;
             if (upper == "RZ" || upper == "FZ") return 3;
             
+            // R0-R4 map to physical indices 4-8 (after RW/RX/RY/RZ at 0-3)
             if (upper.StartsWith("R") && upper.Length > 1 && int.TryParse(upper.Substring(1), out int idx)) 
             {
-                // Support R0-R4 as 4-8 for the new spec
-                if (idx >= 0 && idx <= 4) return idx + 4; 
-                // R5 and above must start from index 9 to avoid overlap with R0-R4
-                if (idx >= 5 && idx <= 26) return idx + 4; 
-                throw new Exception($"Register R{idx} is out of range (0-26).");
+                if (idx >= 0 && idx <= 4) return idx + 4;
+                throw new Exception($"Register R{idx} is out of range (0-4).");
             }
+            // F0-F4 map to FPU indices 4-8 (after FW/FX/FY/FZ at 0-3)
+            if (upper.StartsWith("F") && upper.Length > 1 && int.TryParse(upper.Substring(1), out int fidx)) 
+            {
+                if (fidx >= 0 && fidx <= 4) return fidx + 4;
+                throw new Exception($"FPU register F{fidx} is out of range (0-4).");
+            }
+            // Legacy named registers
             return upper switch
             {
                 "A"  => 0,

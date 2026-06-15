@@ -454,13 +454,13 @@ namespace T3Simulator.InOrder
                     break;
 
                 case Opcode.FLW:
-                    long fAddrLoad = ToLong(GetRegisterValue((int)op2)) + instr.Immediate;
+                    long fAddrLoad = ToLong(GetRegisterValue((int)op2)) + (long)instr.Op3;
                     FRegisters[(int)op1] = T3Float.FromWord18((Word18)(object)ReadWord(fAddrLoad));
                     IncrementCycles(2);
                     break;
 
                 case Opcode.FSW:
-                    long fAddrStore = ToLong(GetRegisterValue((int)op2)) + instr.Immediate;
+                    long fAddrStore = ToLong(GetRegisterValue((int)op2)) + (long)instr.Op3;
                     WriteWord(fAddrStore, (TWord)(object)FRegisters[(int)op1].ToWord18());
                     IncrementCycles(2);
                     break;

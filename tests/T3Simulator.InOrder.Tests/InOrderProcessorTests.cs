@@ -87,12 +87,15 @@ namespace T3Simulator.InOrder.Tests
             // 1 in 3-trits is "00+". In 18-trits, that's 1 * 3^0 = 1.
             proc.PR = Word18.FromLong(1); 
             
-            // We can't easily set predicates in the simple assembler yet, 
-            // but we can manually construct a predicated instruction.
-            // ADD A, B, C with pred=1 (p0). 
-            // Base = 6, Pred = 1 => Field = 6 + 1*28 = 34.
-            // Word: 34*3^12 + 0*3^9 + 1*3^6 + 2*3^3 + 0
-            long wordVal = 34 * 531441 + 0 * 19683 + 1 * 729 + 2 * 27 + 0;
+            // Build predicated ADD instruction manually:
+            // Format: [Pred(3)][Opcode(6)][Op1(3)][Op2(3)][Op3(3)]
+            // Pred = 1 ("00+"), Opcode = ADD = 10, Op1 = 0 (RW), Op2 = 1 (RX), Op3 = 2 (RY)
+            string sPred = BalancedTernary.ToTernaryString(1, 3);      // "00+"  (predicate 1 = true)
+            string sOp = BalancedTernary.ToTernaryString((int)Opcode.ADD, 6);  // ADD = 10
+            string sOp1 = BalancedTernary.ToTernaryString(0, 3);       // RW
+            string sOp2 = BalancedTernary.ToTernaryString(1, 3);       // RX
+            string sOp3 = BalancedTernary.ToTernaryString(2, 3);       // RY
+            long wordVal = BalancedTernary.ParseToLong(sPred + sOp + sOp1 + sOp2 + sOp3);
             
             // Setup registers: B=10, C=20
             proc.Registers[1] = Word18.FromLong(10);

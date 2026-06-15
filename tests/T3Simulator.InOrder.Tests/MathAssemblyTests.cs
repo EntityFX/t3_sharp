@@ -33,16 +33,16 @@ namespace T3Simulator.InOrder.Tests
         {
             string asm = @"
                 start:
-                    LI R0, 9
-                    LI R1, 3
-                    ITOF R0, R0     ; FW = 9.0
-                    ITOF R1, R1     ; FX = 3.0
-                    FADD R0, R0, R1 ; FW = 9+3=12
-                    FDIV R0, R0, R1 ; FW = 12/3=4
-                    FNEG R0, R0     ; FW = -4
-                    FTOI R0, R0     ; RW = int(FW)
-                    LI R4, dst1
-                    STORE R0, R4
+                    LI A, 9
+                    LI B, 3
+                    ITOF FW, A       ; FW = 9.0
+                    ITOF FX, B       ; FX = 3.0
+                    FADD FW, FW, FX  ; FW = 9+3=12
+                    FDIV FW, FW, FX  ; FW = 12/3=4
+                    FNEG FW, FW      ; FW = -4
+                    FTOI A, FW       ; A = int(FW)
+                    LI B, dst1
+                    STORE A, B
                     HALT
                 dst1:
                     .word 0
@@ -51,8 +51,7 @@ namespace T3Simulator.InOrder.Tests
             var proc = AssembleAndRun(asm);
 
             long val1 = proc.ReadWord(proc.PC + 0).ToLong();
-            // 9+3=12, 12/3=4, -4 → FTOI truncates → -4
-            // tfloat conversion chain may lose precision; verify it's reasonable
+            // 9+3=12, 12/3=4, FNEG→-4, FTOI→-4
             Assert.IsTrue(val1 <= 0, $"FNEG result should be non-positive, got {val1}");
         }
 
@@ -90,13 +89,13 @@ namespace T3Simulator.InOrder.Tests
         {
             string asm = @"
                 start:
-                    LI R0, 27
-                    LI R1, 3
-                    ITOF R0, R0     ; FW = 27.0
-                    ITOF R1, R1     ; FX = 3.0
-                    FCMP R0, R1     ; Cond = +1 (FW > FX)
-                    LI R2, greater
-                    JG R2
+                    LI A, 27
+                    LI B, 3
+                    ITOF FW, A      ; FW = 27.0
+                    ITOF FX, B      ; FX = 3.0
+                    FCMP FW, FX     ; Cond = +1 (FW > FX)
+                    LI C, greater
+                    JG C
                     LI A, -1         ; fall-through — should NOT execute
                     HALT
                 greater:
@@ -118,19 +117,19 @@ namespace T3Simulator.InOrder.Tests
         {
             string asm = @"
                 start:
-                    LI R0, addr_x
-                    LOAD R1, R0
-                    ITOF R0, R1
-                    FMOV R1, R0, R0   ; FX=FW
-                    FMUL R1, R1, R0   ; FX=x²
-                    FMUL R1, R1, R0   ; FX=x³
-                    LI R2, 6
-                    ITOF R2, R2
-                    FDIV R1, R1, R2   ; FX=x³/6
-                    FSUB R0, R0, R1   ; FW=x-x³/6
-                    FTOI R0, R0
-                    LI R3, dst
-                    STORE R0, R3
+                    LI A, addr_x
+                    LOAD A, A
+                    ITOF FW, A
+                    FMOV FX, FW      ; FX=FW
+                    FMUL FX, FX, FW  ; FX=x²
+                    FMUL FX, FX, FW  ; FX=x³
+                    LI B, 6
+                    ITOF FY, B
+                    FDIV FX, FX, FY  ; FX=x³/6
+                    FSUB FW, FW, FX  ; FW=x-x³/6
+                    FTOI A, FW
+                    LI B, dst
+                    STORE A, B
                     HALT
                 addr_x:
                     .word 5
@@ -140,6 +139,7 @@ namespace T3Simulator.InOrder.Tests
 
             var proc = AssembleAndRun(asm);
 
+            // Read result from memory at 'dst' label (one word after HALT)
             long result = proc.ReadWord(proc.PC + 1).ToLong();
             // sin(5) ≈ 5 - 125/6 ≈ 5 - 20.8 ≈ -15.8
             // tfloat precision may shift this; verify it's in range
@@ -147,7 +147,7 @@ namespace T3Simulator.InOrder.Tests
                 $"sin(5) ~ {result} (expected near -16)");
         }
 
-        // === FCLASS + FZERO + FSWAP integration ===
+        // === FCLASS + FTOI integration ===
 
         [TestMethod]
         [Timeout(30000)]
@@ -156,32 +156,31 @@ namespace T3Simulator.InOrder.Tests
             var proc = new T3InOrderProcessor<Word18>(T3Config.T3_18);
             proc.FRegisters[1] = T3Float.FromDouble(27.0); // FX = 27 (non-zero, normal)
 
-            // Program in ternary form:
-            // FCLASS R0, R1  → opcode=106 (6trits), op1=R0=0 (3trits), op2=R1=1 (3trits), op3=0 (3trits), func=0 (3trits)
-            // FTOI R2, R0    → opcode=100, op1=R2=2, op2=R0=0, op3=0, func=0
-            // HALT
-            string fclassWord = BalancedTernary.ToTernaryString(106, 6)
-                + BalancedTernary.ToTernaryString(0, 3)   // op1: FW (index 0)
-                + BalancedTernary.ToTernaryString(1, 3)   // op2: FX (index 1)
-                + BalancedTernary.ToTernaryString(0, 3)   // op3: unused
-                + BalancedTernary.ToTernaryString(0, 3);  // func
-
-            string ftoiWord = BalancedTernary.ToTernaryString(100, 6)
-                + BalancedTernary.ToTernaryString(2, 3)   // op1: R2 (index 2)
-                + BalancedTernary.ToTernaryString(0, 3)   // op2: R0
-                + BalancedTernary.ToTernaryString(0, 3)   // op3: unused
-                + BalancedTernary.ToTernaryString(0, 3);  // func
+            // Program: FCLASS FW, FX → FTOI A, FW → HALT
+            // Format: [Pred(000)][Opcode(6)][Op1(3)][Op2(3)][Op3(3)]
+            // FCLASS = 114, op1=FW=0, op2=FX=1, op3=0
+            string fclassS = "000"  // pred
+                + BalancedTernary.ToTernaryString((int)Opcode.FCLASS, 6)
+                + BalancedTernary.ToTernaryString(0, 3)   // op1: FW
+                + BalancedTernary.ToTernaryString(1, 3)   // op2: FX
+                + BalancedTernary.ToTernaryString(0, 3);  // op3
+            // FTOI = 108, op1=A=0, op2=FW=0, op3=0
+            string ftoiS = "000"
+                + BalancedTernary.ToTernaryString((int)Opcode.FTOI, 6)
+                + BalancedTernary.ToTernaryString(0, 3)   // op1: A
+                + BalancedTernary.ToTernaryString(0, 3)   // op2: FW
+                + BalancedTernary.ToTernaryString(0, 3);  // op3
 
             var program = new List<Word18>
             {
-                Word18.FromLong(BalancedTernary.ParseToLong(fclassWord)),
-                Word18.FromLong(BalancedTernary.ParseToLong(ftoiWord)),
+                Word18.FromLong(BalancedTernary.ParseToLong(fclassS)),
+                Word18.FromLong(BalancedTernary.ParseToLong(ftoiS)),
                 Word18.FromLong(0) // HALT
             };
             proc.LoadProgram(program);
             proc.Run();
 
-            long cls = proc.Registers[2].ToLong();
+            long cls = proc.Registers[0].ToLong();
             Assert.IsTrue(cls > 0, $"FCLASS of non-zero should be > 0, got {cls}");
         }
 

@@ -19,6 +19,7 @@ namespace T3Simulator.InOrder.Tests
     {
         /// <summary>
         /// End-to-end: compile T source → assemble → run → verify R2.
+        /// Register mapping: RW=0 RX=1 RY=2 RZ=3 R0=4 R1=5 R2=6 R3=7 R4=8
         /// </summary>
         private long CompileAndRun(string source)
         {
@@ -32,7 +33,8 @@ namespace T3Simulator.InOrder.Tests
             var proc = new T3InOrderProcessor<Word18>(T3Config.T3_18);
             proc.LoadProgram(words);
             proc.Run();
-            return proc.Registers[2].ToLong();
+            // R2 → physical 6
+            return proc.Registers[6].ToLong();
         }
 
         // === Arithmetic ===
@@ -154,8 +156,6 @@ namespace T3Simulator.InOrder.Tests
                     }
                     return C[0]+C[1]+C[2]+C[3];
                 }";
-            // C = [1*5+2*7, 1*6+2*8; 3*5+4*7, 3*6+4*8] = [19,22;43,50]
-            // sum = 19+22+43+50 = 134
             long r = CompileAndRun(s);
             Assert.AreEqual(134, r, "matrix C sum = 134");
         }
@@ -179,7 +179,6 @@ namespace T3Simulator.InOrder.Tests
                     }
                     return sum;
                 }";
-            // 1 + (1+2) + (1+2+3) + (1+2+3+4) = 1+3+6+10 = 20
             Assert.AreEqual(20, CompileAndRun(s), "triangular sum=20");
         }
 
@@ -188,7 +187,6 @@ namespace T3Simulator.InOrder.Tests
         [Timeout(30000)]
         public void Compile_BooleanOps()
         {
-            // true=1, false=-1
             string s = @"
                 tint main() {
                     tril a = true;
@@ -221,7 +219,6 @@ namespace T3Simulator.InOrder.Tests
         [Timeout(30000)]
         public void Compile_TernaryLiteral()
         {
-            // 0t+-- = 9 + (-3) + (-1) = 5
             Assert.AreEqual(5, CompileAndRun("tint main() { return 0t+--; }"), "0t+-- = 5");
         }
 

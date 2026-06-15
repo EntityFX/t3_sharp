@@ -240,7 +240,8 @@ namespace T3Assembler
         Opcode.IN or Opcode.OUT or
         Opcode.FADD or Opcode.FSUB or Opcode.FMUL or 
         Opcode.FDIV or Opcode.FSQRT or Opcode.FABS or Opcode.FNEG or Opcode.FCMP or 
-        Opcode.FTOF or Opcode.FSWAP => true,
+        Opcode.FTOF or Opcode.FSWAP or Opcode.FMOV or Opcode.FTOI or Opcode.FCLASS or
+        Opcode.ITOF or Opcode.FLW or Opcode.FSW => true,
             _ => false
         };
 
@@ -249,8 +250,8 @@ namespace T3Assembler
             Opcode.MOVI or Opcode.LI or Opcode.LIMM or Opcode.ADDI or Opcode.SUBI or 
             Opcode.MULI or Opcode.DIVI or Opcode.MODI or Opcode.NEGI or Opcode.ANDI or 
             Opcode.ORI or Opcode.XORI or Opcode.SHLI or Opcode.SHRI or Opcode.LOADI or 
-            Opcode.STOREI or Opcode.CMPI or Opcode.INI or Opcode.OUTI or Opcode.ITOF or 
-            Opcode.FLW or Opcode.FSW or Opcode.FZERO => true,
+            Opcode.STOREI or Opcode.CMPI or Opcode.INI or Opcode.OUTI or 
+            Opcode.FZERO => true,
             _ => false
         };
     }

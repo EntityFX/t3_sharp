@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/T3Assembler/T3Assembler.csproj" />
+    <Project Path="src/T3Compiler/T3Compiler.csproj" />
     <Project Path="src/T3Simulator.CLI/T3Simulator.CLI.csproj" />
     <Project Path="src/T3Simulator.Common/T3Simulator.Common.csproj" />
     <Project Path="src/T3Simulator.GUI/T3Simulator.GUI.csproj" />
@@ -11,5 +12,8 @@
     <Project Path="tests/T3Simulator.Common.Tests/T3Simulator.Common.Tests.csproj" />
     <Project Path="tests/T3Simulator.InOrder.Tests/T3Simulator.InOrder.Tests.csproj" />
     <Project Path="tests/TritTypes.Tests/TritTypes.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="src/T3NumberConverter/T3NumberConverter.csproj" />
   </Folder>
 </Solution>

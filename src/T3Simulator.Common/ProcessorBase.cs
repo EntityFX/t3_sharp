@@ -9,10 +9,10 @@ namespace T3Simulator.Common
     /// </summary>
     public abstract class ProcessorBase<TWord> : IT3Processor<TWord> where TWord : IT3Word<TWord>
     {
-        public TWord[] Registers = new TWord[27];
+        public TWord[] Registers = new TWord[9];
         public TWord PR;
         public T3Float[] FRegisters = new T3Float[9];
-        protected Memory<TWord> Memory;
+        public Memory<TWord> Memory;
         public DeviceManager<TWord> DeviceManager;
 
         public T3Config Config { get; }
