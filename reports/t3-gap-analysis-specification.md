@@ -26,7 +26,7 @@
 | CPU‑02 | Processor | No privilege modes (user/supervisor) | 🟡 High | ~1200 | 3 |
 | CPU‑03 | Processor | Only 9 GP registers | 🟡 High | ~400 | 2 |
 | CPU‑04 | Processor | No MMU / virtual memory | 🟡 High | ~2000 | 3 |
-| CPU‑05 | Processor | Missing `JLE`/`JGE` instructions | 🟡 High | ~150 | 1 |
+| CPU‑05 | Processor | Missing `JLE`/`JGE` instructions | ✅ Done | ~150 | 1 |
 | CPU‑06 | Processor | `LI` limited to ±364 | 🟡 High | ~200 | 2 |
 | CPU‑07 | Processor | No atomic operations (LL/SC/CAS) | 🟡 High | ~500 | 3 |
 | CPU‑08 | Processor | No explicit `NOP` instruction | 🟢 Low | ~20 | 1 |

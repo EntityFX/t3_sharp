@@ -77,6 +77,10 @@ namespace T3Simulator.Common
         FMOV = 105,
         FCLASS = 106,
         FSWAP = 107,
-        FZERO = 108
+        FZERO = 108,
+
+        // Extended conditional jumps (codes 55-56)
+        JLE = 55,   // Jump if Less or Equal (Cond ≤ 0)
+        JGE = 56    // Jump if Greater or Equal (Cond ≥ 0)
     }
 }

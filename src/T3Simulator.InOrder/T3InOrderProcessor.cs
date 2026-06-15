@@ -64,6 +64,7 @@ namespace T3Simulator.InOrder
             if (instr.Opcode != Opcode.JMP && instr.Opcode != Opcode.JE &&
                 instr.Opcode != Opcode.JNE && instr.Opcode != Opcode.JL &&
                 instr.Opcode != Opcode.JG && instr.Opcode != Opcode.JM &&
+                instr.Opcode != Opcode.JLE && instr.Opcode != Opcode.JGE &&
                 instr.Opcode != Opcode.CALL && instr.Opcode != Opcode.RET)
             {
                 PC++;
@@ -336,15 +337,20 @@ namespace T3Simulator.InOrder
 
                 case Opcode.JG:
                     long targetJg = ToLong(GetRegisterValue((int)op1));
-                    if (Cond > 0)
-                    {
-                        PC = targetJg;
-                    }
-                    else
-                    {
-                        PC++;
-                    }
+                    if (Cond > 0) { PC = targetJg; } else { PC++; }
                     IncrementCycles(Cond > 0 ? 2 : 1);
+                    break;
+
+                case Opcode.JLE:
+                    long targetJle = ToLong(GetRegisterValue((int)op1));
+                    if (Cond <= 0) { PC = targetJle; } else { PC++; }
+                    IncrementCycles(Cond <= 0 ? 2 : 1);
+                    break;
+
+                case Opcode.JGE:
+                    long targetJge = ToLong(GetRegisterValue((int)op1));
+                    if (Cond >= 0) { PC = targetJge; } else { PC++; }
+                    IncrementCycles(Cond >= 0 ? 2 : 1);
                     break;
 
                 case Opcode.JM:
@@ -506,6 +512,11 @@ namespace T3Simulator.InOrder
 
                 case Opcode.FZERO:
                     FRegisters[(int)op1] = T3Fpu.Zero();
+                    IncrementCycles(1);
+                    break;
+
+                case Opcode.NOP:
+                    // No operation
                     IncrementCycles(1);
                     break;
 

@@ -72,7 +72,7 @@ namespace T3Simulator.Common
             sb.Append(mnemonic);
 
             // Operands
-            if (mnemonic == "HALT" || mnemonic == "RET")
+            if (mnemonic == "HALT" || mnemonic == "RET" || mnemonic == "NOP")
             {
                 // No operands
             }
@@ -158,6 +158,8 @@ namespace T3Simulator.Common
                 Opcode.JNE => "JNE",
                 Opcode.JL => "JL",
                 Opcode.JG => "JG",
+                Opcode.JLE => "JLE",
+                Opcode.JGE => "JGE",
                 Opcode.JM => "JM",
                 Opcode.CALL => "CALL",
                 Opcode.RET => "RET",

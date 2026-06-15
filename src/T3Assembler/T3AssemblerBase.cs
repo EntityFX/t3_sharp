@@ -40,8 +40,8 @@ namespace T3Assembler
             {
                 return GetRegisterIndex(token);
             }
-            if (Int128.TryParse(token, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out Int128 val)) 
-                return (int)val;
+            if (long.TryParse(token, NumberStyles.Integer, CultureInfo.InvariantCulture, out long lval))
+                return (int)lval;
             if (_labels.TryGetValue(token, out int addr)) return addr;
             
             throw new Exception($"Unable to resolve operand: {token}");
@@ -67,7 +67,13 @@ namespace T3Assembler
         {
             if (IsRegister(token)) return GetRegisterIndex(token);
 
-            // Ternary literal: t+0-
+            // Decimal integer (most common case)
+            if (long.TryParse(token, NumberStyles.Integer, CultureInfo.InvariantCulture, out long lval)) return lval;
+
+            // Label reference (check before literal prefixes to avoid conflicts with labels starting with 't', '0n', '0y')
+            if (_labels.TryGetValue(token, out int addr)) return addr;
+
+            // Ternary literal: t+0-  (e.g., t+--, t-0+)
             if (token.StartsWith("t", StringComparison.OrdinalIgnoreCase))
             {
                 return BalancedTernary.ParseToInt128(token.Substring(1));
@@ -85,12 +91,6 @@ namespace T3Assembler
                 return Parse27Ary(token.Substring(2));
             }
 
-            // Decimal
-            if (Int128.TryParse(token, NumberStyles.Integer, CultureInfo.InvariantCulture, out Int128 val)) return val;
-            
-            // Label
-            if (_labels.TryGetValue(token, out int addr)) return addr;
-            
             throw new Exception($"Unable to resolve operand value: {token}");
         }
 
@@ -228,6 +228,8 @@ namespace T3Assembler
                 "JNE" => Opcode.JNE,
                 "JL" => Opcode.JL,
                 "JG" => Opcode.JG,
+                "JLE" => Opcode.JLE,
+                "JGE" => Opcode.JGE,
                 "JM" => Opcode.JM,
                 "CALL" => Opcode.CALL,
                 "RET" => Opcode.RET,
@@ -253,6 +255,7 @@ namespace T3Assembler
                 "FMOV" => Opcode.FMOV,
                 "FCLASS" => Opcode.FCLASS,
                 "FSWAP" => Opcode.FSWAP,
+                "NOP" => Opcode.NOP,
                 "FZERO" => Opcode.FZERO,
                 _ => throw new Exception($"Unknown mnemonic: {mnemonic}")
             };
