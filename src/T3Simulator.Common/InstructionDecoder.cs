@@ -4,133 +4,117 @@ using TritTypes;
 namespace T3Simulator.Common
 {
     /// <summary>
-    /// Decodes ternary words into executable Instructions based on the T3 (18-trit) specification.
-    /// Format: [Pred (3)] [Opcode (6)] [Args (9)]
+    /// Decodes 18-trit instructions into opcode and operands.
+    /// Format: [Pred(3)] [Opcode(6)] [Args(9)]
+    /// No string operations. Uses arithmetic division/modulo by powers of 3.
     /// </summary>
     public static class InstructionDecoder
     {
-        public static Instruction<TWord> Decode<TWord>(TWord word) where TWord : IT3Word<TWord>
+        private const long P3_15 = 14348907L;
+        private const long P3_12 = 531441L;
+        private const long P3_9  = 19683L;
+        private const long P3_6  = 729L;
+        private const long P3_3  = 27L;
+
+        public static DecodedInstruction Decode(Word18 word)
         {
-            string s = word.ToTritString();
-            if (s.Length == 18)
-            {
-                return Decode18<TWord>(s);
-            }
-            else if (s.Length == 54)
-            {
-                // For T3-54, the instruction is encoded in the last 18 trits
-                return Decode18<TWord>(s.Substring(s.Length - 18));
-            }
-            throw new ArgumentException($"Unsupported word length: {s.Length}");
-        }
+            long val = word.ToLong();
+            int pred = (int)(val / P3_15);
+            val -= pred * P3_15;
+            int opcode = (int)(val / P3_9);
+            long args = val % P3_9;
 
-        public static Instruction<TWord> Decode18<TWord>(string s)
-        {
-            if (s.Length != 18)
-            {
-                throw new ArgumentException($"T3-18 decoder expects 18 trits, but got {s.Length}");
-            }
+            var op = (Opcode)opcode;
+            int op1 = 0, op2 = 0, op3 = 0;
+            long imm = 0;
 
-            // [Pred (0-2)] [Op (3-8)] [Args (9-17)]
-            string predPart = s.Substring(0, 3);
-            string opPart = s.Substring(3, 6);
-            string argsPart = s.Substring(9, 9);
-
-            int predIndex = (int)BalancedTernary.ParseToLong(predPart);
-            int opVal = (int)BalancedTernary.ParseToLong(opPart);
-            
-            // Cap predicate index to valid range [0, 3] to prevent simulator crashes
-            if (predIndex < 0) predIndex = 0;
-            if (predIndex > 3) predIndex = 3;
-
-            Opcode op = (Opcode)opVal;
-
-            // Decode arguments based on Opcode type
             if (IsRType(op))
             {
-                int op1 = (int)BalancedTernary.ParseToLong(argsPart.Substring(0, 3));
-                int op2 = (int)BalancedTernary.ParseToLong(argsPart.Substring(3, 3));
-                int op3 = (int)BalancedTernary.ParseToLong(argsPart.Substring(6, 3));
-                return new Instruction<TWord>(op, predIndex, op1, op2, op3, 0, 0);
+                op1 = FromTernary((int)(args / P3_6)); args -= (args / P3_6) * P3_6;
+                op2 = FromTernary((int)(args / P3_3));
+                op3 = FromTernary((int)(args % P3_3));
             }
             else if (IsIType(op))
             {
-                int op1 = (int)BalancedTernary.ParseToLong(argsPart.Substring(0, 3));
-                long imm = BalancedTernary.ParseToLong(argsPart.Substring(3, 6));
-                return new Instruction<TWord>(op, predIndex, op1, 0, 0, imm, 0);
-            }
-            else if (IsRType(op) && (op == Opcode.ITOF))
-            {
-                int op1 = (int)BalancedTernary.ParseToLong(argsPart.Substring(0, 3));
-                int op2 = (int)BalancedTernary.ParseToLong(argsPart.Substring(3, 3));
-                return new Instruction<TWord>(op, predIndex, op1, op2, 0, 0, 0);
+                op1 = FromTernary((int)(args / P3_6));
+                imm = FromTernary6((int)(args % P3_6));
             }
             else if (IsJType(op))
             {
-                string regPart = argsPart.Substring(0, 3);
-                string immPart = argsPart.Substring(3, 6);
-
-                if (immPart == "000000")
-                {
-                    int regIdx = (int)BalancedTernary.ParseToLong(regPart);
-                    return new Instruction<TWord>(op, predIndex, 0, regIdx, 0, 0, 0);
-                }
-                else
-                {
-                    long target = BalancedTernary.ParseToLong(argsPart);
-                    return new Instruction<TWord>(op, predIndex, (int)target, 0, 0, target, 0);
-                }
+                op1 = FromTernary((int)(args / P3_6));
+                op2 = FromTernary((int)(args / P3_6));
             }
             else
             {
-                // Default fallback for unknown or simple opcodes (like HALT, RET)
-                // For instructions that might use the 'func' field (last 3 trits of argsPart)
-                int func = (int)BalancedTernary.ParseToLong(argsPart.Substring(6, 3));
-                return new Instruction<TWord>(op, predIndex, 0, 0, 0, 0, func);
+                op1 = FromTernary((int)(args / P3_6)); args -= (args / P3_6) * P3_6;
+                op2 = FromTernary((int)(args / P3_3));
+                op3 = FromTernary((int)(args % P3_3));
             }
+
+            return new DecodedInstruction(op, pred, op1, op2, op3, imm);
         }
 
-        private static bool IsRType(Opcode op)
+        // For Word54: extract last 18 trits
+        public static DecodedInstruction Decode(Word54 word)
         {
-            return op switch
-            {
-                Opcode.ADD or Opcode.SUB or Opcode.MUL or Opcode.DIV or Opcode.MOD or Opcode.NEG or
-                Opcode.AND or Opcode.OR or Opcode.XOR or 
-                Opcode.SHL or Opcode.SHR or 
-                Opcode.MOV or Opcode.CMP or
-                Opcode.LOAD or Opcode.STORE or Opcode.PUSH or Opcode.POP or
-                Opcode.IN or Opcode.OUT or
-                Opcode.FADD or Opcode.FSUB or Opcode.FMUL or Opcode.FDIV or Opcode.FSQRT or
-                Opcode.FABS or Opcode.FNEG or Opcode.FCMP or Opcode.FTOF or Opcode.FSWAP or
-                Opcode.FMOV or Opcode.FTOI or Opcode.FCLASS or Opcode.ITOF or
-                Opcode.FLW or Opcode.FSW => true,
-                _ => false
-            };
+            long val = word.ToLong();
+            return Decode(Word18.FromLong(val % P3_15));
         }
 
-        private static bool IsIType(Opcode op)
+        public static DecodedInstruction Decode<TWord>(TWord word) where TWord : IT3Word<TWord>
         {
-            return op switch
-            {
-                Opcode.MOVI or Opcode.LI or Opcode.LIMM or 
-                Opcode.ADDI or Opcode.SUBI or Opcode.MULI or Opcode.DIVI or Opcode.MODI or Opcode.NEGI or
-                Opcode.ANDI or Opcode.ORI or Opcode.XORI or 
-                Opcode.SHLI or Opcode.SHRI or 
-                Opcode.LOADI or Opcode.STOREI or
-                Opcode.CMPI or Opcode.INI or Opcode.OUTI or
-                Opcode.FZERO => true,
-                _ => false
-            };
+            return Decode(Word18.FromLong(word.ToLong()));
         }
 
-        private static bool IsJType(Opcode op)
+        private static bool IsRType(Opcode op) => op switch
         {
-            return op switch
-            {
-                Opcode.JMP or Opcode.JE or Opcode.JNE or Opcode.JL or Opcode.JG or Opcode.JM or Opcode.JLE or Opcode.JGE or 
-                Opcode.CALL => true,
-                _ => false
-            };
+            Opcode.ADD or Opcode.SUB or Opcode.MUL or Opcode.DIV or Opcode.MOD or Opcode.NEG or
+            Opcode.AND or Opcode.OR or Opcode.XOR or Opcode.SHL or Opcode.SHR or
+            Opcode.MOV or Opcode.CMP or Opcode.LOAD or Opcode.STORE or Opcode.PUSH or Opcode.POP or
+            Opcode.IN or Opcode.OUT or
+            Opcode.FADD or Opcode.FSUB or Opcode.FMUL or Opcode.FDIV or Opcode.FSQRT or
+            Opcode.FABS or Opcode.FNEG or Opcode.FCMP or Opcode.FTOF or Opcode.FSWAP or
+            Opcode.FMOV or Opcode.FTOI or Opcode.FCLASS or Opcode.ITOF or Opcode.FLW or Opcode.FSW => true,
+            _ => false
+        };
+
+        private static bool IsIType(Opcode op) => op switch
+        {
+            Opcode.MOVI or Opcode.LI or Opcode.LIMM or
+            Opcode.ADDI or Opcode.SUBI or Opcode.MULI or Opcode.DIVI or Opcode.MODI or Opcode.NEGI or
+            Opcode.ANDI or Opcode.ORI or Opcode.XORI or Opcode.SHLI or Opcode.SHRI or
+            Opcode.LOADI or Opcode.STOREI or Opcode.CMPI or Opcode.INI or Opcode.OUTI or Opcode.FZERO => true,
+            _ => false
+        };
+
+        private static bool IsJType(Opcode op) => op switch
+        {
+            Opcode.JMP or Opcode.JE or Opcode.JNE or Opcode.JL or Opcode.JG or Opcode.JM or
+            Opcode.JLE or Opcode.JGE or Opcode.CALL => true,
+            _ => false
+        };
+
+        public static int FromTernary(int unsigned) => unsigned - 4;
+        private static long FromTernary6(int unsigned) => unsigned - 364;
+    }
+
+    public struct DecodedInstruction
+    {
+        public Opcode Opcode;
+        public int Predicate;
+        public int Op1;
+        public int Op2;
+        public int Op3;
+        public long Immediate;
+
+        public DecodedInstruction(Opcode op, int pred, int op1, int op2, int op3, long imm)
+        {
+            Opcode = op; Predicate = pred;
+            Op1 = op1; Op2 = op2; Op3 = op3; Immediate = imm;
         }
+
+        public int PhysOp1 => Op1 + 4;
+        public int PhysOp2 => Op2 + 4;
+        public int PhysOp3 => Op3 + 4;
     }
 }

@@ -10,6 +10,11 @@ namespace TritTypes
     {
         // Basic conversions
         Int128 ToInt128();
+
+        int ToInt();
+
+        long ToLong();
+        
         string ToTritString();
 
         // Unary operations

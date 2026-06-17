@@ -1,7 +1,7 @@
 using System;using System.Collections.Generic;using System.Globalization;using TritTypes;using T3Simulator.Common;
 namespace T3Assembler
 {
-    /// <summary>9 regs: RW(0) RX(1) RY(2) RZ(3) R0(4) R1(5) R2(6) R3(7) R4(8). A-I aliases kept.</summary>
+    /// <summary>9 regs (trit values): RW(-4) RX(-3) RY(-2) RZ(-1) R0(0) R1(1) R2(2) R3(3) R4(4). Phys = trit+4.</summary>
     public abstract class T3AssemblerBase
     {
         protected readonly T3Config _config;
@@ -11,14 +11,14 @@ namespace T3Assembler
         public abstract List<Int128> Assemble(string src);
         protected string CleanLine(string l){int c=l.IndexOf(';');if(c>=0)l=l[..c];return l.Trim();}
         protected int ResolveOperand(string t){
-            if(IsRegister(t))return GetRegisterIndex(t);
+            if(IsRegister(t))return GetRegisterTrit(t);
             if(long.TryParse(t,out long v))return(int)v;
             if(_labels.TryGetValue(t,out int a))return a;
             throw new Exception($"Unknown: {t}");
         }
         protected List<Int128> ResolveString(string t){string s=t[1..^1];var r=new List<Int128>();foreach(char c in s)r.Add(TScii.FromChar(c));r.Add(0);return r;}
         protected Int128 ResolveOperandValue(string t){
-            if(IsRegister(t))return GetRegisterIndex(t);
+            if(IsRegister(t))return GetRegisterTrit(t);
             if(long.TryParse(t,out long v))return v;
             if(_labels.TryGetValue(t,out int a))return a;
             if(t.StartsWith("t",StringComparison.OrdinalIgnoreCase))return BalancedTernary.ParseToInt128(t[1..]);
@@ -31,19 +31,23 @@ namespace T3Assembler
 
         protected bool IsRegister(string t){
             string u=t.ToUpper();
-            if(u.Length==1&&u[0]>='A'&&u[0]<='I')return true;
             return u is"RW"or"RX"or"RY"or"RZ"or"FW"or"FX"or"FY"or"FZ"
                 ||(u.StartsWith('R')&&int.TryParse(u[1..],out int i)&&i>=0&&i<=4)
-                ||(u.StartsWith('F')&&int.TryParse(u[1..],out int j)&&j>=0&&j<=4);
+                ||(u.StartsWith('F')&&int.TryParse(u[1..],out int j)&&j>=0&&j<=4)
+                ||(u.Length==1&&u[0]>='A'&&u[0]<='I');
         }
 
-        protected int GetRegisterIndex(string t){
+        /// <summary>Returns TRIT value (-4..+4). Phys index = trit + 4.</summary>
+        protected int GetRegisterTrit(string t){
             string u=t.ToUpper();
-            if(u.StartsWith('R')&&int.TryParse(u[1..],out int i)&&i>=0&&i<=4)return i+4;
-            if(u.StartsWith('F')&&int.TryParse(u[1..],out int j)&&j>=0&&j<=4)return j+4;
-            if(u.Length==1&&u[0]>='A'&&u[0]<='I')return (""+u[0]) switch{"A"=>0,"B"=>1,"C"=>2,"D"=>3,"E"=>4,"F"=>5,"G"=>6,"H"=>7,"I"=>8,_=>0};
-            return u switch{"RW"or"FW"=>0,"RX"or"FX"=>1,"RY"or"FY"=>2,"RZ"or"FZ"=>3,_=>throw new Exception($"Unknown register: {t}")};
+            if(u.StartsWith('R')&&int.TryParse(u[1..],out int i)&&i>=0&&i<=4)return i;
+            if(u.StartsWith('F')&&int.TryParse(u[1..],out int j)&&j>=0&&j<=4)return j;
+            if(u.Length==1&&u[0]>='A'&&u[0]<='I')return (""+u[0])switch{"A"=>-4,"B"=>-3,"C"=>-2,"D"=>-1,"E"=>0,"F"=>1,"G"=>2,"H"=>3,"I"=>4,_=>0};
+            return u switch{"RW"or"FW"=>-4,"RX"or"FX"=>-3,"RY"or"FY"=>-2,"RZ"or"FZ"=>-1,_=>throw new Exception($"Unknown register: {t}")};
         }
+
+        /// <summary>Returns PHYS index (0..8).</summary>
+        protected int GetRegisterIndex(string t)=>GetRegisterTrit(t)+4;
 
         protected Opcode GetOpcode(string m)=>m switch{
             "HALT"=>Opcode.HALT,"LOAD"=>Opcode.LOAD,"LOADI"=>Opcode.LOADI,"STORE"=>Opcode.STORE,"STOREI"=>Opcode.STOREI,

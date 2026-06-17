@@ -41,6 +41,8 @@ namespace TritTypes
         }
 
         public Int128 ToInt128() => _value;
+        public int ToInt() => (int)(long)_value;
+        public long ToLong() => (long)_value;
 
         public static Word54 FromLong(long value) => new Word54((Int128)value);
         public static Word54 FromInt128(Int128 value) => new Word54(value);

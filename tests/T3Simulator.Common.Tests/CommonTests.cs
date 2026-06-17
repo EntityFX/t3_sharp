@@ -12,20 +12,15 @@ namespace T3Simulator.Common.Tests
         public void InstructionDecoder_Decode18_ValidInstruction()
         {
             // Test LI RW, 10
-            // Opcode LI = 4: "0000++" (6 trits)
-            // Op1 RW = 0: "000" (3 trits)
-            // Op2 10 = 10: "+0+" (3 trits)
-            // Op3 = 0: "000" (3 trits)
-            // Reserve = "000" (3 trits)
-            // Total = 18 trits.
-            string instrTritString = "000" + "0000++" + "000" + "000+0+";
-            Word18 word = Word18.Parse(instrTritString);
-            
+            // Use the new InstructionEncoder for round-trip consistency
+            // LI RW, 10: I-type, pred=0, opcode=LI(4), op1=RW=(-4), imm=10
+            Word18 word = Word18.FromLong(InstructionEncoder.EncodeI(0, (int)Opcode.LI, -4, 10));
             var instr = InstructionDecoder.Decode(word);
             
             Assert.AreEqual(Opcode.LI, instr.Opcode);
-            Assert.AreEqual(0, instr.PredicateIndex);
-            Assert.AreEqual(0, instr.Operand1);
+            Assert.AreEqual(0, instr.Predicate);
+            Assert.AreEqual(-4, instr.Op1);   // trit value of RW
+            Assert.AreEqual(0, instr.PhysOp1); // phys index of RW = 0
             Assert.AreEqual(10, instr.Immediate);
         }
 

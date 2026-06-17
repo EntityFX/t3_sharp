@@ -248,7 +248,7 @@ namespace T3Simulator.CLI
             for (int i = 0; i + 26 < trits.Count; i += 27)
             {
                 int[] wordTrits = trits.GetRange(i, 27).ToArray();
-                _programWords.Add(BalancedTernary.ParseFromTritArray(wordTrits));
+                _programWords.Add(Word18.FromLong(BalancedTernary.ParseFromTritArray(wordTrits)));
             }
 
             _processor.LoadProgram(_programWords);
@@ -405,7 +405,7 @@ namespace T3Simulator.CLI
                 try
                 {
                     long value = _processor.GetMemoryValue(addr);
-                    string formatted = FormatValue(value, FORMAT_TRINARY);
+                    string formatted = FormatValue(Word18.FromLong(value), FORMAT_TRINARY);
                     Console.WriteLine($"  0x{addr:X8}: {value,15} = {formatted}");
                 }
                 catch
@@ -533,7 +533,7 @@ namespace T3Simulator.CLI
                 try
                 {
                     long value = _processor.GetMemoryValue(addr);
-                    string formatted = FormatValue(value, FORMAT_TRINARY);
+                    string formatted = FormatValue(Word18.FromLong(value), FORMAT_TRINARY);
                     Console.WriteLine($"  0x{addr:X8}: {value,15} = {formatted}");
                 }
                 catch

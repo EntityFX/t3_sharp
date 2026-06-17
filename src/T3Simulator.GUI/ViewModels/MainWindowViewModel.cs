@@ -176,7 +176,7 @@ public class MainWindowViewModel : ViewModelBase
                 var assembler = new T3InOrderAssembler(T3Config.T3_18);
                 string content = await File.ReadAllTextAsync(filePath);
                 List<Int128> binary = assembler.Assemble(content);
-                foreach (var val in binary) programWords.Add(new Word18((long)val));
+                foreach (var val in binary) programWords.Add(Word18.FromLong((long)val));
                 var dis = T3Disassembler.Disassemble(programWords);
             }
             else if (filePath.EndsWith(".bin", StringComparison.OrdinalIgnoreCase))
@@ -186,7 +186,7 @@ public class MainWindowViewModel : ViewModelBase
                 for (int i = 0; i + 26 < trits.Count; i += 27)
                 {
                     int[] wordTrits = trits.GetRange(i, 27).ToArray();
-                    programWords.Add(new Word18(BalancedTernary.ParseFromTritArray(wordTrits)));
+                    programWords.Add(Word18.FromLong(BalancedTernary.ParseFromTritArray(wordTrits)));
                 }
             }
             else
@@ -199,7 +199,7 @@ public class MainWindowViewModel : ViewModelBase
                 for (int i = 0; i + 26 < trits.Count; i += 27)
                 {
                     int[] wordTrits = trits.GetRange(i, 27).ToArray();
-                    programWords.Add(new Word18(BalancedTernary.ParseFromTritArray(wordTrits)));
+                    programWords.Add(Word18.FromLong(BalancedTernary.ParseFromTritArray(wordTrits)));
                 }
             }
 

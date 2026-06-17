@@ -28,8 +28,8 @@ namespace T3Simulator.InOrder.Tests
         {
             var proc = new T3InOrderProcessor<Word18>(T3Config.T3_18);
             string asm = @"start: LI R0, 100
-LI R1, 200
-ADD R2, R0, R1
+LI RW, 200
+ADD RX, R0, RW
 HALT";
             proc.LoadProgram(new T3InOrderAssembler(T3Config.T3_18).Assemble(asm).Select(x => Word18.FromInt128(x)).ToList());
             proc.Run();
@@ -43,8 +43,8 @@ HALT";
         public void RunIterations_AccumulatesCounters()
         {
             string asm = @"start: LI R0, 100
-LI R1, 200
-ADD R2, R0, R1
+LI RW, 200
+ADD RX, R0, RW
 HALT";
             var words = new T3InOrderAssembler(T3Config.T3_18).Assemble(asm).Select(x => Word18.FromInt128(x)).ToList();
             var proc = new T3InOrderProcessor<Word18>(T3Config.T3_18);
@@ -62,28 +62,28 @@ HALT";
                 LI R0, start
                 JMP R0
             proc1:
-                MUL R1,R1,R1
-                MUL R2,R2,R2
-                ADD R2,R1,R2
+                MUL RW,RW,RW
+                MUL RX,RX,RX
+                ADD RX,RW,RX
                 RET
             start:
                 LI R0,10
-                LI R1,5
-                STORE R1,R0
+                LI RW,5
+                STORE RW,R0
                 LI R0,10
-                LOAD R1,R0
-                LI R2,3
-                LI R3,proc1
-                CALL R3
+                LOAD RW,R0
+                LI RX,3
+                LI RY,proc1
+                CALL RY
                 LI R0,10
-                LOAD R3,R0
-                LI R4,3
-                MUL R3,R3,R4
-                LI R4,7
-                ADD R3,R3,R4
-                LI R4,2
-                DIV R3,R3,R4
-                STORE R3,R0
+                LOAD RY,R0
+                LI RZ,3
+                MUL RY,RY,RZ
+                LI RZ,7
+                ADD RY,RY,RZ
+                LI RZ,2
+                DIV RY,RY,RZ
+                STORE RY,R0
                 HALT
             ";
             var proc = AssembleAndRun(asm);
@@ -98,44 +98,44 @@ HALT";
                 LI R0,s
                 JMP R0
             proc1:
-                MUL R1,R1,R1
-                MUL R2,R2,R2
-                ADD R2,R1,R2
+                MUL RW,RW,RW
+                MUL RX,RX,RX
+                ADD RX,RW,RX
                 RET
             s:
                 LI R0,10
-                LI R1,5
-                STORE R1,R0
+                LI RW,5
+                STORE RW,R0
                 LI R0,10
-                LOAD R1,R0
-                LI R2,3
-                LI R3,proc1
-                CALL R3
+                LOAD RW,R0
+                LI RX,3
+                LI RY,proc1
+                CALL RY
                 LI R0,10
-                LOAD R3,R0
-                LI R4,3
-                MUL R3,R3,R4
-                LI R4,7
-                ADD R3,R3,R4
-                LI R4,2
-                DIV R3,R3,R4
-                STORE R3,R0
+                LOAD RY,R0
+                LI RZ,3
+                MUL RY,RY,RZ
+                LI RZ,7
+                ADD RY,RY,RZ
+                LI RZ,2
+                DIV RY,RY,RZ
+                STORE RY,R0
                 LI R0,0
-                LI R1,100
-                LI R2,10
+                LI RW,100
+                LI RX,10
             loop_f:
-                MOV R3,R0
-                MUL R3,R3,R0
-                ADD R3,R3,R0
-                ADD R3,R3,R1
-                LI R4,1
-                ADD R4,R4,R0
-                STORE R4,R3
-                LI R5,1
-                ADD R0,R0,R5
-                CMP R0,R2
-                LI R5,loop_f
-                JL R5
+                MOV RY,R0
+                MUL RY,RY,R0
+                ADD RY,RY,R0
+                ADD RY,RY,RW
+                LI RZ,1
+                ADD RZ,RZ,R0
+                STORE RZ,RY
+                LI R0,1
+                ADD R0,R0,R0
+                CMP R0,RX
+                LI R0,loop_f
+                JL R0
                 HALT
             ";
             var asmObj = new T3InOrderAssembler(T3Config.T3_18);
@@ -156,30 +156,30 @@ HALT";
                 JMP R0
             mod1:
                 ITOF R0,R0
-                ITOF R1,R1
-                ITOF R2,R2
-                FADD R0,R0,R1
-                FSUB R0,R0,R2
-                FADD R0,R0,R1
+                ITOF RW,RW
+                ITOF RX,RX
+                FADD R0,R0,RW
+                FSUB R0,R0,RX
+                FADD R0,R0,RW
                 FTOI R0,R0
                 RET
             mod2:
                 ITOF R0,R0
-                ITOF R1,R1
-                FMUL R2,R0,R1
-                FDIV R2,R2,R1
-                FTOI R2,R2
+                ITOF RW,RW
+                FMUL RX,R0,RW
+                FDIV RX,RX,RW
+                FTOI RX,RX
                 RET
             main:
                 LI R0,9
-                LI R1,3
-                LI R2,1
-                LI R3,mod1
-                CALL R3
+                LI RW,3
+                LI RX,1
+                LI RY,mod1
+                CALL RY
                 LI R0,9
-                LI R1,3
-                LI R2,mod2
-                CALL R2
+                LI RW,3
+                LI RX,mod2
+                CALL RX
                 HALT
             ";
             var proc = AssembleAndRun(asm);
@@ -195,30 +195,30 @@ HALT";
                 JMP R0
             m1:
                 ITOF R0,R0
-                ITOF R1,R1
-                ITOF R2,R2
-                FADD R0,R0,R1
-                FSUB R0,R0,R2
-                FADD R0,R0,R1
+                ITOF RW,RW
+                ITOF RX,RX
+                FADD R0,R0,RW
+                FSUB R0,R0,RX
+                FADD R0,R0,RW
                 FTOI R0,R0
                 RET
             m2:
                 ITOF R0,R0
-                ITOF R1,R1
-                FMUL R2,R0,R1
-                FDIV R2,R2,R1
-                FTOI R2,R2
+                ITOF RW,RW
+                FMUL RX,R0,RW
+                FDIV RX,RX,RW
+                FTOI RX,RX
                 RET
             m:
                 LI R0,9
-                LI R1,3
-                LI R2,1
-                LI R3,m1
-                CALL R3
+                LI RW,3
+                LI RX,1
+                LI RY,m1
+                CALL RY
                 LI R0,9
-                LI R1,3
-                LI R2,m2
-                CALL R2
+                LI RW,3
+                LI RX,m2
+                CALL RX
                 HALT
             ";
             var asmObj = new T3InOrderAssembler(T3Config.T3_18);
@@ -239,17 +239,17 @@ HALT";
                 JMP R0
             memfill:
                 LI R0,50
-                LI R1,5
-                LI R2,42
+                LI RW,5
+                LI RX,42
             fill_lp:
-                STORE R2,R0
-                LI R3,1
-                ADD R0,R0,R3
-                SUB R1,R1,R3
-                LI R3,0
-                CMP R1,R3
-                LI R4,fill_lp
-                JG R4
+                STORE RX,R0
+                LI RY,1
+                ADD R0,R0,RY
+                SUB RW,RW,RY
+                LI RY,0
+                CMP RW,RY
+                LI RZ,fill_lp
+                JG RZ
                 RET
             m:
                 LI R0,memfill
@@ -269,33 +269,33 @@ HALT";
                 JMP R0
             mf:
                 LI R0,50
-                LI R1,5
-                LI R2,42
+                LI RW,5
+                LI RX,42
             fl:
-                STORE R2,R0
-                LI R3,1
-                ADD R0,R0,R3
-                SUB R1,R1,R3
-                LI R3,0
-                CMP R1,R3
-                LI R4,fl
-                JG R4
+                STORE RX,R0
+                LI RY,1
+                ADD R0,R0,RY
+                SUB RW,RW,RY
+                LI RY,0
+                CMP RW,RY
+                LI RZ,fl
+                JG RZ
                 RET
             mc:
                 LI R0,50
-                LI R1,60
-                LI R2,5
+                LI RW,60
+                LI RX,5
             cl:
-                LOAD R3,R0
-                STORE R3,R1
-                LI R4,1
-                ADD R0,R0,R4
-                ADD R1,R1,R4
-                SUB R2,R2,R4
-                LI R4,0
-                CMP R2,R4
-                LI R5,cl
-                JG R5
+                LOAD RY,R0
+                STORE RY,RW
+                LI RZ,1
+                ADD R0,R0,RZ
+                ADD RW,RW,RZ
+                SUB RX,RX,RZ
+                LI RZ,0
+                CMP RX,RZ
+                LI R0,cl
+                JG R0
                 RET
             m:
                 LI R0,mf
@@ -320,61 +320,61 @@ HALT";
             var asmObj = new T3InOrderAssembler(T3Config.T3_18);
             string d = @"LI R0,s
 JMP R0
-p1:MUL R1,R1,R1
-MUL R2,R2,R2
-ADD R2,R1,R2
+p1:MUL RW,RW,RW
+MUL RX,RX,RX
+ADD RX,RW,RX
 RET
 s:LI R0,10
-LI R1,5
-STORE R1,R0
+LI RW,5
+STORE RW,R0
 LI R0,10
-LOAD R1,R0
-LI R2,3
-LI R3,p1
-CALL R3
+LOAD RW,R0
+LI RX,3
+LI RY,p1
+CALL RY
 LI R0,10
-LOAD R3,R0
-LI R4,3
-MUL R3,R3,R4
-LI R4,7
-ADD R3,R3,R4
-LI R4,2
-DIV R3,R3,R4
-STORE R3,R0
+LOAD RY,R0
+LI RZ,3
+MUL RY,RY,RZ
+LI RZ,7
+ADD RY,RY,RZ
+LI RZ,2
+DIV RY,RY,RZ
+STORE RY,R0
 HALT";
             RunBenchmark(asmObj, d, 10, "Dhrystone", 5, 3);
 
             string w = @"LI R0,m
 JMP R0
 m1:ITOF R0,R0
-ITOF R1,R1
-ITOF R2,R2
-FADD R0,R0,R1
-FSUB R0,R0,R2
-FADD R0,R0,R1
+ITOF RW,RW
+ITOF RX,RX
+FADD R0,R0,RW
+FSUB R0,R0,RX
+FADD R0,R0,RW
 FTOI R0,R0
 RET
 m:LI R0,9
-LI R1,3
-LI R2,1
-LI R3,m1
-CALL R3
+LI RW,3
+LI RX,1
+LI RY,m1
+CALL RY
 HALT";
             RunBenchmark(asmObj, w, 5, "Whetstone", 5, 3);
 
             string m = @"LI R0,s
 JMP R0
 mf:LI R0,50
-LI R1,5
-LI R2,42
-fl:STORE R2,R0
-LI R3,1
-ADD R0,R0,R3
-SUB R1,R1,R3
-LI R3,0
-CMP R1,R3
-LI R4,fl
-JG R4
+LI RW,5
+LI RX,42
+fl:STORE RX,R0
+LI RY,1
+ADD R0,R0,RY
+SUB RW,RW,RY
+LI RY,0
+CMP RW,RY
+LI RZ,fl
+JG RZ
 RET
 s:LI R0,mf
 CALL R0
