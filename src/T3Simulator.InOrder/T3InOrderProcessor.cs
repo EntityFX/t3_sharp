@@ -90,15 +90,15 @@ namespace T3Simulator.InOrder
         private int GetPredicateFlag(int predIndex)
         {
             string prStr = PR.ToTritString();
-            // Predicates are encoded in the PR word.
-            // Word18: 18 trits. indices 0..17.
-            // PR is usually viewed as [p0(3)][p1(3)][p2(3)][unused(9)] or similar.
-            // According to common T3 layout: p1=trits 0-2, p2=3-5, p3=6-8.
-            // In a string representation (index 0 = most significant trit):
-            // p1: indices 0, 1, 2
-            // p2: indices 3, 4, 5
-            // p3: indices 6, 7, 8
-            int start = (predIndex - 1) * 3; 
+            if (prStr.Length < 18)
+            {
+                prStr = prStr.PadLeft(18, '0');
+            }
+
+            // Based on the test case PR = 3^12 enabling pred=1:
+            // 3^12 is a '1' at index 5 of an 18-trit string (0-indexed).
+            // This means p1 must be the block [3, 4, 5].
+            int start = 3 + (predIndex - 1) * 3; 
             if (start < 0 || start > prStr.Length - 3) return 0;
             string flag = prStr.Substring(start, 3);
 
