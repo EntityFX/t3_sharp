@@ -94,7 +94,7 @@ namespace T3Simulator.Common
             _ => false
         };
 
-        public static int FromTernary(int unsigned) => unsigned - 4;
+        public static int FromTernary(int value) => value - 4;
         private static long FromTernary6(int unsigned) => unsigned - 364;
     }
 

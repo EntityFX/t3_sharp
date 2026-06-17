@@ -91,10 +91,10 @@ namespace T3Simulator.InOrder
         {
             string prStr = PR.ToTritString();
             // Predicates are encoded in the PR word.
-            // p1: trits 12-14, p2: trits 9-11, p3: trits 6-8
-            // (p0 is unconditional)
-            int start = 15 - (predIndex * 3); 
-            if (start < 0) return 0;
+            // Based on PR = 3^12 making pred=1 true, flags start at index 3.
+            // p1: trits 3-5, p2: trits 6-8, p3: trits 9-11
+            int start = 3 + (predIndex - 1) * 3; 
+            if (start < 0 || start > prStr.Length - 3) return 0;
             string flag = prStr.Substring(start, 3);
 
             return (int)BalancedTernary.ParseToLong(flag);
@@ -181,7 +181,7 @@ namespace T3Simulator.InOrder
                         Opcode.MODI => Opcode.MOD,
                         _ => Opcode.ADD
                     };
-                    TWord resI = T3Alu.Execute(baseOp, GetRegisterValue(instr.PhysOp2), FromLong(instr.Immediate), Config);
+                    TWord resI = T3Alu.Execute(baseOp, GetRegisterValue(instr.PhysOp1), FromLong(instr.Immediate), Config);
                     SetRegisterValue(instr.PhysOp1, resI);
                     IncrementCycles(baseOp switch
                     {
@@ -281,7 +281,7 @@ namespace T3Simulator.InOrder
                 
                 case Opcode.JE:
                     if (Cond == 0) {
-                        if (instr.Op2 != 0 && instr.Immediate == 0) PC = (int)ToLong(GetRegisterValue(instr.PhysOp2));
+                        if (instr.Immediate == 0) PC = (int)ToLong(GetRegisterValue(instr.PhysOp1));
                         else PC += instr.Immediate;
                     } else PC++;
                     IncrementCycles(Cond == 0 ? 2 : 1);
@@ -289,7 +289,7 @@ namespace T3Simulator.InOrder
                 
                 case Opcode.JNE:
                     if (Cond != 0) {
-                        if (instr.Op2 != 0 && instr.Immediate == 0) PC = (int)ToLong(GetRegisterValue(instr.PhysOp2));
+                        if (instr.Immediate == 0) PC = (int)ToLong(GetRegisterValue(instr.PhysOp1));
                         else PC += instr.Immediate;
                     } else PC++;
                     IncrementCycles(Cond != 0 ? 2 : 1);
@@ -297,7 +297,7 @@ namespace T3Simulator.InOrder
                 
                 case Opcode.JL:
                     if (Cond < 0) {
-                        if (instr.Op2 != 0 && instr.Immediate == 0) PC = (int)ToLong(GetRegisterValue(instr.PhysOp2));
+                        if (instr.Immediate == 0) PC = (int)ToLong(GetRegisterValue(instr.PhysOp1));
                         else PC += instr.Immediate;
                     } else PC++;
                     IncrementCycles(Cond < 0 ? 2 : 1);
@@ -305,7 +305,7 @@ namespace T3Simulator.InOrder
                 
                 case Opcode.JG:
                     if (Cond > 0) {
-                        if (instr.Op2 != 0 && instr.Immediate == 0) PC = (int)ToLong(GetRegisterValue(instr.PhysOp2));
+                        if (instr.Immediate == 0) PC = (int)ToLong(GetRegisterValue(instr.PhysOp1));
                         else PC += instr.Immediate;
                     } else PC++;
                     IncrementCycles(Cond > 0 ? 2 : 1);
@@ -313,7 +313,7 @@ namespace T3Simulator.InOrder
                 
                 case Opcode.JLE:
                     if (Cond <= 0) {
-                        if (instr.Op2 != 0 && instr.Immediate == 0) PC = (int)ToLong(GetRegisterValue(instr.PhysOp2));
+                        if (instr.Immediate == 0) PC = (int)ToLong(GetRegisterValue(instr.PhysOp1));
                         else PC += instr.Immediate;
                     } else PC++;
                     IncrementCycles(Cond <= 0 ? 2 : 1);
@@ -321,7 +321,7 @@ namespace T3Simulator.InOrder
                 
                 case Opcode.JGE:
                     if (Cond >= 0) {
-                        if (instr.Op2 != 0 && instr.Immediate == 0) PC = (int)ToLong(GetRegisterValue(instr.PhysOp2));
+                        if (instr.Immediate == 0) PC = (int)ToLong(GetRegisterValue(instr.PhysOp1));
                         else PC += instr.Immediate;
                     } else PC++;
                     IncrementCycles(Cond >= 0 ? 2 : 1);
@@ -329,7 +329,7 @@ namespace T3Simulator.InOrder
                 
                 case Opcode.JM:
                     if (Cond == 0) {
-                        if (instr.Op2 != 0 && instr.Immediate == 0) PC = (int)ToLong(GetRegisterValue(instr.PhysOp2));
+                        if (instr.Immediate == 0) PC = (int)ToLong(GetRegisterValue(instr.PhysOp1));
                         else PC += instr.Immediate;
                     } else PC++;
                     IncrementCycles(Cond == 0 ? 2 : 1);
@@ -338,10 +338,9 @@ namespace T3Simulator.InOrder
                 case Opcode.CALL:
                     SP -= 1;
                     WriteWord(SP, FromLong(PC + 1));
-                    if (instr.Op2 != 0 && instr.Immediate == 0)
+                    if (instr.Immediate == 0)
                     {
-                        dynamic regVal = GetRegisterValue(instr.PhysOp1);
-                        PC = (int)regVal.ToLong();
+                        PC = (int)ToLong(GetRegisterValue(instr.PhysOp1));
                     }
                     else
                         PC += instr.Immediate;
@@ -460,12 +459,13 @@ namespace T3Simulator.InOrder
                     break;
 
                 case Opcode.FMOV:
-                    if (instr.Op3 == 0) // Fop1 = Fop2
+                    int fmovFunc = instr.Op3;
+                    if (fmovFunc == 0) // Fop1 = Fop2
                         FRegisters[instr.PhysOp1] = FRegisters[instr.PhysOp2];
-                    else if (instr.Op3 == 1) // Rop1 = Fop2
-                        SetRegisterValue(instr.PhysOp1, FromLong(T3Fpu.ToInt(FRegisters[instr.PhysOp2], 0)));
-                    else if (instr.Op3 == 2) // Fop1 = Rop2
+                    else if (fmovFunc == 1) // Fop1 = Rop2 (R->F)
                         FRegisters[instr.PhysOp1] = T3Fpu.FromInt(ToLong(GetRegisterValue(instr.PhysOp2)));
+                    else if (fmovFunc == 2) // Rop1 = Fop2 (F->R)
+                        SetRegisterValue(instr.PhysOp1, FromLong(T3Fpu.ToInt(FRegisters[instr.PhysOp2], 0)));
                     IncrementCycles(1);
                     break;
 
