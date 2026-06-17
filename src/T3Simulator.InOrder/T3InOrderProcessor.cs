@@ -295,7 +295,7 @@ namespace T3Simulator.InOrder
                 
                 case Opcode.JE:
                     if (Cond == 0) {
-                        if (instr.Op2 != 0 && instr.Immediate == 0) PC = (int)ToLong(GetRegisterValue((int)instr.Op2));
+                        if (instr.Op2 != 0 && instr.Immediate == 0) PC = (int)ToLong(GetRegisterValue(instr.PhysOp2));
                         else PC += instr.Immediate;
                     } else PC++;
                     IncrementCycles(Cond == 0 ? 2 : 1);
@@ -303,7 +303,7 @@ namespace T3Simulator.InOrder
                 
                 case Opcode.JNE:
                     if (Cond != 0) {
-                        if (instr.Op2 != 0 && instr.Immediate == 0) PC = (int)ToLong(GetRegisterValue((int)instr.Op2));
+                        if (instr.Op2 != 0 && instr.Immediate == 0) PC = (int)ToLong(GetRegisterValue(instr.PhysOp2));
                         else PC += instr.Immediate;
                     } else PC++;
                     IncrementCycles(Cond != 0 ? 2 : 1);
@@ -311,7 +311,7 @@ namespace T3Simulator.InOrder
                 
                 case Opcode.JL:
                     if (Cond < 0) {
-                        if (instr.Op2 != 0 && instr.Immediate == 0) PC = (int)ToLong(GetRegisterValue((int)instr.Op2));
+                        if (instr.Op2 != 0 && instr.Immediate == 0) PC = (int)ToLong(GetRegisterValue(instr.PhysOp2));
                         else PC += instr.Immediate;
                     } else PC++;
                     IncrementCycles(Cond < 0 ? 2 : 1);
@@ -319,7 +319,7 @@ namespace T3Simulator.InOrder
                 
                 case Opcode.JG:
                     if (Cond > 0) {
-                        if (instr.Op2 != 0 && instr.Immediate == 0) PC = (int)ToLong(GetRegisterValue((int)instr.Op2));
+                        if (instr.Op2 != 0 && instr.Immediate == 0) PC = (int)ToLong(GetRegisterValue(instr.PhysOp2));
                         else PC += instr.Immediate;
                     } else PC++;
                     IncrementCycles(Cond > 0 ? 2 : 1);
@@ -327,7 +327,7 @@ namespace T3Simulator.InOrder
                 
                 case Opcode.JLE:
                     if (Cond <= 0) {
-                        if (instr.Op2 != 0 && instr.Immediate == 0) PC = (int)ToLong(GetRegisterValue((int)instr.Op2));
+                        if (instr.Op2 != 0 && instr.Immediate == 0) PC = (int)ToLong(GetRegisterValue(instr.PhysOp2));
                         else PC += instr.Immediate;
                     } else PC++;
                     IncrementCycles(Cond <= 0 ? 2 : 1);
@@ -335,7 +335,7 @@ namespace T3Simulator.InOrder
                 
                 case Opcode.JGE:
                     if (Cond >= 0) {
-                        if (instr.Op2 != 0 && instr.Immediate == 0) PC = (int)ToLong(GetRegisterValue((int)instr.Op2));
+                        if (instr.Op2 != 0 && instr.Immediate == 0) PC = (int)ToLong(GetRegisterValue(instr.PhysOp2));
                         else PC += instr.Immediate;
                     } else PC++;
                     IncrementCycles(Cond >= 0 ? 2 : 1);
@@ -343,7 +343,7 @@ namespace T3Simulator.InOrder
                 
                 case Opcode.JM:
                     if (Cond == 0) {
-                        if (instr.Op2 != 0 && instr.Immediate == 0) PC = (int)ToLong(GetRegisterValue((int)instr.Op2));
+                        if (instr.Op2 != 0 && instr.Immediate == 0) PC = (int)ToLong(GetRegisterValue(instr.PhysOp2));
                         else PC += instr.Immediate;
                     } else PC++;
                     IncrementCycles(Cond == 0 ? 2 : 1);
@@ -462,13 +462,13 @@ namespace T3Simulator.InOrder
                     break;
 
                 case Opcode.FLW:
-                    long fAddrLoad = ToLong(GetRegisterValue(instr.PhysOp2)) + (long)instr.Op3;
+                    long fAddrLoad = ToLong(GetRegisterValue(instr.PhysOp2)) + (long)instr.PhysOp3;
                     FRegisters[instr.PhysOp1] = T3Float.FromWord18((Word18)(object)ReadWord(fAddrLoad));
                     IncrementCycles(2);
                     break;
 
                 case Opcode.FSW:
-                    long fAddrStore = ToLong(GetRegisterValue(instr.PhysOp2)) + (long)instr.Op3;
+                    long fAddrStore = ToLong(GetRegisterValue(instr.PhysOp2)) + (long)instr.PhysOp3;
                     WriteWord(fAddrStore, (TWord)(object)FRegisters[instr.PhysOp1].ToWord18());
                     IncrementCycles(2);
                     break;
