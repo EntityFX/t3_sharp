@@ -11,9 +11,9 @@ namespace T3Simulator.Common.Tests
         [TestMethod]
         public void InstructionDecoder_Decode18_ValidInstruction()
         {
-            // Test LI A, 10
+            // Test LI RW, 10
             // Opcode LI = 4: "0000++" (6 trits)
-            // Op1 A = 0: "000" (3 trits)
+            // Op1 RW = 0: "000" (3 trits)
             // Op2 10 = 10: "+0+" (3 trits)
             // Op3 = 0: "000" (3 trits)
             // Reserve = "000" (3 trits)
@@ -32,13 +32,13 @@ namespace T3Simulator.Common.Tests
         [TestMethod]
         public void RegisterWindow_GetPhysicalIndex_CorrectMapping()
         {
-            // WP = 0, Logical A (0) -> Physical 0
+            // WP = 0, Logical RW (0) -> Physical 0
             Assert.AreEqual(0, RegisterWindow.GetPhysicalIndex(0, 0));
-            // WP = 0, Logical I (8) -> Physical 8
+            // WP = 0, Logical R4 (8) -> Physical 8
             Assert.AreEqual(8, RegisterWindow.GetPhysicalIndex(8, 0));
-            // WP = 5, Logical A (0) -> Physical 5
+            // WP = 5, Logical RW (0) -> Physical 5
             Assert.AreEqual(5, RegisterWindow.GetPhysicalIndex(0, 5));
-            // WP = 20, Logical I (8) -> Physical (20+8)%27 = 1
+            // WP = 20, Logical R4 (8) -> Physical (20+8)%27 = 1
             Assert.AreEqual(1, RegisterWindow.GetPhysicalIndex(8, 20));
         }
 

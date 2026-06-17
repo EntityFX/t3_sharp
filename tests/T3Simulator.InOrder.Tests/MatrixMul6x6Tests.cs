@@ -50,7 +50,7 @@ namespace T3Simulator.InOrder.Tests
             processor.Run();
 
             // 3. Verify
-            // Matrix A (6x6, all 1s) * Matrix B (6x6, all 1s) = Matrix C (6x6, all 6s)
+            // Matrix RW (6x6, all 1s) * Matrix RX (6x6, all 1s) = Matrix RY (6x6, all 6s)
             long addrC = machineCode.Count - 36; 
             
             for (int i = 0; i < 36; i++)

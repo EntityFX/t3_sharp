@@ -152,6 +152,7 @@ namespace T3Assembler
                 {
                     op2 = ResolveOperand(operand);
                     imm = 0;
+                    op3 = 1; // Mark as register-indirect
                 }
                 else if (_labels.ContainsKey(operand))
                 {

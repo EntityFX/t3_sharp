@@ -25,7 +25,7 @@ namespace T3Simulator.InOrder.Tests
         }
 
         /// <summary>
-        /// Encode an FPU I-type instruction (FZERO): [Pred(000)][Opcode(6)][Op1(3)][Imm(6)]
+        /// Encode an FPU R4-type instruction (FZERO): [Pred(000)][Opcode(6)][Op1(3)][Imm(6)]
         /// </summary>
         private Word18 EncodeFpuI(int opcode, int op1, long imm)
         {
@@ -465,7 +465,7 @@ namespace T3Simulator.InOrder.Tests
             // 2: LI R5, -1         (skipped)
             // 3: HALT
             // R5 should be 0 (never written), but ProcFinished check tests R5==1? 
-            // Actually we want: if (A > B) Registers[5]=1 else continue
+            // Actually we want: if (RW > RX) Registers[5]=1 else continue
             // We'll use MOV to set R5=1 at the target
             var program = new List<Word18>
             {
@@ -493,7 +493,7 @@ namespace T3Simulator.InOrder.Tests
             // 0: LI R5, greater   (R5=4, address of greater label)
             // 1: FCMP FW, FX      (Cond=+1)
             // 2: JG R5            (jump to 4)
-            // 3: LI R5, -1        (skipped when A>B)
+            // 3: LI R5, -1        (skipped when RW>RX)
             // 4: HALT
             // If jumped, R5=4; if not, R5=-1
             var program = new List<Word18>

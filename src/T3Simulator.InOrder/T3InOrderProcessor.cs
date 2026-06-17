@@ -275,13 +275,21 @@ namespace T3Simulator.InOrder
                     break;
 
                 case Opcode.JMP:
-                    if (instr.Operand2 != 0 && instr.Immediate == 0)
+                    if (instr.Op3 != 0 && instr.Operand2 != 0)
                     {
                         dynamic regVal = GetRegisterValue((int)op2);
                         PC = (int)regVal.ToLong();
                     }
-                    else
+                    else if (instr.Immediate != 0)
                         PC += instr.Immediate;
+                    else
+                    {
+                        // fallback: check Operand2 as register
+                        if (op2 != 0 && op1 == 0)
+                            PC = (int)ToLong(GetRegisterValue((int)op2));
+                        else
+                            PC += op1;
+                    }
                     IncrementCycles(1);
                     break;
                 
@@ -386,12 +394,12 @@ namespace T3Simulator.InOrder
                     break;
 
                 case Opcode.INI:
-                    SetRegisterValue((int)op1, DeviceManager.Read((long)instr.Operand2));
+                    SetRegisterValue((int)op1, DeviceManager.Read(instr.Immediate));
                     IncrementCycles(2);
                     break;
 
                 case Opcode.OUTI:
-                    DeviceManager.Write((long)instr.Operand2, GetRegisterValue((int)op1));
+                    DeviceManager.Write(instr.Immediate, GetRegisterValue((int)op1));
                     IncrementCycles(2);
                     break;
 

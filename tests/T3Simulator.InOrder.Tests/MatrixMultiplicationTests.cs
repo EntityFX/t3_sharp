@@ -54,11 +54,11 @@ namespace T3Simulator.InOrder.Tests
 
             // 4. Verify results
             // Based on the assembly:
-            // A = [1, 2; 3, 4], B = [5, 6; 7, 8]
-            // C[0][0] = 1*5 + 2*7 = 5 + 14 = 19
-            // C[0][1] = 1*6 + 2*8 = 6 + 16 = 22
-            // C[1][0] = 3*5 + 4*7 = 15 + 28 = 43
-            // C[1][1] = 3*6 + 4*8 = 18 + 32 = 50
+            // RW = [1, 2; 3, 4], RX = [5, 6; 7, 8]
+            // RY[0][0] = 1*5 + 2*7 = 5 + 14 = 19
+            // RY[0][1] = 1*6 + 2*8 = 6 + 16 = 22
+            // RY[1][0] = 3*5 + 4*7 = 15 + 28 = 43
+            // RY[1][1] = 3*6 + 4*8 = 18 + 32 = 50
 
             // The data section: addr_A (4), addr_B (4), addr_C (4).
             // Since the data is at the end of the program, addr_C starts at machineCode.Length - 4.
