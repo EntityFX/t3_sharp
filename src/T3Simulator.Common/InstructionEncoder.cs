@@ -37,21 +37,15 @@ namespace T3Simulator.Common
             return pred * P3_15 + opcode * P3_9 + args;
         }
 
-        /// <summary>Convert trit value (-4..+4) to unsigned ternary field (0..8).
-        /// Phys index = trit + 4. The encoder stores the trit value directly as unsigned (0=0, +=1, -=2-4).</summary>
+        /// <summary>Convert trit value (-4..+4) to its balanced ternary representation value.</summary>
         private static long ToTernary(int tritValue)
         {
-            // tritValue: -4..+4 → unsigned: 0..8
-            int adj = tritValue + 4;
-            if (adj < 0) adj = 0;
-            if (adj > 8) adj = 8;
-            // Convert to base-3 representation value
-            // adj is already in [0,8], which fits in 3 trits.
-            // The binary value of this 3-trit field is just adj.
-            return adj;
+            if (tritValue < -4) tritValue = -4;
+            if (tritValue > 4) tritValue = 4;
+            return tritValue;
         }
 
-        /// <summary>Convert immediate to 6-trit unsigned value in range [0, 728]</summary>
+        /// <summary>Convert immediate to a 6-trit balanced ternary value in range [-364, 364]</summary>
         private static long ExtendedTernary(long value, int trits)
         {
             long maxVal = 1;
@@ -60,9 +54,8 @@ namespace T3Simulator.Common
             long minVal = -maxVal;
             if (value < minVal) value = minVal;
             if (value > maxVal) value = maxVal;
-            // Convert to unsigned: U = V + offset where offset = (3^trits - 1)/2
-            long offset = maxVal;
-            return value + offset;
+            
+            return value;
         }
 
         // Word18 wrappers

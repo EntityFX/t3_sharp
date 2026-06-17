@@ -19,36 +19,51 @@ namespace T3Simulator.Common
         public static DecodedInstruction Decode(Word18 word)
         {
             long val = word.ToLong();
-            int pred = (int)(val / P3_15);
-            val -= pred * P3_15;
-            int opcode = (int)(val / P3_9);
-            long args = val % P3_9;
-
-            var op = (Opcode)opcode;
+            
+            // Correct decomposition for Balanced Ternary:
+            // We need to find the coefficients c_i in {-1, 0, 1} such that val = sum(c_i * 3^i)
+            // The provided arithmetic approach with Math.Round(val / 3^k) is generally correct
+            // but we must ensure we are using the correct powers of 3 and types.
+            
+            int pred = (int)Math.Round(val / (double)P3_15, MidpointRounding.AwayFromZero);
+            val -= (long)pred * P3_15;
+            
+            int opcodeVal = (int)Math.Round(val / (double)P3_9, MidpointRounding.AwayFromZero);
+            val -= (long)opcodeVal * P3_9;
+            
+            var op = (Opcode)opcodeVal;
             int op1 = 0, op2 = 0, op3 = 0;
             long imm = 0;
 
+            // Remaining val is the "Args" part (9 trits)
+            // Args = op1 * 3^6 + op2 * 3^3 + op3 * 3^0 (for R-type)
             if (IsRType(op))
             {
-                op1 = FromTernary((int)(args / P3_6)); args -= (args / P3_6) * P3_6;
-                op2 = FromTernary((int)(args / P3_3));
-                op3 = FromTernary((int)(args % P3_3));
+                op1 = (int)Math.Round(val / (double)P3_6, MidpointRounding.AwayFromZero);
+                val -= (long)op1 * P3_6;
+                op2 = (int)Math.Round(val / (double)P3_3, MidpointRounding.AwayFromZero);
+                val -= (long)op2 * P3_3;
+                op3 = (int)Math.Round(val / 1.0, MidpointRounding.AwayFromZero);
             }
             else if (IsIType(op))
             {
-                op1 = FromTernary((int)(args / P3_6));
-                imm = FromTernary6((int)(args % P3_6));
+                op1 = (int)Math.Round(val / (double)P3_6, MidpointRounding.AwayFromZero);
+                val -= (long)op1 * P3_6;
+                imm = (long)Math.Round(val / 1.0, MidpointRounding.AwayFromZero);
             }
             else if (IsJType(op))
             {
-                op1 = FromTernary((int)(args / P3_6));
-                op2 = FromTernary((int)(args / P3_6));
+                op1 = (int)Math.Round(val / (double)P3_6, MidpointRounding.AwayFromZero);
+                val -= (long)op1 * P3_6;
+                op2 = (int)Math.Round(val / 1.0, MidpointRounding.AwayFromZero);
             }
             else
             {
-                op1 = FromTernary((int)(args / P3_6)); args -= (args / P3_6) * P3_6;
-                op2 = FromTernary((int)(args / P3_3));
-                op3 = FromTernary((int)(args % P3_3));
+                op1 = (int)Math.Round(val / (double)P3_6, MidpointRounding.AwayFromZero);
+                val -= (long)op1 * P3_6;
+                op2 = (int)Math.Round(val / (double)P3_3, MidpointRounding.AwayFromZero);
+                val -= (long)op2 * P3_3;
+                op3 = (int)Math.Round(val / 1.0, MidpointRounding.AwayFromZero);
             }
 
             return new DecodedInstruction(op, pred, op1, op2, op3, imm);

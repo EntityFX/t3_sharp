@@ -82,7 +82,7 @@ namespace T3Simulator.InOrder
             return op switch
             {
                 Opcode.JMP or Opcode.JE or Opcode.JNE or Opcode.JL or Opcode.JG or 
-                Opcode.JM or Opcode.JLE or Opcode.JGE or Opcode.CALL or Opcode.RET or Opcode.LIMM => true,
+                Opcode.JM or Opcode.JLE or Opcode.JGE or Opcode.CALL or Opcode.RET => true,
                 _ => false
             };
         }
@@ -91,9 +91,14 @@ namespace T3Simulator.InOrder
         {
             string prStr = PR.ToTritString();
             // Predicates are encoded in the PR word.
-            // Based on PR = 3^12 making pred=1 true, flags start at index 3.
-            // p1: trits 3-5, p2: trits 6-8, p3: trits 9-11
-            int start = 3 + (predIndex - 1) * 3; 
+            // Word18: 18 trits. indices 0..17.
+            // PR is usually viewed as [p0(3)][p1(3)][p2(3)][unused(9)] or similar.
+            // According to common T3 layout: p1=trits 0-2, p2=3-5, p3=6-8.
+            // In a string representation (index 0 = most significant trit):
+            // p1: indices 0, 1, 2
+            // p2: indices 3, 4, 5
+            // p3: indices 6, 7, 8
+            int start = (predIndex - 1) * 3; 
             if (start < 0 || start > prStr.Length - 3) return 0;
             string flag = prStr.Substring(start, 3);
 
@@ -447,13 +452,13 @@ namespace T3Simulator.InOrder
                     break;
 
                 case Opcode.FLW:
-                    long fAddrLoad = ToLong(GetRegisterValue(instr.PhysOp2)) + (long)instr.PhysOp3;
+                    long fAddrLoad = ToLong(GetRegisterValue(instr.PhysOp2)) + (long)instr.Op3;
                     FRegisters[instr.PhysOp1] = T3Float.FromWord18((Word18)(object)ReadWord(fAddrLoad));
                     IncrementCycles(2);
                     break;
 
                 case Opcode.FSW:
-                    long fAddrStore = ToLong(GetRegisterValue(instr.PhysOp2)) + (long)instr.PhysOp3;
+                    long fAddrStore = ToLong(GetRegisterValue(instr.PhysOp2)) + (long)instr.Op3;
                     WriteWord(fAddrStore, (TWord)(object)FRegisters[instr.PhysOp1].ToWord18());
                     IncrementCycles(2);
                     break;
