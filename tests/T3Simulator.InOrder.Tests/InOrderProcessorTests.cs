@@ -4,6 +4,7 @@ using T3Simulator.Common;using T3Simulator.InOrder;using System.Collections.Gene
 namespace T3Simulator.InOrder.Tests{[TestClass]public class InOrderProcessorTests{
 static Word18 I(Opcode o,int r,int imm)=>Word18.FromLong(InstructionEncoder.EncodeI(0,(int)o,r,imm));
 static Word18 R(Opcode o,int r1,int r2,int r3)=>Word18.FromLong(InstructionEncoder.EncodeR(0,(int)o,r1,r2,r3));
+static Word18 J(Opcode o,int r)=>Word18.FromLong(InstructionEncoder.EncodeJ(0,(int)o,r));
 static Word18 H()=>new(0);
 static void Ld(T3InOrderProcessor<Word18> p,params Word18[] c)=>p.LoadProgram(new List<Word18>(c));
 const int RW=-4,RX=-3,RY=-2,RZ=-1,R0=0,R1=1,R2=2,R3=3,R4=4;

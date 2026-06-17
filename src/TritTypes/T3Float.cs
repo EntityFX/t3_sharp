@@ -50,13 +50,13 @@ namespace TritTypes
         public static T3Float FromDouble(double value)
         {
             if (value == 0) return new T3Float(182, 0);
-            
-            // Extremely simplified conversion for simulation purposes
-            // In a real FPU, this would involve normalization and rounding.
+            // For integer values within Word18 range, use exact exponent=182
+            if (value == Math.Floor(value) && value >= -193710244 && value <= 193710244)
+                return new T3Float(182, (long)value);
+            // For other values, use logarithmic decomposition
             double log3 = Math.Log(3);
             double exp = Math.Round(Math.Log(Math.Abs(value), 3));
             long mantissa = (long)Math.Round(value / Math.Pow(3, exp));
-            
             return new T3Float((long)exp + 182, mantissa);
         }
     }

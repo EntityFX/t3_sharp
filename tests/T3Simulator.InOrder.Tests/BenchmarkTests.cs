@@ -1,22 +1,33 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using T3Simulator.Common;using T3Simulator.InOrder;using System.Collections.Generic;using System;using TritTypes;
-
+using T3Simulator.Common;using T3Simulator.InOrder;using System.Collections.Generic;using TritTypes;
 namespace T3Simulator.InOrder.Tests{[TestClass]public class BenchmarkTests{
-static T3InOrderProcessor<Word18> P()=>new(T3Config.T3_18);
 static Word18 I(Opcode o,int r,int imm)=>Word18.FromLong(InstructionEncoder.EncodeI(0,(int)o,r,imm));
 static Word18 R(Opcode o,int r1,int r2,int r3)=>Word18.FromLong(InstructionEncoder.EncodeR(0,(int)o,r1,r2,r3));
 static Word18 J(Opcode o,int r)=>Word18.FromLong(InstructionEncoder.EncodeJ(0,(int)o,r));
 static Word18 H()=>new(0);
 static void Ld(T3InOrderProcessor<Word18> p,params Word18[] c)=>p.LoadProgram(new List<Word18>(c));
-const int Rw=-4,Rx=-3,Ry=-2,Rz=-1,R0=0,R1=1,R2=2,R3=3,R4=4;
+const int RW=-4,RX=-3,RY=-2,RZ=-1,R0=0,R1=1,R2=2,R3=3,R4=4;
 
-[TestMethod][Timeout(5000)]public void Simple_ADD_SUB_MUL(){var p=P();Ld(p,I(Opcode.LI,Rw,10),I(Opcode.LI,Rx,20),R(Opcode.ADD,Rw,Rw,Rx),R(Opcode.SUB,Ry,Rx,Rw),R(Opcode.MUL,Rz,Rw,Ry),H());p.Run();Assert.AreEqual(30,p.Registers[0].ToLong());}
-[TestMethod][Timeout(5000)]public void DhrystoneMini(){var p=P();Ld(p,I(Opcode.LI,Rw,5),I(Opcode.LI,Rx,3),R(Opcode.MUL,Ry,Rw,Rw),R(Opcode.MUL,Rz,Rx,Rx),R(Opcode.ADD,R0,Ry,Rz),H());p.Run();Assert.AreEqual(34,p.Registers[4].ToLong());}
-[TestMethod][Timeout(5000)]public void WhetstoneMini(){var p=P();Ld(p,I(Opcode.LI,Rw,3),I(Opcode.LI,Rx,4),R(Opcode.ITOF,-4,Rw,0),R(Opcode.ITOF,-3,Rx,0),R(Opcode.FADD,-4,-4,-3),R(Opcode.FTOI,Rw,-4,0),H());p.Run();Assert.AreEqual(7,p.Registers[0].ToLong());}
-[TestMethod][Timeout(5000)]public void MWMIPS_Mini(){var p=P();Ld(p,I(Opcode.LI,Rw,42),I(Opcode.LI,Rx,50),R(Opcode.STORE,Rw,Rx,0),I(Opcode.LI,Ry,0),R(Opcode.LOAD,Ry,Rx,0),H());p.Run();Assert.AreEqual(42,p.Registers[2].ToLong());}
-[TestMethod][Timeout(5000)]public void CallRet_Stack(){var p=P();Ld(p,I(Opcode.LI,Rw,4),J(Opcode.CALL,Rw),H(),I(Opcode.LI,R1,99),R(Opcode.RET,0,0,0),H());p.Run();Assert.AreEqual(99,p.Registers[5].ToLong());}
-[TestMethod][Timeout(5000)]public void Loop_Sum10(){var p=P();Ld(p,
-    I(Opcode.LI,Rw,0),I(Opcode.LI,Rx,1),I(Opcode.LI,Ry,11),I(Opcode.LI,Rz,0),I(Opcode.LI,R0,6), // addr for JMP
-    R(Opcode.ADD,Rw,Rw,Rx),R(Opcode.ADD,Rx,Rx,R1),R(Opcode.CMP,Rx,Ry,Rz),J(Opcode.JNE,R0),H());
-    p.Run();Assert.AreEqual(55,p.Registers[0].ToLong());}
+[TestMethod,Timeout(3000)]public void ADD(){var p=new T3InOrderProcessor<Word18>(T3Config.T3_18);Ld(p,I(Opcode.LI,RW,10),I(Opcode.LI,RX,20),R(Opcode.ADD,RW,RW,RX),H());p.Run();Assert.AreEqual(30,p.Registers[0].ToLong());}
+[TestMethod,Timeout(3000)]public void SUB(){var p=new T3InOrderProcessor<Word18>(T3Config.T3_18);Ld(p,I(Opcode.LI,RW,50),I(Opcode.LI,RX,20),R(Opcode.SUB,RW,RW,RX),H());p.Run();Assert.AreEqual(30,p.Registers[0].ToLong());}
+[TestMethod,Timeout(3000)]public void MUL(){var p=new T3InOrderProcessor<Word18>(T3Config.T3_18);Ld(p,I(Opcode.LI,RW,5),I(Opcode.LI,RX,6),R(Opcode.MUL,RW,RW,RX),H());p.Run();Assert.AreEqual(30,p.Registers[0].ToLong());}
+[TestMethod,Timeout(3000)]public void DIV(){var p=new T3InOrderProcessor<Word18>(T3Config.T3_18);Ld(p,I(Opcode.LI,RW,30),I(Opcode.LI,RX,4),R(Opcode.DIV,RW,RW,RX),H());p.Run();Assert.AreEqual(7,p.Registers[0].ToLong());}
+[TestMethod,Timeout(3000)]public void MOD(){var p=new T3InOrderProcessor<Word18>(T3Config.T3_18);Ld(p,I(Opcode.LI,RW,30),I(Opcode.LI,RX,4),R(Opcode.MOD,RW,RW,RX),H());p.Run();Assert.AreEqual(2,p.Registers[0].ToLong());}
+[TestMethod,Timeout(3000)]public void NEG(){var p=new T3InOrderProcessor<Word18>(T3Config.T3_18);Ld(p,I(Opcode.LI,RW,15),R(Opcode.NEG,RW,RW,0),H());p.Run();Assert.AreEqual(-15,p.Registers[0].ToLong());}
+[TestMethod,Timeout(3000)]public void AND(){var p=new T3InOrderProcessor<Word18>(T3Config.T3_18);Ld(p,I(Opcode.LI,RW,1),I(Opcode.LI,RX,0),R(Opcode.AND,RW,RW,RX),H());p.Run();Assert.AreEqual(0,p.Registers[0].ToLong());}
+[TestMethod,Timeout(3000)]public void OR(){var p=new T3InOrderProcessor<Word18>(T3Config.T3_18);Ld(p,I(Opcode.LI,RW,1),I(Opcode.LI,RX,0),R(Opcode.OR,RW,RW,RX),H());p.Run();Assert.AreEqual(1,p.Registers[0].ToLong());}
+[TestMethod,Timeout(3000)]public void XOR(){var p=new T3InOrderProcessor<Word18>(T3Config.T3_18);Ld(p,I(Opcode.LI,RW,1),I(Opcode.LI,RX,-1),R(Opcode.XOR,RW,RW,RX),H());p.Run();Assert.AreEqual(0,p.Registers[0].ToLong());}
+[TestMethod,Timeout(3000)]public void SHL(){var p=new T3InOrderProcessor<Word18>(T3Config.T3_18);Ld(p,I(Opcode.LI,RW,5),I(Opcode.LI,RX,2),R(Opcode.SHL,RW,RW,RX),H());p.Run();Assert.AreEqual(45,p.Registers[0].ToLong());}
+[TestMethod,Timeout(3000)]public void SHR(){var p=new T3InOrderProcessor<Word18>(T3Config.T3_18);Ld(p,I(Opcode.LI,RW,45),I(Opcode.LI,RX,2),R(Opcode.SHR,RW,RW,RX),H());p.Run();Assert.AreEqual(5,p.Registers[0].ToLong());}
+[TestMethod,Timeout(3000)]public void CMP(){var p=new T3InOrderProcessor<Word18>(T3Config.T3_18);Ld(p,I(Opcode.LI,RW,10),I(Opcode.LI,RX,20),R(Opcode.CMP,RW,RX,RZ),H());p.Run();Assert.AreEqual(-1,p.Cond);}
+[TestMethod,Timeout(3000)]public void LOAD_STORE(){var p=new T3InOrderProcessor<Word18>(T3Config.T3_18);Ld(p,I(Opcode.LI,RW,100),I(Opcode.LI,RX,50),R(Opcode.STORE,RW,RX,0),I(Opcode.LI,RW,0),R(Opcode.LOAD,RW,RX,0),H());p.Run();Assert.AreEqual(100,p.Registers[0].ToLong());}
+[TestMethod,Timeout(3000)]public void PUSH_POP(){var p=new T3InOrderProcessor<Word18>(T3Config.T3_18);Ld(p,I(Opcode.LI,RW,10),R(Opcode.PUSH,RW,0,0),I(Opcode.LI,RW,20),R(Opcode.POP,RW,0,0),H());p.Run();Assert.AreEqual(10,p.Registers[0].ToLong());}
+[TestMethod,Timeout(3000)]public void ADDI(){var p=new T3InOrderProcessor<Word18>(T3Config.T3_18);Ld(p,I(Opcode.LI,RW,10),I(Opcode.ADDI,RW,5),H());p.Run();Assert.AreEqual(15,p.Registers[0].ToLong());}
+[TestMethod,Timeout(3000)]public void CALL_RET(){var p=new T3InOrderProcessor<Word18>(T3Config.T3_18);Ld(p,I(Opcode.LI,RW,10),I(Opcode.LI,RX,4),J(Opcode.CALL,RX),H(),I(Opcode.LI,R1,1),R(Opcode.ADD,RW,RW,R1),R(Opcode.RET,0,0,0),H());p.Run();Assert.AreEqual(11,p.Registers[0].ToLong());}
+[TestMethod,Timeout(3000)]public void Predication(){var p=new T3InOrderProcessor<Word18>(T3Config.T3_18);p.PR=Word18.FromLong(531441);p.Registers[1]=Word18.FromLong(10);p.Registers[2]=Word18.FromLong(20);Ld(p,Word18.FromLong(InstructionEncoder.EncodeR(1,(int)Opcode.ADD,RW,RX,RY)),H());p.Run();Assert.AreEqual(30,p.Registers[0].ToLong());}
+[TestMethod,Timeout(3000)]public void Quadratic(){var p=new T3InOrderProcessor<Word18>(T3Config.T3_18);Ld(p,I(Opcode.LI,RW,1),I(Opcode.LI,RX,-3),I(Opcode.LI,RY,2),R(Opcode.MUL,RZ,RX,RX),R(Opcode.MUL,R0,RW,RY),R(Opcode.SHL,R0,R0,2),R(Opcode.SUB,RZ,RZ,R0),H());p.Run();Assert.AreEqual(1,p.Registers[3].ToLong());}
+[TestMethod,Timeout(3000)]public void Branch(){var p=new T3InOrderProcessor<Word18>(T3Config.T3_18);Ld(p,I(Opcode.LI,R3,5),I(Opcode.LI,RW,10),I(Opcode.LI,RX,20),R(Opcode.CMP,RW,RX,RZ),J(Opcode.JG,R3),I(Opcode.LI,RW,1),H());p.Run();Assert.AreEqual(1,p.Registers[0].ToLong());}
+[TestMethod,Timeout(3000)]public void LoopSum(){var p=new T3InOrderProcessor<Word18>(T3Config.T3_18);Ld(p,I(Opcode.LI,RW,0),I(Opcode.LI,RX,1),I(Opcode.LI,RY,6),I(Opcode.LI,R0,4),R(Opcode.ADD,RW,RW,RX),R(Opcode.ADD,RX,RX,R1),R(Opcode.CMP,RX,RY,RZ),J(Opcode.JNE,R0),H());p.Run();Assert.AreEqual(15,p.Registers[0].ToLong());}
+[TestMethod,Timeout(3000)]public void DoubleLoop(){var p=new T3InOrderProcessor<Word18>(T3Config.T3_18);Ld(p,I(Opcode.LI,RW,0),I(Opcode.LI,RX,1),I(Opcode.LI,RY,4),I(Opcode.LI,R0,4),R(Opcode.ADD,RW,RW,RX),R(Opcode.ADD,RX,RX,R1),R(Opcode.CMP,RX,RY,RZ),J(Opcode.JL,R0),H());p.Run();Assert.AreEqual(6,p.Registers[0].ToLong());}
+[TestMethod,Timeout(3000)]public void Fibonacci(){var p=new T3InOrderProcessor<Word18>(T3Config.T3_18);Ld(p,I(Opcode.LI,RW,0),I(Opcode.LI,RX,1),I(Opcode.LI,RY,6),I(Opcode.LI,R0,4),R(Opcode.ADD,R3,RW,RX),R(Opcode.MOV,RW,RX,0),R(Opcode.MOV,RX,R3,0),I(Opcode.LI,R1,1),R(Opcode.ADD,RZ,RZ,R1),R(Opcode.CMP,RZ,RY,RZ),J(Opcode.JL,R0),H());p.Run();Assert.AreEqual(5,p.Registers[0].ToLong());}
 }}

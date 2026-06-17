@@ -275,21 +275,7 @@ namespace T3Simulator.InOrder
                     break;
 
                 case Opcode.JMP:
-                    if (instr.Op3 != 0 && instr.Op2 != 0)
-                    {
-                        dynamic regVal = GetRegisterValue(instr.PhysOp2);
-                        PC = (int)regVal.ToLong();
-                    }
-                    else if (instr.Immediate != 0)
-                        PC += instr.Immediate;
-                    else
-                    {
-                        // fallback: check Operand2 as register
-                        if (op2 != 0 && op1 == 0)
-                            PC = (int)ToLong(GetRegisterValue(instr.PhysOp2));
-                        else
-                            PC += op1;
-                    }
+                    PC = (int)ToLong(GetRegisterValue(instr.PhysOp1));
                     IncrementCycles(1);
                     break;
                 
@@ -354,7 +340,7 @@ namespace T3Simulator.InOrder
                     WriteWord(SP, FromLong(PC + 1));
                     if (instr.Op2 != 0 && instr.Immediate == 0)
                     {
-                        dynamic regVal = GetRegisterValue(instr.PhysOp2);
+                        dynamic regVal = GetRegisterValue(instr.PhysOp1);
                         PC = (int)regVal.ToLong();
                     }
                     else
