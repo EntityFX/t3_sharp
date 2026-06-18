@@ -33,11 +33,17 @@ namespace T3Simulator.InOrder.Tests
 
         [TestMethod] [Timeout(5000)]public void Compile_SimpleArithmetic_Returns42() => Assert.AreEqual(42, CompileAndRun("tint main(){tint x=40;tint y=2;return x+y;}"));
         [TestMethod] [Timeout(5000)]public void Compile_While_SumTo5() => Assert.AreEqual(15, CompileAndRun("tint main(){tint s=0;tint i=1;while(i<=5){s=s+i;i=i+1;}return s;}"));
+        [TestMethod] [Timeout(5000)]public void Compile_While_SumMulti() => Assert.AreEqual(225, CompileAndRun("tint main() {	tint w=0;	tint z=1;	tint x=1;	tint y=1;	tint i=0;	while(i<=36){	    z = z + 1;	    x = x + 2;	    y = y + 3;		i=i+1;}	w = z + x + y;	return w;}"));
         [TestMethod] [Timeout(5000)]public void Compile_For_Factorial() => Assert.AreEqual(120, CompileAndRun("tint main(){tint r=1;tint i=1;while(i<=5){r=r*i;i=i+1;}return r;}"));
         [TestMethod][Timeout(5000)] public void Compile_NestedWhile_SumProd() => Assert.AreEqual(36, CompileAndRun("tint main(){tint s=0;tint i=1;while(i<=3){tint j=1;while(j<=3){s=s+i*j;j=j+1;}i=i+1;}return s;}"));
+        [TestMethod][Timeout(5000)] public void Compile_NestedWhile_SimpleSum() => Assert.AreEqual(9, CompileAndRun("tint main() { tint s=0; tint i=1; while(i<=3){ tint j=1; while(j<=3){ s=s+1;j=j+1;} i=i+1; } return s;}"));
+
+        [TestMethod][Timeout(5000)] public void Compile_NestedWhile_SimpleSumLong() => Assert.AreEqual(1296, CompileAndRun("tint main() { tint s=0; tint i=1; while(i<=36){ tint j=1; while(j<=36){ s=s+1;j=j+1;} i=i+1; } return s;}"));
+
         [TestMethod][Timeout(5000)] public void Compile_IfElse_Branch() { Assert.AreEqual(1, CompileAndRun("tint main(){tint x=10;if(x>5){return 1;}else{return -1;}}")); Assert.AreEqual(-1, CompileAndRun("tint main(){tint x=3;if(x>5){return 1;}else{return -1;}}")); }
         [TestMethod][Timeout(5000)] public void Compile_Fibonacci_Returns55() => Assert.AreEqual(55, CompileAndRun("tint main(){tint n=10;tint a=0;tint b=1;tint i=0;while(i<n){tint t=a+b;a=b;b=t;i=i+1;}return a;}"));
         [TestMethod][Timeout(5000)] public void Compile_Array_Sum() => Assert.AreEqual(15, CompileAndRun("tint main(){tint arr[5];arr[0]=1;arr[1]=2;arr[2]=3;arr[3]=4;arr[4]=5;return arr[0]+arr[1]+arr[2]+arr[3]+arr[4];}"));
+        [TestMethod][Timeout(5000)] public void Compile_Array_Mul() => Assert.AreEqual(120, CompileAndRun("tint main(){    tint arr[5];    arr[0]=1;    arr[1]=2;    arr[2]=3;    arr[3]=4;    arr[4]=5;   tint i = 0;    tint w = 1;    while (i < 5) {   w = w * arr[i];  i = i + 1; } return w;}"));
         [TestMethod][Timeout(5000)] public void Compile_Struct_FieldAccess() => Assert.AreEqual(30, CompileAndRun("struct Point{tint x;tint y;}tint main(){struct Point p;p.x=10;p.y=20;return p.x+p.y;}"));
         [TestMethod][Timeout(5000)] public void Compile_Pointer_Deref() => Assert.AreEqual(42, CompileAndRun("tint main(){tint v=42;tint* p=&v;return *p;}"));
         [TestMethod] [Timeout(5000)]public void Compile_Pointer_Arithmetic() => Assert.AreEqual(2, CompileAndRun("tint main(){tint arr[5];arr[0]=1;arr[1]=2;tint* p=&arr[0];p=p+1;return *p;}"));

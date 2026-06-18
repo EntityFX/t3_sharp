@@ -41,11 +41,11 @@ A comprehensive **.NET-based simulator suite** for ternary processors implementi
   - [Number Converter](#number-converter-1)
   - [CLI Commands](#cli-commands)
   - [Project Structure](#project-structure)
-  - [Building \& Testing](#building--testing)
+  - [Building & Testing](#building--testing)
     - [CI/CD](#cicd)
   - [Documentation](#documentation)
   - [Contributing](#contributing)
-  - [License \& Acknowledgments](#license--acknowledgments)
+  - [License & Acknowledgments](#license--acknowledgments)
 
 ---
 
@@ -341,7 +341,8 @@ T3Sharp/
 │   ├── t3-architecture.md              # Full architecture reference (EN)
 │   ├── t3-architecture.ru.md           # Full architecture reference (RU)
 │   ├── t3-isa-reference.md             # Instruction set reference (EN)
-│   └── t3-isa-reference.ru.md          # Instruction set reference (RU)
+│   ├── t3-isa-reference.ru.md          # Instruction set reference (RU)
+│   └── ternary-computing-documentation.md  # Scientific documentation on ternary computing
 ├── src/
 │   ├── TritTypes/                      # Core ternary types (Trit, Tryte, Word18, Word54)
 │   ├── T3Assembler/                    # T3 assembly language assembler
@@ -392,6 +393,7 @@ GitHub Actions pipeline automatically builds and runs all 269 tests on push/PR t
 | [docs/t3-architecture.ru.md](docs/t3-architecture.ru.md) | Russian | Full architecture reference |
 | [docs/t3-isa-reference.md](docs/t3-isa-reference.md) | English | Complete instruction set reference |
 | [docs/t3-isa-reference.ru.md](docs/t3-isa-reference.ru.md) | Russian | Complete instruction set reference |
+| [docs/ternary-computing-documentation.md](docs/ternary-computing-documentation.md) | English | Scientific documentation on ternary computing (balanced ternary math, arithmetic, logic) |
 
 ---
 
