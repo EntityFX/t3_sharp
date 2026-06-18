@@ -75,6 +75,12 @@ namespace TritTypes
 
         public override string ToString() => ToTritString();
 
+        public int GetTrit(int index)
+        {
+            if (index < 0 || index >= TritCount) throw new ArgumentOutOfRangeException(nameof(index));
+            return GetTrit(_value, index);
+        }
+
         /// <summary>
         /// Parse a balanced ternary string into a Word54.
         /// </summary>

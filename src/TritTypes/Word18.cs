@@ -65,6 +65,27 @@ namespace TritTypes
             return new string(chars);
         }
 
+        public int GetTrit(int index)
+        {
+            if (index < 0 || index >= TritCount) throw new ArgumentOutOfRangeException(nameof(index));
+            int v = _value;
+            for (int i = 0; i < index; i++)
+            {
+                int rem = v % 3;
+                if (rem == 2) v = (v + 1) / 3;
+                else if (rem == -2) v = (v - 1) / 3;
+                else if (rem == 1) v = (v - 1) / 3;
+                else if (rem == -1) v = (v + 1) / 3;
+                else v /= 3;
+            }
+            int finalRem = v % 3;
+            if (finalRem == 2) return -1;
+            if (finalRem == -2) return 1;
+            if (finalRem == 1) return 1;
+            if (finalRem == -1) return -1;
+            return 0;
+        }
+
         public override string ToString() => ToTritString();
 
         public static Word18 Parse(string s)

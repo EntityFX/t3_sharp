@@ -71,19 +71,9 @@ namespace T3Simulator.InOrder
         {
             // Extract the specific trit from the PR register.
             // Mapping: Predicate 1 -> Trit 12, Predicate 2 -> Trit 13, Predicate 3 -> Trit 14.
-            // Use ToTritString() as the most reliable way to extract a specific trit.
-            string s = PR.ToTritString();
             int targetTrit = predIndex + 11;
-
             if (targetTrit < 0 || targetTrit >= 18) return 0;
-
-            // Word18.ToTritString() stores trits in the order:
-            // s[0] = t_17, s[1] = t_16, ..., s[17] = t_0.
-            // Therefore, trit k is at index (17 - k).
-            int stringIdx = 17 - targetTrit;
-            char c = s[stringIdx];
-            
-            return c == '+' ? 1 : (c == '-' ? -1 : 0);
+            return PR.GetTrit(targetTrit);
         }
 
         private bool ExecuteInstruction(DecodedInstruction instr)

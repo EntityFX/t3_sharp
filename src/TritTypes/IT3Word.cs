@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace TritTypes
 {
@@ -17,6 +17,8 @@ namespace TritTypes
         
         string ToTritString();
 
+        int GetTrit(int index);
+        
         // Unary operations
         TSelf Negate();
 
