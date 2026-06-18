@@ -76,7 +76,6 @@
 - Лейблы разрешаются backpatching
 
 ## Тесты
-
 - **TritTypes.Tests**: тесты Word18 арифметики
 - **Common.Tests**: тесты Encoder/Decoder round-trip
 - **InOrderInstructionTests**: каждая инструкция → Word18[] → run → verify
