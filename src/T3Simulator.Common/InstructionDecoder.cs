@@ -56,6 +56,7 @@ namespace T3Simulator.Common
                 op1 = (int)Math.Round(val / (double)P3_6, MidpointRounding.AwayFromZero);
                 val -= (long)op1 * P3_6;
                 op2 = (int)Math.Round(val / 1.0, MidpointRounding.AwayFromZero);
+                imm = op2;
             }
             else
             {

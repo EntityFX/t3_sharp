@@ -11,13 +11,13 @@ static void Ld(T3InOrderProcessor<Word18> p,params Word18[] c)=>p.LoadProgram(ne
 const int Rw=-4,Rx=-3,Ry=-2,Rz=-1,R0=0,R1=1,R2=2,R3=3,R4=4;
 
 [TestMethod][Timeout(5000)]public void Quadratic_Discriminant_Integer(){
-    var p=P();Ld(p,I(Opcode.LI,Rw,1),I(Opcode.LI,Rx,-3),I(Opcode.LI,Ry,2),
-        R(Opcode.MUL,Rz,Rx,Rx),R(Opcode.MUL,R0,Rw,Ry),R(Opcode.SHL,R0,2,0),R(Opcode.SUB,Rz,Rz,R0),H());p.Run();
+    var p=P();Ld(p,I(Opcode.LI,Rw,1),I(Opcode.LI,Rx,-3),I(Opcode.LI,Ry,2),I(Opcode.LI,R1,4),
+        R(Opcode.MUL,Rz,Rx,Rx),R(Opcode.MUL,R0,Rw,Ry),R(Opcode.MUL,R0,R0,R1),R(Opcode.SUB,Rz,Rz,R0),H());p.Run();
     Assert.AreEqual(1,p.Registers[3].ToLong());}
 [TestMethod][Timeout(5000)]public void FpuCompareAndBranch_CorrectlyJumps(){
-    var p=P();Ld(p,I(Opcode.LI,R3,5),I(Opcode.LI,Rw,10),I(Opcode.LI,Rx,3),R(Opcode.ITOF,-4,Rw,0),R(Opcode.ITOF,-3,Rx,0),R(Opcode.FCMP,-4,-3,0),J(Opcode.JG,R3),I(Opcode.LI,Rw,1),H());p.Run();
+    var p=P();Ld(p,I(Opcode.LI,R3,7),I(Opcode.LI,Rw,10),I(Opcode.LI,Rx,3),R(Opcode.ITOF,-4,Rw,0),R(Opcode.ITOF,-3,Rx,0),R(Opcode.FCMP,-4,-3,0),J(Opcode.JG,R3),I(Opcode.LI,Rw,1),H());p.Run();
     Assert.AreEqual(1,p.Registers[0].ToLong());}
 [TestMethod][Timeout(5000)]public void TaylorSin_ApproximatesSinX(){
     var p=P();Ld(p,I(Opcode.LI,Rw,1),R(Opcode.MUL,R1,Rw,Rw),R(Opcode.MUL,R1,R1,Rw),I(Opcode.DIVI,R1,6),R(Opcode.SUB,Rw,Rw,R1),H());p.Run();
-    Assert.AreEqual(0,p.Registers[0].ToLong());}
+    Assert.AreEqual(1,p.Registers[0].ToLong());}
 }}

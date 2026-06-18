@@ -26,15 +26,15 @@ namespace TritTypes
 
         private Word18(int value, bool raw) { _value = value; }
 
-        private static Word18 FromWrapped(int value) => new Word18(Wrap(value), true);
+        private static Word18 FromWrapped(long value) => new Word18(Wrap(value), true);
 
-        private static int Wrap(int value)
+        private static int Wrap(long value)
         {
-            const int range = 387420489;
-            const int offset = 193710244;
-            int normalized = (value + offset) % range;
+            const long range = 387420489;
+            const long offset = 193710244;
+            long normalized = (value + offset) % range;
             if (normalized < 0) normalized += range;
-            return normalized - offset;
+            return (int)(normalized - offset);
         }
 
         public static Word18 FromLong(long value) => new Word18((int)value);
@@ -79,7 +79,7 @@ namespace TritTypes
         // Arithmetic
         public static Word18 operator +(Word18 a, Word18 b) => FromWrapped(a._value + b._value);
         public static Word18 operator -(Word18 a, Word18 b) => FromWrapped(a._value - b._value);
-        public static Word18 operator *(Word18 a, Word18 b) => FromWrapped(a._value * b._value);
+        public static Word18 operator *(Word18 a, Word18 b) => FromWrapped((long)a._value * b._value);
         public static Word18 operator /(Word18 a, Word18 b)
         {
             if (b._value == 0) throw new DivideByZeroException();
@@ -120,11 +120,22 @@ namespace TritTypes
             int result = 0, power = 1, ta = a._value, tb = b._value;
             for (int i = 0; i < TritCount; i++)
             {
-                int Trit(int v) => v % 3 switch { 2 => -1, -2 => 1, var x => x };
-                result += op(Trit(ta), Trit(tb)) * power;
-                ta = (ta - ta % 3) / 3; tb = (tb - tb % 3) / 3; power *= 3;
+                int tA = ExtractTrit(ref ta);
+                int tB = ExtractTrit(ref tb);
+                result += op(tA, tB) * power;
+                power *= 3;
             }
             return FromWrapped(result);
+        }
+
+        private static int ExtractTrit(ref int v)
+        {
+            int rem = v % 3;
+            if (rem == 2) { v = (v + 1) / 3; return -1; }
+            if (rem == -2) { v = (v - 1) / 3; return 1; }
+            if (rem == 1) { v = (v - 1) / 3; return 1; }
+            if (rem == -1) { v = (v + 1) / 3; return -1; }
+            v /= 3; return 0;
         }
 
         // Equality & comparison

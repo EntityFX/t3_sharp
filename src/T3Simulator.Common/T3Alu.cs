@@ -16,30 +16,25 @@ namespace T3Simulator.Common
         {
             dynamic da = a;
             dynamic db = b;
-
             switch (op)
             {
-            case Opcode.ADD: return (TWord)(object)(da + db);
-            case Opcode.SUB: return (TWord)(object)(da - db);
-            case Opcode.MUL: return (TWord)(object)(da * db);
-            case Opcode.DIV: return (TWord)(object)(da / db);
-            case Opcode.MOD: return (TWord)(object)(da % db);
-            case Opcode.NEG: return (TWord)(object)(-da);
+                case Opcode.ADD: return (TWord)(object)(da + db);
+                case Opcode.SUB: return (TWord)(object)(da - db);
+                case Opcode.MUL: return (TWord)(object)(da * db);
+                case Opcode.DIV: return (TWord)(object)(da / db);
+                case Opcode.MOD: return (TWord)(object)(da % db);
+                case Opcode.NEG: return (TWord)(object)(-da);
                 case Opcode.MOV: return b;
                 case Opcode.LI: return b;
                 
-                // Tritwise operations
-                case Opcode.AND: return (TWord)TritAndInternal(da, db);
-                case Opcode.OR: return (TWord)TritOrInternal(da, db);
-                case Opcode.XOR: return (TWord)TritXorInternal(da, db);
+                case Opcode.AND: return (TWord)TritAndInternal(a, b);
+                case Opcode.OR: return (TWord)TritOrInternal(a, b);
+                case Opcode.XOR: return (TWord)TritXorInternal(a, b);
                 
-                // Shifts
                 case Opcode.SHL:
-                    int shiftL = (int)db.ToLong();
-                    return (TWord)(object)(da << shiftL);
+                    return (TWord)(object)(da << (int)db.ToLong());
                 case Opcode.SHR:
-                    int shiftR = (int)db.ToLong();
-                    return (TWord)(object)(da >> shiftR);
+                    return (TWord)(object)(da >> (int)db.ToLong());
                 
                 default:
                     throw new NotSupportedException($"ALU does not support opcode {op}. Use specialized handlers for Control Flow/Memory.");
@@ -52,9 +47,12 @@ namespace T3Simulator.Common
         /// </summary>
         public static int Compare<TWord>(TWord a, TWord b) where TWord : IT3Word<TWord>
         {
-            dynamic da = a;
-            dynamic db = b;
-            return da > db ? 1 : (da < db ? -1 : 0);
+            return (a, b) switch
+            {
+                (Word18 wa, Word18 wb) => wa > wb ? 1 : (wa < wb ? -1 : 0),
+                (Word54 wa, Word54 wb) => wa > wb ? 1 : (wa < wb ? -1 : 0),
+                _ => ((dynamic)a > (dynamic)b) ? 1 : (((dynamic)a < (dynamic)b) ? -1 : 0)
+            };
         }
 
         // Specialized methods for clarity and direct access
@@ -75,14 +73,16 @@ namespace T3Simulator.Common
 
         public static TWord ShiftLeft<TWord>(TWord a, int shift) where TWord : IT3Word<TWord>
         {
-            dynamic da = a;
-            return (TWord)(da << shift);
+            if (a is Word18 wa) return (TWord)(object)(wa << shift);
+            if (a is Word54 wa54) return (TWord)(object)(wa54 << shift);
+            throw new NotSupportedException($"Unsupported type for ShiftLeft: {a.GetType()}");
         }
 
         public static TWord ShiftRight<TWord>(TWord a, int shift) where TWord : IT3Word<TWord>
         {
-            dynamic da = a;
-            return (TWord)(da >> shift);
+            if (a is Word18 wa) return (TWord)(object)(wa >> shift);
+            if (a is Word54 wa54) return (TWord)(object)(wa54 >> shift);
+            throw new NotSupportedException($"Unsupported type for ShiftRight: {a.GetType()}");
         }
 
         private static dynamic TritAndInternal(dynamic a, dynamic b)
