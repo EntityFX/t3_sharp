@@ -29,7 +29,7 @@ namespace T3Assembler
             if(IsJumpMnemonic(mn)){
                 string opn=ip.Length>1?ip[1]:"0";
                 if(IsRegister(opn)){long enc=InstructionEncoder.EncodeJ(pred,(int)op,GetRegisterTrit(opn));return new List<Int128>{enc};}
-                else if(_labels.ContainsKey(opn)){long tgt=(long)ResolveOperandValue(opn);imm=tgt-(pc+1);long enc=InstructionEncoder.EncodeI(pred,(int)op,0,imm);return new List<Int128>{enc};}
+                else if(_labels.ContainsKey(opn)){long tgt=(long)ResolveOperandValue(opn);imm=tgt-pc;long enc=InstructionEncoder.EncodeI(pred,(int)op,0,imm);return new List<Int128>{enc};}
                 else{imm=(long)ResolveOperandValue(opn);long enc=InstructionEncoder.EncodeI(pred,(int)op,0,imm);return new List<Int128>{enc};}
             }
             else if(mn=="LI"){long rv=(long)ResolveOperandValue(ip.Length>2?ip[2]:"0");if(rv>364||rv<-364)return new List<Int128>{InstructionEncoder.EncodeR(pred,(int)Opcode.LIMM,op1,0,0),ResolveOperandValue(ip[2])};return new List<Int128>{InstructionEncoder.EncodeI(pred,(int)Opcode.LI,op1,rv)};}
