@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-14  
 **Author:** T3 Research Team  
-**Scope:** Processor (T3‑18/T3‑54), Assembler (T3Assembler), Language (T‑lang compiler)  
+**Scope:** Processor (T3‑18/T3‑54), Assembler (T3Assembler), Language (T‑lang compiler)
 
 ---
 
@@ -903,7 +903,7 @@ tint main() { tint c = RED; return c + GREEN; }
 
 **Target State:** `-O0` (fast compile, no opts), `-O1` (constant folding, DCE), `-O2` (CSE, inlining).
 
-**Effort:** ~150 LOC, ~3 hours
+**Effort:** ~150 LOC, ~2 hours
 
 ---
 
@@ -1005,7 +1005,7 @@ New Files:
 ### Phase 1 — Critical / Foundational (Weeks 1–4)
 
 | Week | Deliverables | Tests Added |
-|------|-------------|-------------|
+|------|-------------|--------------|
 | 1 | CPU: JLE/JGE, NOP, PUSHI (CPU‑05,08,09). ASM: expressions, .equ, .align, .org (ASM‑03‑06,10‑11). TL: switch, do‑while, array init (TL‑04,09,10) | 8 |
 | 2 | TL: stdlib (TL‑01), float literals (TL‑02), strings (TL‑03) | 4 |
 | 3 | TL: caller‑save (TL‑15), LIMM fix (TL‑16), error messages (TL‑18) | 2 |
@@ -1016,7 +1016,7 @@ New Files:
 ### Phase 2 — Quality (Weeks 5–8)
 
 | Week | Deliverables | Tests Added |
-|------|-------------|-------------|
+|------|-------------|--------------|
 | 5‑6 | CPU: register windowing (CPU‑03). TL: register allocator (TL‑13). TL: optimizations (TL‑14) | 3 |
 | 7 | ASM: linker (ASM‑02), debug info (ASM‑07). TL: enum, typedef, casts, sizeof (TL‑05‑08) | 6 |
 | 8 | CPU: FPU interrupts (CPU‑11), rounding modes (CPU‑14). TL: ternary (TL‑11), goto (TL‑12), symbol table (TL‑17) | 3 |
@@ -1065,7 +1065,7 @@ New Files:
 │  │ FETCH    │──▶│ DECODE   │──▶│ EXECUTE  │──▶│ MEMORY / WB     │ │
 │  │ I‑Cache  │   │ 3‑wide   │   │ ALU+FPU  │   │ D‑Cache + MMU   │ │
 │  │ 4KB      │   │          │   │ 27 regs  │   │ TLB 16 entries   │ │
-│  └──────────┘   └──────────┘   └──────────┘   └──────────────────┘ │
+│  └──────────┘ └───────────┘ └──────────┘ └──────────────────┘ │
 │       ▲                                               │             │
 │       │               ┌──────────────┐                │             │
 │       └───────────────│ INTERRUPT    │◀───────────────┘             │
@@ -1074,23 +1074,23 @@ New Files:
 │                       └──────────────┘                               │
 │  ┌──────────────────────────────────────────────────────────────┐   │
 │  │ SPECIAL REGISTERS: PC | SP | Cond | PR(9) | SR | FSR | WP   │   │
-│  └──────────────────────────────────────────────────────────────┘   │
-│  ┌──────────────────────────────────────────────────────────────┐   │
-│  │ I/O PORTS (0‑255): stdout|stdin|stderr|timer|MMU|FPU|DMA    │   │
-│  └──────────────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────────┘
+│  └─────────────────────────────────────────────────────────────┘ │
+│  ┌────────────────────────────────────────────────────────────────┐ │
+│  │ I/O PORTS (0‑255): stdout|stdin|stderr|timer|MMU|FPU|DMA    │ │
+│  └────── spectrometers ────────────────────────────────────────┘ │
+└────────────────────────────────────────────────────────────────────┘
 
-┌─────────────────────────────────────────────────────────────────────┐
+┌─────────────────────────────────────────────────────────────┐
 │                     T‑LANG COMPILER TARGET                          │
-├─────────────────────────────────────────────────────────────────────┤
+├───────────────────────────────────────────────────────────────────┤
 │  Source(.t) → Preprocessor → Lexer → Parser → Semantic Analyzer     │
 │  → AST Optimizer → Register Allocator → Code Generator → Assembler  │
 │  → Linker → Binary                                                   │
 │                                                                      │
 │  Libraries: tio.asm | tmath.asm | tstring.asm | tlimits.th          │
-│  Optimizations: -O0 (none) | -O1 (CSE+fold) | -O2 (inline)         │
+│  Optimizations: -O0 (none) | -O1 (CSE+fold) | -O2 (inline)          │
 │  Diagnostics: -Wall -Werror -Wextra                                 │
-└─────────────────────────────────────────────────────────────────────┘
+└───────────────────────────────────────────────────────────────────┘
 ```
 
 ---
