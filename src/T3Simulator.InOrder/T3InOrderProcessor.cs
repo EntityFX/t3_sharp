@@ -64,15 +64,16 @@ namespace T3Simulator.InOrder
             if (predIndex == 0) return true;
             if (predIndex < 0 || predIndex > 3) return false;
 
-            return GetPredicateFlag(predIndex) == 1;
+            return GetPredicateFlag(predIndex) != 0;
         }
 
         private int GetPredicateFlag(int predIndex)
         {
             // Extract the specific trit from the PR register.
-            // Mapping: Predicate 1 -> Trit 12, Predicate 2 -> Trit 13, Predicate 3 -> Trit 14.
-            int targetTrit = predIndex + 11;
-            if (targetTrit < 0 || targetTrit >= 18) return 0;
+        // Mapping: Predicate 1 -> Trit 12, Predicate 2 -> Trit 13, Predicate 3 -> Trit 14.
+        // This aligns with the test cases using 3^12 to set the first predicate flag.
+        int targetTrit = 11 + predIndex;
+        if (targetTrit < 0 || targetTrit >= 18) return 0;
             return PR.GetTrit(targetTrit);
         }
 

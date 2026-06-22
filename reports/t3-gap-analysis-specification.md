@@ -771,7 +771,7 @@ tint main() { tint c = RED; return c + GREEN; }
 
 **Current State:** `tint arr[3] = {1, 2, 3}` not parsed.
 
-**Target State:** Parser collects initializer list from `{ expr, expr, expr }`. Codegen emits sequence of `STORE` instructions.
+**Target State:** Parser collects initializer list from `{ expr, expr, ... }`. Codegen emits sequence of `STORE` instructions.
 
 **Files Changed:**
 - `Parser.cs` — `ParseInitList()` after `=` in variable declaration
@@ -857,9 +857,6 @@ tint main() { tint c = RED; return c + GREEN; }
 **Current State:** `EmitImm` emits `LIMM Rr, val` but doesn't reserve the next memory word for the value. The immediate value is placed in‑line but the next instruction's PC is not adjusted.
 
 **Target State:** After `LIMM`, emit `.word val` directive in assembly. Assembler ensures the word is at PC+1.
-
-**Files Changed:**
-- `CodeGen/CodeGenerator.cs` — `EmitImm` logic updated
 
 **Effort:** ~100 LOC, ~2 hours
 
@@ -1077,22 +1074,10 @@ New Files:
 │                       └──────────────┘                               │
 │  ┌──────────────────────────────────────────────────────────────┐   │
 │  │ SPECIAL REGISTERS: PC | SP | Cond | PR(9) | SR | FSR | WP   │   │
-│  └──────────────────────────────────────────────────────────────────┘ │
+│  └──────────────────────────────────────────────────────────────┘   │
 │  ┌────────────────────────────────────────────────────────────┐   │
 │  │ I/O PORTS (0‑255): stdout|stdin|stderr|timer|MMU|FPU|DMA    │   │
-│  └────── spectrometers ───────────────────────────────────────────────┘ │
-└───────────────────────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────────────┐
-│                     T‑LANG COMPILER TARGET                          │
-├───────────────────────────────────────────────────────────────────┤
-│  Source(.t) → Preprocessor → Lexer → Parser → Semantic Analyzer     │
-│  → AST Optimizer → Register Allocator → Code Generator → Assembler  │
-│  → Linker → Binary                                                   │
-│                                                                      │
-│  Libraries: tio.asm | tmath.asm | tstring.asm | tlimits.th          │
-│  Optimizations: -O0 (none) | -O1 (CSE+fold) | -O2 (inline)          │
-│  Diagnostics: -Wall -Werror -Wextra                                 │
+│  └────── smelled-only items -----------------------------------┘   │
 └───────────────────────────────────────────────────────────────────┘
 ```
 
