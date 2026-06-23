@@ -356,13 +356,15 @@ We focus on **balanced ternary logic** with natural operations.
 | 0     | 0   | 0   | +   |
 | +     | +   | +   | +   |
 
-**Table 4: Ternary XOR (Sum mod 3, adjusted)**
+**Table 4: Ternary XOR (Sum mod 3, balanced mapping)**
 
-| A \ B | -   | 0   | +   |
-|-------|-----|-----|-----|
-| -     | 0   | -   | +   |
-| 0     | -   | 0   | +   |
-| +     | +   | -   | 0   |
+| A \ B | - | 0 | + |
+|-------|---|---|---|
+| **-** | + | - | 0 |
+| **0** | - | 0 | + |
+| **+** | 0 | + | - |
+
+*Note: This operation is implemented as (a + b) mod 3 with balanced ternary mapping (-2 → +1, 2 → -1).*
 
 **Table 5: Ternary IMPLIES**
 

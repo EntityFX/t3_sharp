@@ -7,6 +7,8 @@ namespace T3Simulator.Common
     /// Encodes instructions into 18-trit words without string operations.
     /// Format: [Pred(3)] [Opcode(6)] [Args(9)]
     /// Value = pred*3^15 + opcode*3^9 + args
+    /// The args sub-fields are encoded as unsigned balanced ternary to prevent field bleeding.
+    /// Pred and opcode are used as-is (they are non-negative in practice).
     /// </summary>
     public static class InstructionEncoder
     {
@@ -17,45 +19,48 @@ namespace T3Simulator.Common
         private const long P3_6  = 729L;      // 3^6
         private const long P3_3  = 27L;       // 3^3
 
+        // Ranges for balanced ternary fields
+        private const long RANGE_3 = 27L;     // 3^3
+        private const long RANGE_6 = 729L;    // 3^6
+
+        // Offsets for balanced ternary (range-1)/2
+        private const long OFFSET_3 = 13L;    // (27-1)/2
+        private const long OFFSET_6 = 364L;   // (729-1)/2
+
+        /// <summary>
+        /// Converts a signed balanced ternary value to unsigned representation for a field of given width.
+        /// The result is in range [0, 3^width - 1].
+        /// This prevents negative values from bleeding into adjacent fields.
+        /// </summary>
+        private static long ToUnsignedField(long value, long range, long offset)
+        {
+            if (value < -offset) value = -offset;
+            if (value > offset) value = offset;
+            return value + offset;
+        }
+
         /// <summary>R-type: [Pred(3)][Opcode(6)][Op1(3)][Op2(3)][Op3(3)]</summary>
         public static long EncodeR(int pred, int opcode, int op1, int op2, int op3)
         {
-            return pred * P3_15 + opcode * P3_9 + (ToTernary(op1) * P3_6 + ToTernary(op2) * P3_3 + ToTernary(op3));
+            long args = ToUnsignedField(op1, RANGE_3, OFFSET_3) * P3_6
+                      + ToUnsignedField(op2, RANGE_3, OFFSET_3) * P3_3
+                      + ToUnsignedField(op3, RANGE_3, OFFSET_3);
+            return pred * P3_15 + opcode * P3_9 + args;
         }
 
         /// <summary>I-type: [Pred(3)][Opcode(6)][Op1(3)][Imm(6)]</summary>
         public static long EncodeI(int pred, int opcode, int op1, long imm)
         {
-            long args = ToTernary(op1) * P3_6 + ExtendedTernary(imm, 6);
+            long args = ToUnsignedField(op1, RANGE_3, OFFSET_3) * P3_6
+                      + ToUnsignedField(imm, RANGE_6, OFFSET_6);
             return pred * P3_15 + opcode * P3_9 + args;
         }
 
         /// <summary>J-type (register-indirect): [Pred(3)][Opcode(6)][Reg(3)][000000]</summary>
         public static long EncodeJ(int pred, int opcode, int reg)
         {
-            long args = ToTernary(reg) * P3_6;
+            long args = ToUnsignedField(reg, RANGE_3, OFFSET_3) * P3_6;
             return pred * P3_15 + opcode * P3_9 + args;
-        }
-
-        /// <summary>Convert trit value (-4..+4) to its balanced ternary representation value.</summary>
-        private static long ToTernary(int tritValue)
-        {
-            if (tritValue < -4) tritValue = -4;
-            if (tritValue > 4) tritValue = 4;
-            return tritValue;
-        }
-
-        /// <summary>Convert immediate to a 6-trit balanced ternary value in range [-364, 364]</summary>
-        private static long ExtendedTernary(long value, int trits)
-        {
-            long maxVal = 1;
-            for (int i = 0; i < trits; i++) maxVal *= 3;
-            maxVal = (maxVal - 1) / 2; // range [-maxVal, +maxVal]
-            long minVal = -maxVal;
-            if (value < minVal) value = minVal;
-            if (value > maxVal) value = maxVal;
-            
-            return value;
         }
 
         // Word18 wrappers

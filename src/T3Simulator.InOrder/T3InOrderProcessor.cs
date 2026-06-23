@@ -69,11 +69,13 @@ namespace T3Simulator.InOrder
 
         private int GetPredicateFlag(int predIndex)
         {
-            // Extract the specific trit from the PR register.
-        // Mapping: Predicate 1 -> Trit 12, Predicate 2 -> Trit 13, Predicate 3 -> Trit 14.
-        // This aligns with the test cases using 3^12 to set the first predicate flag.
-        int targetTrit = 11 + predIndex;
-        if (targetTrit < 0 || targetTrit >= 18) return 0;
+            // Stabilized Predication Mapping:
+            // Predicate 1 -> Trit 0
+            // Predicate 2 -> Trit 1
+            // Predicate 3 -> Trit 2
+            // This aligns with the architectural specification PR[pred-1].
+            int targetTrit = predIndex - 1;
+            if (targetTrit < 0 || targetTrit >= 18) return 0;
             return PR.GetTrit(targetTrit);
         }
 
@@ -322,19 +324,30 @@ namespace T3Simulator.InOrder
                     return false;
                 
                 case Opcode.CALL:
+                    // Robust CALL implementation for recursion and deep nesting.
+                    // We ensure SP is decremented and the return address is saved.
                     SP -= 1;
+                    if (SP < 0) throw new StackOverflowException("T3 Processor Stack Underflow: SP became negative.");
+                    
                     WriteWord(SP, FromLong(PC + 1));
+                    
                     if (instr.Immediate == 0)
                     {
                         PC = (int)ToLong(GetRegisterValue(instr.PhysOp1));
                     }
                     else
+                    {
                         PC += instr.Immediate;
+                    }
                     IncrementCycles(2);
                     return true;
 
                 case Opcode.RET:
-                    PC = ToLong(ReadWord(SP));
+                    // Robust RET implementation.
+                    if (SP < 0) throw new StackOverflowException("T3 Processor Stack Underflow: RET called with negative SP.");
+                    
+                    TWord retAddrWord = ReadWord(SP);
+                    PC = (int)ToLong(retAddrWord);
                     SP += 1;
                     IncrementCycles(2);
                     return true;

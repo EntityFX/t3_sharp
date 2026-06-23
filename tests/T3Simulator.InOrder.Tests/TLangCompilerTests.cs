@@ -63,5 +63,6 @@ namespace T3Simulator.InOrder.Tests
             Assert.AreEqual(120, CompileAndRun(File.ReadAllText(p)));
         }
         [TestMethod][Timeout(5000)] public void Compile_PointerArrayStruct() => Assert.AreEqual(10, CompileAndRun("struct Vec{tint a;tint b;}tint main(){struct Vec v;v.a=7;v.b=3;tint* pa=&v.a;tint* pb=&v.b;return *pa+*pb;}"));
+
     }
 }

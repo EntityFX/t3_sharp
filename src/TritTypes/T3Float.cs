@@ -19,21 +19,22 @@ namespace TritTypes
 
         public static T3Float FromWord18(Word18 word)
         {
-            string s = word.ToTritString();
-            string expPart = s.Substring(0, 6);
-            string mantPart = s.Substring(6, 12);
-            
-            return new T3Float(
-                BalancedTernary.ParseToLong(expPart),
-                BalancedTernary.ParseToLong(mantPart)
-            );
+            // T3Float format: exponent in upper 6 trits (positions 12-17), mantissa in lower 12 trits (positions 0-11).
+            // The combined value = exponent * 3^12 + mantissa (direct linear encoding).
+            // Division and modulo correctly separate the fields because the encoding is linear.
+            long pow12 = (long)TernaryMath.Pow3(12);
+            long raw = word.ToLong();
+            long exponent = raw / pow12;
+            long mantissa = raw % pow12;
+            return new T3Float(exponent, mantissa);
         }
 
         public Word18 ToWord18()
         {
-            string s = BalancedTernary.ToTernaryString(Exponent, 6) + 
-                       BalancedTernary.ToTernaryString(Mantissa, 12);
-            return Word18.FromTritString(s);
+            // T3Float format: exponent in upper 6 trits (positions 12-17), mantissa in lower 12 trits (positions 0-11).
+            // Direct linear encoding: value = exponent * 3^12 + mantissa.
+            long encoded = Exponent * (long)TernaryMath.Pow3(12) + Mantissa;
+            return Word18.FromLong(encoded);
         }
 
         public double ToDouble()

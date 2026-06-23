@@ -6,19 +6,104 @@
 [Pred (3)] [Opcode (6)] [Args (9)]
 ```
 
+Все поля хранятся в 18-тритном слове. Поля Pred и Opcode хранятся как raw unsigned (беззнаковые целые). Поля аргументов хранятся как signed balanced ternary (сбалансированные троичные) со смещением.
+
+### Детали кодирования полей
+
+| Поле | Позиция (LSB) | Ширина (триты) | Тип | Диапазон |
+|------|---------------|----------------|-----|----------|
+| Pred | 15 | 3 | Raw unsigned | 0..13 |
+| Opcode | 9 | 6 | Raw unsigned | 0..364 |
+| Args | 0 | 9 | Raw unsigned → sub-fields | 0..9841 |
+
+**Args sub-fields**:
+- **R-type**: `[Op1(3)] [Op2(3)] [Op3(3)]` — каждый balanced, диапазон ±4
+- **I-type**: `[Op1(3)] [Imm(6)]` — Op1 balanced (±4), Imm balanced (±364)
+- **J-type**: `[Reg(3)] [000000]` — Reg balanced (±4), 6 тритов padding (всегда 0)
+
+### Encoder (InstructionEncoder)
+
+```csharp
+// Все signed значения конвертируются в unsigned через ToUnsignedField:
+// unsigned = signed + offset, где offset = (3^width - 1) / 2
+long EncodeR(int pred, int opcode, int op1, int op2, int op3)
+long EncodeI(int pred, int opcode, int op1, long imm)
+long EncodeJ(int pred, int opcode, int reg)
+```
+
+**ToUnsignedField**: `value + offset` где `offset = (3^width - 1) / 2`.
+- Для 3 тритов: offset = 4, диапазон signed: ±4 → unsigned: 0..8
+- Для 6 тритов: offset = 13, диапазон signed: ±13 → unsigned: 0..26 (I-type imm)
+- Для 6 тритов: offset = 364, диапазон signed: ±364 → unsigned: 0..728 (LI imm)
+
+### Decoder (InstructionDecoder)
+
+```csharp
+DecodedInstruction Decode(Word18 word)
+DecodedInstruction Decode(Word54 word)  // использует Word18.FromWrappedLong()
+```
+
+**Процесс декодирования**:
+1. Извлечь Pred: `ExtractRawField(word, 15, 3)` — raw unsigned
+2. Извлечь Opcode: `ExtractRawField(word, 9, 6)` — raw unsigned
+3. Извлечь Args: `ExtractRawField(word, 0, 9)` — raw unsigned
+4. В зависимости от типа (R/I/J):
+   - **R-type**: Извлечь Op1/Op2/Op3 из Args как raw unsigned (3 трита каждый), затем конвертировать в balanced: `value - 4`
+   - **I-type**: Извлечь Op1 (3 трита) и Imm (6 тритов) из Args, конвертировать в balanced: Op1 -= 4, Imm -= 13
+   - **J-type**: Извлечь Reg (3 трита) из Args, конвертировать в balanced: Reg -= 4. Imm = 0 (padding)
+
+**Важно**: Для J-type imm всегда равен 0. 6 тритов padding в младших разрядах Args гарантированно равны 0, но decoder устанавливает imm = 0 явно.
+
+### ExtractRawField и ExtractBalancedField
+
+```csharp
+// Извлекает raw unsigned значение поля: (value / 3^startPos) % 3^width
+Int128 ExtractRawField(Int128 value, int startPos, int width)
+
+// Извлекает balanced значение поля: ExtractRawField(...) - (3^width - 1) / 2
+Int128 ExtractBalancedField(Int128 value, int startPos, int width)
+```
+
+**ExtractBalancedField** предназначен для полей, которые были закодированы как unsigned (value + offset). Он НЕ подходит для извлечения полей из сбалансированного троичного числа, где поля хранятся как signed значения (например, T3Float).
+
+### ExtractBalancedTrit
+
+```csharp
+int ExtractBalancedTrit(Int128 value, int position)
+```
+
+Извлекает один сбалансированный трит из значения на заданной позиции (0 = LSB). Использует алгоритм сбалансированного троичного переноса:
+- Итерирует от позиции 0 до запрошенной позиции
+- На каждом шаге: `rem = remaining % 3`
+  - rem == 2 → trit = -1, remaining = (remaining + 1) / 3 (перенос +1)
+  - rem == -2 → trit = +1, remaining = (remaining - 1) / 3 (перенос -1)
+  - rem == 1 → trit = +1, remaining = (remaining - 1) / 3
+  - rem == -1 → trit = -1, remaining = (remaining + 1) / 3
+  - rem == 0 → trit = 0, remaining = remaining / 3
+
+**Важно**: Эта функция корректно обрабатывает переносы (carry propagation), в отличие от старой реализации, которая использовала `(value / 3^position) % 3` и не учитывала переносы из младших позиций.
+
+## Регистры
+
 Registers encoded by trit value (-4..+4). Phys index = trit + 4.
 
-| Name | Trit | Phys | FPU |
-|------|------|------|-----|
-| RW | -4 | 0 | FW |
-| RX | -3 | 1 | FX |
-| RY | -2 | 2 | FY |
-| RZ | -1 | 3 | FZ |
-| R0 | 0 | 4 | F0 |
-| R1 | +1 | 5 | F1 |
-| R2 | +2 | 6 | F2 |
-| R3 | +3 | 7 | F3 |
-| R4 | +4 | 8 | F4 |
+| Name | Trit | Phys | FPU | Назначение | Caller-saved |
+|------|------|------|-----|-----------|--------------|
+| RW | -4 | 0 | FW | Временный | Да |
+| RX | -3 | 1 | FX | Временный | Да |
+| RY | -2 | 2 | FY | Временный | Да |
+| RZ | -1 | 3 | FZ | Временный | Да |
+| R0 | 0 | 4 | F0 | Временный | Да |
+| R1 | +1 | 5 | F1 | Call temp | Да |
+| R2 | +2 | 6 | F2 | Return value | Нет |
+| R3 | +3 | 7 | F3 | Временный | Да |
+| R4 | +4 | 8 | F4 | Address register | Да |
+
+Специальные регистры:
+- **SP**: Stack Pointer (растёт вниз, инициализируется MemSize-1)
+- **PC**: Program Counter
+- **Cond**: 1 трит (-1/0/+1), результат сравнения
+- **PR**: 9 тритов, 3 группы предикации (p0=триты 0-2, p1=триты 3-5, p2=триты 6-8)
 
 ## Opcode Table
 
@@ -34,7 +119,7 @@ Registers encoded by trit value (-4..+4). Phys index = trit + 4.
 | 2 | MOV | R | `op1 = op2` |
 | 3 | MOVI | I | `op1 = imm` |
 | 4 | LI | I | `op1 = imm` |
-| 5 | LIMM | R | `op1 = mem[PC]; PC++` |
+| 5 | LIMM | R | `op1 = mem[PC]; PC++` (2-word instruction) |
 
 ### Arithmetic (10-15 R, 20-25 I)
 | Op | Mnemonic | Type |
@@ -90,11 +175,13 @@ Registers encoded by trit value (-4..+4). Phys index = trit + 4.
 | 64 | JNE | J | Jump if Cond!=0 |
 | 65 | JL | J | Jump if Cond<0 |
 | 66 | JG | J | Jump if Cond>0 |
-| 67 | JM | J | Jump if Cond==0 |
+| 67 | JM | J | Jump if Cond==0 (alias for JE) |
 | 68 | JLE | J | Jump if Cond<=0 |
 | 69 | JGE | J | Jump if Cond>=0 |
-| 70 | CALL | J | `Push PC; PC = reg` |
-| 71 | RET | – | `PC = Pop()` |
+| 70 | CALL | J | `SP--; Memory[SP] = PC+1; PC = reg` |
+| 71 | RET | – | `PC = Memory[SP]; SP++` |
+
+**Важно**: J-type инструкции кодируют регистр в поле Op1 (3 трита). Поле Op2 (3 трита) и Op3 (3 трита) игнорируются (padding = 0). Дизассемблер использует `PhysOp1` для отображения регистра.
 
 ### I/O (80-83)
 | Op | Mnemonic | Type |
@@ -127,9 +214,100 @@ Registers encoded by trit value (-4..+4). Phys index = trit + 4.
 
 ## Predication
 
-If pred > 0, instruction executes only if PR[pred-1] == +1.
-PR register: 9 trits, three 3-trit predicate flags (p0, p1, p2).
-*Note: The implementation of predication is currently under review for consistency between the specification and the execution engine.*
+Если pred > 0, инструкция выполняется только если PR[pred-1] == +1.
+
+**PR регистр**: 9 тритов, разделённых на 3 группы по 3 трита:
+- Триты 0-2: группа предикации 1 (p0)
+- Триты 3-5: группа предикации 2 (p1)
+- Триты 6-8: группа предикации 3 (p2)
+
+**Извлечение флага**: `GetPredicateFlag(predIndex)` читает `PR.GetTrit(predIndex - 1)`:
+- `PR.GetTrit(0)` — флаг для predicate 1
+- `PR.GetTrit(1)` — флаг для predicate 2
+- `PR.GetTrit(2)` — флаг для predicate 3
+
+**Установка PR** (LSB-first, позиция 0 = LSB):
+- Predicate 1 = true → `PR = Word18.FromLong(1)` (3^0)
+- Predicate 2 = true → `PR = Word18.FromLong(3)` (3^1)
+- Predicate 3 = true → `PR = Word18.FromLong(9)` (3^2)
+
+**Важно**: `Word18.GetTrit(index)` использует LSB-first индексацию. Позиция 0 — это LSB (3^0), позиция 17 — MSB (3^17). Не путать с `ToTritString()`, который возвращает строку от MSB к LSB.
+
+## T3Float Format
+
+**Формат**: 6 тритов экспоненты + 12 тритов мантиссы = 18 тритов.
+
+- Экспонента: signed balanced, диапазон ±364, bias = 182
+- Мантисса: signed balanced, диапазон ±88,573
+- Значение: `mantissa * 3^(exponent - 182)`
+- Кодирование в Word18: `value = exponent * 3^12 + mantissa` (линейное)
+
+**ToWord18()**:
+```csharp
+long encoded = Exponent * (long)TernaryMath.Pow3(12) + Mantissa;
+return Word18.FromLong(encoded);
+```
+
+**FromWord18()**:
+```csharp
+long pow12 = (long)TernaryMath.Pow3(12);
+long raw = word.ToLong();
+long exponent = raw / pow12;
+long mantissa = raw % pow12;
+return new T3Float(exponent, mantissa);
+```
+
+**Важно**: T3Float использует прямое линейное арифметическое кодирование, а не строковое. Строковое кодирование через `Word18.ToTritString()` + `BalancedTernary.ParseToLong()` НЕ РАБОТАЕТ для T3Float, так как `ExtractBalancedTrit` (используемый `ToTritString`) имеет фундаментальную проблему с переносами между полями экспоненты и мантиссы. Линейное кодирование корректно, так как деление и модуль работают с целыми числами, и переносы в сбалансированном троичном представлении не влияют на целочисленное деление.
+
+## LIMM (Large Immediate)
+
+LIMM — 2-словная инструкция для загрузки значений вне диапазона ±364 (который может быть закодирован в I-type imm).
+
+```
+Слово 1: [Pred(3)] [Opcode=LIMM(5)] [Reg(3)] [000000]
+Слово 2: [данные (18 тритов)]
+```
+
+Процессор: `Register[reg] = Memory[PC]; PC++` (читает следующее слово как данные).
+
+## Компилятор T-lang ABI
+
+### Регистровая модель компилятора
+
+| Регистр | Назначение | Сохраняется caller'ом |
+|---------|-----------|----------------------|
+| RW (0) | Временный | Да |
+| RX (1) | Временный | Да |
+| RY (2) | Временный | Да |
+| RZ (3) | Временный | Да |
+| R0 (4) | Временный | Да |
+| R1 (5) | Call temp (адрес вызова) | Да |
+| R2 (6) | Return value | Нет (callee не сохраняет) |
+| R3 (7) | Временный | Да |
+| R4 (8) | Address register | Да |
+
+### Calling Convention
+
+**Caller**:
+1. PUSH caller-saved регистров (RW, RX, RY, RZ, R0, R1, R3, R4)
+2. PUSH аргументов в обратном порядке
+3. LIMM R1, адрес_функции
+4. CALL R1
+5. POP аргументов (в R4 как временный)
+6. POP восстановление caller-saved регистров
+7. MOV результат, R2
+
+**Callee (пролог)**:
+1. Метка функции
+2. PUSH R4, R3, R1, R0, RZ, RY, RX, RW (все, кроме R2)
+
+**Callee (эпилог)**:
+1. POP RW, RX, RY, RZ, R0, R1, R3, R4
+2. RET
+
+**return**: Генерирует `LIMM` + `JMP` на метку эпилога (не `RET` напрямую).
+
+**Важно**: R2 (return value) не сохраняется и не восстанавливается в прологе/эпилоге. Caller копирует значение из R2 после возврата.
 
 ## Timing
 
@@ -147,3 +325,5 @@ PR register: 9 trits, three 3-trit predicate flags (p0, p1, p2).
 | FMUL | 7 |
 | FDIV | 15 |
 | FSQRT | 20 |
+
+*Примечание: текущая реализация является интерпретатором, а не cycle-accurate симулятором. Timing-таблица является справочной.*

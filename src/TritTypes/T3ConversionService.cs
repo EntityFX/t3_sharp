@@ -55,9 +55,17 @@ namespace TritTypes
                     value = long.Parse(trimmed);
                 }
             }
-            catch
+            catch (FormatException)
             {
-                value = 0;
+                throw;
+            }
+            catch (OverflowException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw new FormatException($"Invalid input format: {input}", ex);
             }
 
             string ternary = BalancedTernary.ToTernaryString(value);
@@ -65,12 +73,12 @@ namespace TritTypes
             return new ConversionResult
             {
                 DecimalValue = value,
-                Binary = System.Convert.ToString(value, 2),
-                Hex = value.ToString("X"),
-                Octal = System.Convert.ToString(value, 8),
-                Ternary = ternary,
-                Nonary = TritTo9Ary(ternary),
-                TwentySevenAry = TritTo27Ary(ternary)
+                Binary = "0b" + System.Convert.ToString(value, 2),
+                Hex = "0x" + value.ToString("X"),
+                Octal = "00" + System.Convert.ToString(value, 8),
+                Ternary = "0t" + ternary,
+                Nonary = "0n" + TritTo9Ary(ternary),
+                TwentySevenAry = "0y" + TritTo27Ary(ternary)
             };
         }
 

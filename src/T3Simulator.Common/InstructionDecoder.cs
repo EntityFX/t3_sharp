@@ -16,69 +16,63 @@ namespace T3Simulator.Common
         private const long P3_6  = 729L;
         private const long P3_3  = 27L;
 
+        // Offsets for balanced ternary fields
+        private const long OFFSET_3 = 13L;    // (27-1)/2
+        private const long OFFSET_6 = 364L;   // (729-1)/2
+
         public static DecodedInstruction Decode(Word18 word)
         {
-            long val = word.ToLong();
+            Int128 val = word.ToInt128();
             
-            // Correct decomposition for Balanced Ternary:
-            // We need to find the coefficients c_i in {-1, 0, 1} such that val = sum(c_i * 3^i)
-            // The provided arithmetic approach with Math.Round(val / 3^k) is generally correct
-            // but we must ensure we are using the correct powers of 3 and types.
-            
-            int pred = (int)Math.Round(val / (double)P3_15, MidpointRounding.AwayFromZero);
-            val -= (long)pred * P3_15;
-            
-            int opcodeVal = (int)Math.Round(val / (double)P3_9, MidpointRounding.AwayFromZero);
-            val -= (long)opcodeVal * P3_9;
+            // Pred and opcode are stored as raw non-negative integers (not balanced ternary)
+            int pred = (int)TritTypes.TernaryMath.ExtractRawField(val, 15, 3);
+            int opcodeVal = (int)TritTypes.TernaryMath.ExtractRawField(val, 9, 6);
+            // Extract the raw args field (unsigned balanced ternary encoding: value + offset)
+            Int128 rawArgs = TritTypes.TernaryMath.ExtractRawField(val, 0, 9);
             
             var op = (Opcode)opcodeVal;
             int op1 = 0, op2 = 0, op3 = 0;
             long imm = 0;
 
-            // Remaining val is the "Args" part (9 trits)
-            // Args = op1 * 3^6 + op2 * 3^3 + op3 * 3^0 (for R-type)
             if (IsRType(op))
             {
-                op1 = (int)Math.Round(val / (double)P3_6, MidpointRounding.AwayFromZero);
-                val -= (long)op1 * P3_6;
-                op2 = (int)Math.Round(val / (double)P3_3, MidpointRounding.AwayFromZero);
-                val -= (long)op2 * P3_3;
-                op3 = (int)Math.Round(val / 1.0, MidpointRounding.AwayFromZero);
+                // Extract sub-fields from raw args and convert to balanced by subtracting offset
+                op1 = (int)(TritTypes.TernaryMath.ExtractRawField(rawArgs, 6, 3) - OFFSET_3);
+                op2 = (int)(TritTypes.TernaryMath.ExtractRawField(rawArgs, 3, 3) - OFFSET_3);
+                op3 = (int)(TritTypes.TernaryMath.ExtractRawField(rawArgs, 0, 3) - OFFSET_3);
             }
             else if (IsIType(op))
             {
-                op1 = (int)Math.Round(val / (double)P3_6, MidpointRounding.AwayFromZero);
-                val -= (long)op1 * P3_6;
-                imm = (long)Math.Round(val / 1.0, MidpointRounding.AwayFromZero);
+                op1 = (int)(TritTypes.TernaryMath.ExtractRawField(rawArgs, 6, 3) - OFFSET_3);
+                imm = (long)(TritTypes.TernaryMath.ExtractRawField(rawArgs, 0, 6) - OFFSET_6);
             }
             else if (IsJType(op))
             {
-                op1 = (int)Math.Round(val / (double)P3_6, MidpointRounding.AwayFromZero);
-                val -= (long)op1 * P3_6;
-                op2 = (int)Math.Round(val / 1.0, MidpointRounding.AwayFromZero);
-                imm = op2;
+                // J-type: [Pred(3)][Opcode(6)][Reg(3)][000000]
+                // The lower 6 trits are padding (all zeros), so imm is always 0.
+                op1 = (int)(TritTypes.TernaryMath.ExtractRawField(rawArgs, 6, 3) - OFFSET_3);
+                imm = 0;
             }
             else
             {
-                op1 = (int)Math.Round(val / (double)P3_6, MidpointRounding.AwayFromZero);
-                val -= (long)op1 * P3_6;
-                op2 = (int)Math.Round(val / (double)P3_3, MidpointRounding.AwayFromZero);
-                val -= (long)op2 * P3_3;
-                op3 = (int)Math.Round(val / 1.0, MidpointRounding.AwayFromZero);
+                op1 = (int)(TritTypes.TernaryMath.ExtractRawField(rawArgs, 6, 3) - OFFSET_3);
+                op2 = (int)(TritTypes.TernaryMath.ExtractRawField(rawArgs, 3, 3) - OFFSET_3);
+                op3 = (int)(TritTypes.TernaryMath.ExtractRawField(rawArgs, 0, 3) - OFFSET_3);
             }
 
             return new DecodedInstruction(op, pred, op1, op2, op3, imm);
         }
 
-        // For Word54: extract last 18 trits
+        // For Word54: extract lower 18 trits as a basic instruction using wrap semantics
         public static DecodedInstruction Decode(Word54 word)
         {
-            long val = word.ToLong();
-            return Decode(Word18.FromLong(val % P3_15));
+            return Decode(Word18.FromWrappedLong(word.ToAddress()));
         }
 
         public static DecodedInstruction Decode<TWord>(TWord word) where TWord : IT3Word<TWord>
         {
+            if (word is Word54 w54) return Decode(w54);
+            if (word is Word18 w18) return Decode(w18);
             return Decode(Word18.FromLong(word.ToLong()));
         }
 

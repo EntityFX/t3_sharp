@@ -44,6 +44,23 @@ namespace TritTypes
         public int ToInt() => (int)(long)_value;
         public long ToLong() => (long)_value;
 
+        /// <summary>
+        /// Returns the value as a long, but ensures it fits within the 18-trit range.
+        /// Useful for memory addressing and instruction extraction.
+        /// </summary>
+        public long ToAddress()
+        {
+            // We use the modulo of 3^18 to extract the lower 18 trits
+            Int128 range = TernaryMath.Pow3(18);
+            Int128 offset = (range - 1) / 2;
+            Int128 val = _value;
+            
+            Int128 normalized = (val + offset) % range;
+            if (normalized < 0) normalized += range;
+            
+            return (long)(normalized - offset);
+        }
+
         public static Word54 FromLong(long value) => new Word54((Int128)value);
         public static Word54 FromInt128(Int128 value) => new Word54(value);
 
@@ -59,17 +76,12 @@ namespace TritTypes
         public string ToTritString()
         {
             char[] chars = new char[TritCount];
-            Int128 remaining = _value;
-            for (int i = TritCount - 1; i >= 0; i--)
+            for (int i = 0; i < TritCount; i++)
             {
-                Int128 rem = remaining % 3;
-                int remInt = (int)rem;
-                if (remInt == 2) { chars[i] = '-'; remaining = (remaining + 1) / 3; }
-                else if (remInt == -2) { chars[i] = '+'; remaining = (remaining - 1) / 3; }
-                else if (remInt == 1) { chars[i] = '+'; remaining = (remaining - 1) / 3; }
-                else if (remInt == -1) { chars[i] = '-'; remaining = (remaining + 1) / 3; }
-                else { chars[i] = '0'; remaining /= 3; }
+                int trit = TernaryMath.ExtractBalancedTrit(_value, i);
+                chars[i] = trit switch { -1 => '-', 0 => '0', 1 => '+', _ => '?' };
             }
+            Array.Reverse(chars);
             return new string(chars);
         }
 
@@ -78,7 +90,7 @@ namespace TritTypes
         public int GetTrit(int index)
         {
             if (index < 0 || index >= TritCount) throw new ArgumentOutOfRangeException(nameof(index));
-            return GetTrit(_value, index);
+            return TernaryMath.ExtractBalancedTrit(_value, index);
         }
 
         /// <summary>
@@ -149,24 +161,18 @@ namespace TritTypes
         }
 
         // Tritwise logical operations
+        // Deprecated: use TernaryMath.ExtractBalancedTrit
+        [Obsolete("Use TernaryMath.ExtractBalancedTrit instead")]
         private static int GetTrit(Int128 n, int pos)
         {
-            Int128 power = Pow3(pos);
-            Int128 digit = (n / power) % 3;
-            int d = (int)digit;
-            if (d == 2) return -1;
-            if (d == -2) return 1;
-            return d;
+            return TernaryMath.ExtractBalancedTrit(n, pos);
         }
 
         private static Int128 SetTrit(Int128 n, int pos, int tritValue)
         {
-            Int128 power = Pow3(pos);
-            Int128 current = (n / power) % 3;
-            int cur = (int)current;
-            if (cur == 2) cur = -1;
-            else if (cur == -2) cur = 1;
-            return n + (tritValue - cur) * power;
+            Int128 power = TernaryMath.Pow3(pos);
+            int currentTrit = TernaryMath.ExtractBalancedTrit(n, pos);
+            return n + (tritValue - currentTrit) * power;
         }
 
         public static Word54 TritAnd(Word54 a, Word54 b)
@@ -174,8 +180,8 @@ namespace TritTypes
             Int128 result = 0;
             for (int i = 0; i < TritCount; i++)
             {
-                int ta = GetTrit(a._value, i);
-                int tb = GetTrit(b._value, i);
+                int ta = TernaryMath.ExtractBalancedTrit(a._value, i);
+                int tb = TernaryMath.ExtractBalancedTrit(b._value, i);
                 result = SetTrit(result, i, Math.Min(ta, tb));
             }
             return FromWrapped(result);
@@ -186,8 +192,8 @@ namespace TritTypes
             Int128 result = 0;
             for (int i = 0; i < TritCount; i++)
             {
-                int ta = GetTrit(a._value, i);
-                int tb = GetTrit(b._value, i);
+                int ta = TernaryMath.ExtractBalancedTrit(a._value, i);
+                int tb = TernaryMath.ExtractBalancedTrit(b._value, i);
                 result = SetTrit(result, i, Math.Max(ta, tb));
             }
             return FromWrapped(result);
@@ -198,14 +204,9 @@ namespace TritTypes
             Int128 result = 0;
             for (int i = 0; i < TritCount; i++)
             {
-                int ta = GetTrit(a._value, i);
-                int tb = GetTrit(b._value, i);
-                
-                // Spec: (ta + tb) mod 3 with mapping 0->0, 1->1, 2->-1
-                int resTrit = (ta + tb) % 3;
-                if (resTrit == 2) resTrit = -1;
-                else if (resTrit == -2) resTrit = 1;
-                
+                int ta = TernaryMath.ExtractBalancedTrit(a._value, i);
+                int tb = TernaryMath.ExtractBalancedTrit(b._value, i);
+                int resTrit = TernaryMath.BalancedTernaryXor(ta, tb);
                 result = SetTrit(result, i, resTrit);
             }
             return FromWrapped(result);
@@ -228,11 +229,6 @@ namespace TritTypes
         public static explicit operator long(Word54 w) => (long)w._value;
         public static explicit operator Int128(Word54 w) => w._value;
 
-        private static Int128 Pow3(int exp)
-        {
-            Int128 result = 1;
-            for (int i = 0; i < exp; i++) result *= 3;
-            return result;
-        }
+        private static Int128 Pow3(int exp) => TernaryMath.Pow3(exp);
     }
 }

@@ -37,8 +37,18 @@ namespace TritTypes
             return (int)(normalized - offset);
         }
 
-        public static Word18 FromLong(long value) => new Word18((int)value);
-        public static Word18 FromInt128(Int128 value) => new Word18((int)(long)value);
+        /// <summary>
+        /// Constructs a Word18 from a value. Throws exception if value is out of balanced range.
+        /// </summary>
+        public static Word18 FromExactLong(long value) => new Word18((int)value);
+
+        /// <summary>
+        /// Constructs a Word18 from a value with wrap-around semantics.
+        /// </summary>
+        public static Word18 FromWrappedLong(long value) => FromWrapped(value);
+
+        public static Word18 FromLong(long value) => FromExactLong(value);
+        public static Word18 FromInt128(Int128 value) => FromExactLong((long)value);
         static Word18 IT3Word<Word18>.FromLong(long value) => FromLong(value);
         static Word18 IT3Word<Word18>.FromInt128(Int128 value) => FromInt128(value);
         static Word18 IT3Word<Word18>.FromTritString(string s) => Parse(s);
@@ -52,38 +62,21 @@ namespace TritTypes
 
         public string ToTritString()
         {
-            var chars = new char[TritCount]; int r = _value;
-            for (int i = TritCount - 1; i >= 0; i--)
+            var chars = new char[TritCount];
+            for (int i = 0; i < TritCount; i++)
             {
-                int rem = r % 3;
-                if (rem == 2) { chars[i] = '-'; r = (r + 1) / 3; }
-                else if (rem == -2) { chars[i] = '+'; r = (r - 1) / 3; }
-                else if (rem == 1) { chars[i] = '+'; r = (r - 1) / 3; }
-                else if (rem == -1) { chars[i] = '-'; r = (r + 1) / 3; }
-                else { chars[i] = '0'; r /= 3; }
+                int trit = TernaryMath.ExtractBalancedTrit(_value, i);
+                chars[i] = trit switch { -1 => '-', 0 => '0', 1 => '+', _ => '?' };
             }
+            // We need to return trits from MSB to LSB for the string representation
+            Array.Reverse(chars);
             return new string(chars);
         }
 
         public int GetTrit(int index)
         {
             if (index < 0 || index >= TritCount) throw new ArgumentOutOfRangeException(nameof(index));
-            int v = _value;
-            for (int i = 0; i < index; i++)
-            {
-                int rem = v % 3;
-                if (rem == 2) v = (v + 1) / 3;
-                else if (rem == -2) v = (v - 1) / 3;
-                else if (rem == 1) v = (v - 1) / 3;
-                else if (rem == -1) v = (v + 1) / 3;
-                else v /= 3;
-            }
-            int finalRem = v % 3;
-            if (finalRem == 2) return -1;
-            if (finalRem == -2) return 1;
-            if (finalRem == 1) return 1;
-            if (finalRem == -1) return -1;
-            return 0;
+            return TernaryMath.ExtractBalancedTrit(_value, index);
         }
 
         public override string ToString() => ToTritString();
@@ -135,7 +128,7 @@ namespace TritTypes
         // Tritwise
         public static Word18 TritAnd(Word18 a, Word18 b) => TritOp(a, b, (x, y) => Math.Min(x, y));
         public static Word18 TritOr(Word18 a, Word18 b) => TritOp(a, b, (x, y) => Math.Max(x, y));
-        public static Word18 TritXor(Word18 a, Word18 b) => TritOp(a, b, (x, y) => { int s = x + y; s %= 3; if (s == 2) return -1; if (s == -2) return 1; return s; });
+        public static Word18 TritXor(Word18 a, Word18 b) => TritOp(a, b, TernaryMath.BalancedTernaryXor);
         private static Word18 TritOp(Word18 a, Word18 b, Func<int, int, int> op)
         {
             int result = 0, power = 1, ta = a._value, tb = b._value;
@@ -151,12 +144,16 @@ namespace TritTypes
 
         private static int ExtractTrit(ref int v)
         {
+            int currentV = v;
+            int trit = TernaryMath.ExtractBalancedTrit(currentV, 0);
+            
+            // Update v for the next iteration
             int rem = v % 3;
-            if (rem == 2) { v = (v + 1) / 3; return -1; }
-            if (rem == -2) { v = (v - 1) / 3; return 1; }
-            if (rem == 1) { v = (v - 1) / 3; return 1; }
-            if (rem == -1) { v = (v + 1) / 3; return -1; }
-            v /= 3; return 0;
+            if (rem == 2 || rem == -1) v = (v + 1) / 3;
+            else if (rem == -2 || rem == 1) v = (v - 1) / 3;
+            else v /= 3;
+            
+            return trit;
         }
 
         // Equality & comparison

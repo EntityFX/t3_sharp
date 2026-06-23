@@ -26,8 +26,8 @@ namespace T3Assembler
             if(t.StartsWith("0y",StringComparison.OrdinalIgnoreCase))return P27(t[2..]);
             throw new Exception($"Unknown: {t}");
         }
-        Int128 P9(string t){string r="";foreach(char c in t.ToUpper())r+=c switch{'W'=>"--",'X'=>"-0",'Y'=>"-+",'Z'=>"0-",'0'=>"00",'1'=>"0+",'2'=>"+-",'3'=>"+0",'4'=>"++",_=>""};return BalancedTernary.ParseToInt128(r);}
-        Int128 P27(string t){string r="";foreach(char c in t.ToUpper())r+=c switch{'N'=>"---",'O'=>"--0",'P'=>"--+",'Q'=>"-0-",'R'=>"-00",'S'=>"-0+",'T'=>"-+-",'U'=>"-+0",'V'=>"-++",'5'=>"+--",'6'=>"+-0",'7'=>"+-+",'8'=>"+0-",'9'=>"+00",'A'=>"+0+",'B'=>"++-",'C'=>"++0",'D'=>"+++",_=>""};return BalancedTernary.ParseToInt128(r);}
+        Int128 P9(string t){string r="";foreach(char c in t.ToUpper())r+=c switch{'W'=>"--",'X'=>"-0",'Y'=>"-+",'Z'=>"0-",'0'=>"00",'1'=>"0+",'2'=>"+-",'3'=>"+0",'4'=>"++",_=>throw new FormatException($"Unknown 0n character: {c}")};return BalancedTernary.ParseToInt128(r);}
+        Int128 P27(string t){string r="";foreach(char c in t.ToUpper())r+=c switch{'N'=>"---",'O'=>"--0",'P'=>"--+",'Q'=>"-0-",'R'=>"-00",'S'=>"-0+",'T'=>"-+-",'U'=>"-+0",'V'=>"-++",'5'=>"+--",'6'=>"+-0",'7'=>"+-+",'8'=>"+0-",'9'=>"+00",'A'=>"+0+",'B'=>"++-",'C'=>"++0",'D'=>"+++",_=>throw new FormatException($"Unknown 0y character: {c}")};return BalancedTernary.ParseToInt128(r);}
 
         protected bool IsRegister(string t){
             string u=t.ToUpper();

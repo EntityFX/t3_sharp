@@ -243,16 +243,18 @@ Nine logical general-purpose registers:
 | FDIV | 15 | 15 |
 | FSQRT | 20 | 20 |
 
-### VLIW Processor (T3-54 only)
+### VLIW Processor (Planned / Architectural Design)
 
-- Three identical ALUs executing in parallel
-- One bundle = three 18-trit slots in one 54-trit word
-- **Conflict detection**: register write conflicts, memory access priority, branch limits
-- **Speculation**: `SPEK`/`COMMIT`/`ROLLBACK` with shadow register file
-- **SIMD**: vector operations on three 18-trit sub-words (`VADD3`, `VMUL3`, `VDOT3`, etc.)
+*Note: The VLIW microarchitecture is currently defined in the specification but is NOT yet implemented in the processor core.*
+
+- **Design Goal**: Three identical ALUs executing in parallel
+- **Bundle Structure**: One bundle = three 18-trit slots in one 54-trit word
+- **Planned Conflict detection**: register write conflicts, memory access priority, branch limits
+- **Planned Speculation**: `SPEK`/`COMMIT`/`ROLLBACK` with shadow register file
+- **Planned SIMD**: vector operations on three 18-trit sub-words (`VADD3`, `VMUL3`, `VDOT3`, etc.)
 
 ```asm
-; VLIW bundle syntax
+; VLIW bundle syntax (supported by VLIW Assembler)
 { ADD R0, R1, R2 | MUL R3, R4, R5 | LOAD R6, R7 }
 ;  Slot 0           Slot 1           Slot 2
 ```
@@ -390,7 +392,7 @@ dotnet build -c Release T3Sharp.sln
 
 ### CI/CD
 
-GitHub Actions pipeline automatically builds and runs all 269 tests on push/PR to `main`/`master` branches.
+GitHub Actions pipeline automatically builds and runs tests on push/PR to `main`/`master` branches.
 
 ---
 
