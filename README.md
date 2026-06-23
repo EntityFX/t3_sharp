@@ -1,11 +1,11 @@
-# T3Sharp — Ternary Computer Simulator Suite
+# T3Sharp — Ternary Computer Research Prototype
 
 [![.NET](https://img.shields.io/badge/.NET-8.0-purple.svg)](https://dotnet.microsoft.com/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Ternary](https://img.shields.io/badge/ternary-balanced-red.svg)](https://en.wikipedia.org/wiki/Balanced_ternary)
 [![CI](https://github.com/EntityFX/t3_sharp/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/EntityFX/t3_sharp/actions/workflows/build-and-test.yml)
 
-A comprehensive **.NET-based simulator suite** for ternary processors implementing a **balanced ternary** instruction set architecture (ISA) with multiple microarchitectures.
+An **experimental .NET-based research prototype** for ternary processors implementing a **balanced ternary** instruction set architecture (ISA). This project serves as a platform for exploring balanced ternary computing and simulating its core architectural components.
 
 > **Документация на русском языке:** [README.ru.md](README.ru.md)
 
@@ -69,21 +69,30 @@ A comprehensive **.NET-based simulator suite** for ternary processors implementi
 |     T3-18         |              T3-54                       |
 |  18-trit words    |        54-trit words                     |
 |  3 trytes/word    |      9 trytes/word                       |
-|  9 GP registers   |    9 GP registers (+ windowing)          |
-|  In-Order only    |  In-Order + VLIW + SIMD + Speculation    |
+|  9 GP registers   |    9 GP registers (windowing planned)    |
+|  In-Order only    |  In-Order (VLIW/SIMD/Speculation planned)|
 |  Range: +/-193M   |  Range: +/-2.9x10^25                     |
 +-------------------+------------------------------------------+
 ```
+
+### Project Status & Maturity
+
+| Status | Components | Notes |
+|---|---|---|
+| **Stable** | TritTypes, Word18, In-Order Processor, Basic Assembler, CLI | Core functionality for T3-18 |
+| **Beta** | FPU, T-lang Compiler, Disassembler, Word54 | Functional but may have edge-case bugs |
+| **Experimental** | VLIW Assembler, GUI | Initial prototypes, not fully integrated |
+| **Planned** | VLIW Processor, SIMD, Speculation, Register Windowing, Interrupts | Defined in architecture, not yet implemented |
 
 ### Key Features
 
 | Feature | Description |
 |---------|-------------|
-| **Unified ISA** | 28 base instructions + I/O + FPU + VLIW extensions |
+| **Unified ISA** | 28 base instructions + I/O + FPU (VLIW extensions planned) |
 | **Predication** | Conditional execution via predicate flags (PR register) |
 | **Multiple output formats** | Ternary (`-0+`), 9-ary, 27-ary, binary |
 | **Multiple input formats** | Text, Ninary (`0n`), Tryx (`0y`), binary |
-| **Cycle-accurate simulation** | Latency tables per instruction type and configuration |
+| **Latency Accounting** | Instruction-level latency tracking based on configuration |
 | **Hardware counters** | Cycle count, instruction count, stall count via MMIO |
 | **CLI debugger** | Interactive REPL with breakpoints, trace, disassembly, memory dump |
 | **Number Converter** | Decimal ↔ ternary/9-ary/27-ary conversion tool |

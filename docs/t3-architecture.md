@@ -1,4 +1,4 @@
-# T3 Processor Architecture — v2
+# T3 Processor Architecture — v2 (Research Prototype)
 
 ## Word Types
 
@@ -20,7 +20,8 @@
 | R3 | +3 | 7 | F3 |
 | R4 | +4 | 8 | F4 |
 
-Special registers: SP, PC, Cond (1 trit), PR (9 trits = 3×3 predicate flags)
+Special registers: SP, PC, Cond (1 trit), PR (9 trits = 3×3 predicate flags). 
+*Note: Register windowing is currently a planned architectural feature and not yet integrated into the execution model.*
 
 ## Instruction Format
 
@@ -40,11 +41,13 @@ Registers encoded by trit value (-4..+4). Phys index = trit + 4.
 - Stack grows downward, SP starts at MemSize-1
 - MMIO: CYCLE_LOW, CYCLE_HIGH, INST_COUNT, STALL_COUNT
 
-## Pipeline (In-Order)
+## Execution Model (In-Order Prototype)
+
+The current implementation is a functional interpreter rather than a cycle-accurate pipeline.
 
 1. Fetch: `word = Memory[PC]`
 2. Decode: extract Pred, Opcode, Args
-3. Predicate: skip if PR[pred-1] != +1
+3. Predicate: skip if predicate condition is not met (Implementation under review for consistency)
 4. Execute: switch on Opcode
 5. PC advance (unless branch)
 

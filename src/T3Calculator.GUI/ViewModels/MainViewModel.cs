@@ -123,7 +123,7 @@ namespace T3Calculator.GUI.ViewModels
             var data = T3Logic.GenerateTruthTable(op);
             foreach (var row in data)
             {
-                table.Add(new TruthTableRow { A = row.A, B = row.B, Result = row.Result });
+                table.Add(new TruthTableRow { A = TritToString(row.A), B = TritToString(row.B), Result = TritToString(row.Result) });
             }
         }
 
@@ -153,8 +153,6 @@ namespace T3Calculator.GUI.ViewModels
 
             try
             {
-                // Very basic parsing to extract operands for columnar view
-                // In a real scenario, we'd use the engine's tokenizer
                 string input = CalcInput.Trim();
                 int opIdx = input.IndexOfAny(new char[] { '+', '-', '*' });
                 
@@ -164,8 +162,6 @@ namespace T3Calculator.GUI.ViewModels
                     string a = input.Substring(0, opIdx).Trim();
                     string b = input.Substring(opIdx + 1).Trim();
                     
-                    // We assume for the columnar view we are working with balanced ternary strings
-                    // If they are decimal, we convert them first
                     if (!IsTernary(a)) a = BalancedTernary.ToTernaryString(long.Parse(a));
                     if (!IsTernary(b)) b = BalancedTernary.ToTernaryString(long.Parse(b));
                     
@@ -200,9 +196,10 @@ namespace T3Calculator.GUI.ViewModels
                 "XNOR" => T3Logic.Xnor(LogicA, LogicB),
                 _ => 0
             };
-            LogicResult = $"Result: {res}";
+            LogicResult = $"Result: {TritToString(res)}";
         }
 
+        private string TritToString(int v) => v == 1 ? "+" : (v == -1 ? "-" : "0");
 
         private void InitSciiTable()
         {
@@ -234,8 +231,8 @@ namespace T3Calculator.GUI.ViewModels
 
     public class TruthTableRow
     {
-        public int A { get; set; }
-        public int B { get; set; }
-        public int Result { get; set; }
+        public string A { get; set; }
+        public string B { get; set; }
+        public string Result { get; set; }
     }
 }

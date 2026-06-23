@@ -1,4 +1,4 @@
-# T3 ISA Reference — v2
+# T3 ISA Reference — v2 (Research Prototype)
 
 ## Instruction Format
 
@@ -129,6 +129,7 @@ Registers encoded by trit value (-4..+4). Phys index = trit + 4.
 
 If pred > 0, instruction executes only if PR[pred-1] == +1.
 PR register: 9 trits, three 3-trit predicate flags (p0, p1, p2).
+*Note: The implementation of predication is currently under review for consistency between the specification and the execution engine.*
 
 ## Timing
 
