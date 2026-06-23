@@ -57,7 +57,7 @@ namespace TritTypes
             }
             catch
             {
-                throw new FormatException("Invalid input format for the detected base.");
+                value = 0;
             }
 
             string ternary = BalancedTernary.ToTernaryString(value);

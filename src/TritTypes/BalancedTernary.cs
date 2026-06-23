@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Text;
 
 namespace TritTypes
 {
@@ -66,13 +68,13 @@ namespace TritTypes
                 else { chars[pos] = '0'; remaining /= 3; }
                 pos--;
             }
-
+ 
             while (pos >= 0 && (chars.Length - 1 - pos) < minDigits)
             {
                 chars[pos] = '0';
                 pos--;
             }
-
+ 
             int start = pos + 1;
             int len = chars.Length - start;
             return new string(chars, start, len);
@@ -146,6 +148,64 @@ namespace TritTypes
                 power *= 3;
             }
             return value;
+        }
+
+        /// <summary>
+        /// Generates a visual representation of balanced ternary addition.
+        /// </summary>
+        public static string GetAdditionVisual(string aStr, string bStr)
+        {
+            // Normalize lengths
+            int maxLen = Math.Max(aStr.Length, bStr.Length);
+            string a = aStr.PadLeft(maxLen, '0');
+            string b = bStr.PadLeft(maxLen, '0');
+
+            StringBuilder carryLine = new StringBuilder();
+            StringBuilder aLine = new StringBuilder("  ");
+            StringBuilder bLine = new StringBuilder(" + ");
+            StringBuilder resLine = new StringBuilder();
+
+            int carry = 0;
+            StringBuilder resBuilder = new StringBuilder();
+
+            for (int i = maxLen - 1; i >= 0; i--)
+            {
+                int valA = a[i] == '+' ? 1 : (a[i] == '-' ? -1 : 0);
+                int valB = b[i] == '+' ? 1 : (b[i] == '-' ? -1 : 0);
+                int sum = valA + valB + carry;
+
+                int resultTrit;
+                int nextCarry;
+
+                switch (sum)
+                {
+                    case -2: resultTrit = 1; nextCarry = -1; break;
+                    case -1: resultTrit = -1; nextCarry = 0; break;
+                    case 0: resultTrit = 0; nextCarry = 0; break;
+                    case 1: resultTrit = 1; nextCarry = 0; break;
+                    case 2: resultTrit = -1; nextCarry = 1; break;
+                    default: throw new Exception("Invalid sum");
+                }
+
+                resBuilder.Insert(0, resultTrit == 1 ? '+' : (resultTrit == -1 ? '-' : '0'));
+                carryLine.Insert(0, nextCarry == 1 ? '+' : (nextCarry == -1 ? '-' : '0'));
+                
+                carry = nextCarry;
+            }
+            
+            // The final carry is the most significant digit
+            char finalCarry = carry == 1 ? '+' : (carry == -1 ? '-' : '0');
+            string finalRes = finalCarry + resBuilder.ToString();
+            
+            // Formatting
+            StringBuilder output = new StringBuilder();
+            output.AppendLine($"  {carryLine}");
+            output.AppendLine($"    {a}");
+            output.AppendLine($" + {b}");
+            output.AppendLine(new string('-', a.Length + 3));
+            output.AppendLine($"  {finalRes}");
+
+            return output.ToString();
         }
     }
 }

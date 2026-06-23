@@ -33,7 +33,7 @@ namespace T3NumberConverter
                 }
                 else if (trimmed.StartsWith("0b", StringComparison.OrdinalIgnoreCase))
                 {
-                    value = Convert.ToInt64(trimmed.Substring(2), 2);
+                    value = System.Convert.ToInt64(trimmed.Substring(2), 2);
                 }
                 else if (trimmed.StartsWith("0t", StringComparison.OrdinalIgnoreCase))
                 {
@@ -49,7 +49,7 @@ namespace T3NumberConverter
                 }
                 else if (trimmed.StartsWith("00", StringComparison.OrdinalIgnoreCase))
                 {
-                    value = Convert.ToInt64(trimmed.Substring(2), 8);
+                    value = System.Convert.ToInt64(trimmed.Substring(2), 8);
                 }
                 else
                 {
@@ -66,9 +66,9 @@ namespace T3NumberConverter
             return new ConversionResult
             {
                 DecimalValue = value,
-                Binary = "0b" + Convert.ToString(value, 2),
+                Binary = "0b" + System.Convert.ToString(value, 2),
                 Hex = "0x" + value.ToString("X"),
-                Octal = "00" + Convert.ToString(value, 8),
+                Octal = "00" + System.Convert.ToString(value, 8),
                 Ternary = "0t" + ternary,
                 Nonary = "0n" + TritTo9Ary(ternary),
                 TwentySevenAry = "0y" + TritTo27Ary(ternary)

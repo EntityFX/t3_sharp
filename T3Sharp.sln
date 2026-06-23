@@ -31,6 +31,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "T3Converter.GUI", "src\T3Co
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "T3Simulator.GUI", "src\T3Simulator.GUI\T3Simulator.GUI.csproj", "{C7DC3D8B-3616-B7E1-9BAA-D9BE467B8540}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "T3Calculator.GUI", "src\T3Calculator.GUI\T3Calculator.GUI.csproj", "{DE3EAD69-5F65-3616-D770-8D4017FE8717}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -85,6 +87,10 @@ Global
 		{C7DC3D8B-3616-B7E1-9BAA-D9BE467B8540}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C7DC3D8B-3616-B7E1-9BAA-D9BE467B8540}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C7DC3D8B-3616-B7E1-9BAA-D9BE467B8540}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DE3EAD69-5F65-3616-D770-8D4017FE8717}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DE3EAD69-5F65-3616-D770-8D4017FE8717}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DE3EAD69-5F65-3616-D770-8D4017FE8717}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DE3EAD69-5F65-3616-D770-8D4017FE8717}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -102,6 +108,7 @@ Global
 		{39F474E6-0A2F-4C5E-9767-B791929D5600} = {70243FED-84D8-4EFE-9EC7-1453DBFE7622}
 		{36508378-D2DD-16D8-84B4-C78B9026596D} = {70243FED-84D8-4EFE-9EC7-1453DBFE7622}
 		{C7DC3D8B-3616-B7E1-9BAA-D9BE467B8540} = {70243FED-84D8-4EFE-9EC7-1453DBFE7622}
+		{DE3EAD69-5F65-3616-D770-8D4017FE8717} = {70243FED-84D8-4EFE-9EC7-1453DBFE7622}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A33EB6E7-1CB5-438C-9BB0-5BA5EE41803C}

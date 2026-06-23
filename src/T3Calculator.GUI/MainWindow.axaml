@@ -1,0 +1,173 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:T3Calculator.GUI.ViewModels"
+        xmlns:System="clr-system"
+        x:Class="T3Calculator.GUI.MainWindow"
+        Title="T3 Calculator and Ternary Explorer"
+        Width="800" Height="600"
+        x:DataType="vm:MainViewModel">
+
+    <Design.DataContext>
+        <vm:MainViewModel/>
+    </Design.DataContext>
+
+    <TabControl SelectedItem="{Binding CurrentTab}">
+        <!-- Tab 1: Calculator (Arithmetic & Logic) -->
+        <TabItem Header="Calculator">
+            <StackPanel Margin="20" Spacing="20">
+                <Border Padding="15" Background="#f0f0f0" CornerRadius="8">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Ternary Arithmetic" FontWeight="Bold" FontSize="16"/>
+                        <TextBox Text="{Binding CalcInput, Mode=TwoWay}" PlaceholderText="Enter ternary expression (e.g. +0- * +++ or 10 + 5)" />
+                        <TextBlock Text="{Binding CalcResult}" FontSize="20" Foreground="Blue" FontWeight="Medium" HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding CalcDetails}" FontFamily="Consolas, Monospace" FontSize="14" Foreground="Gray" HorizontalAlignment="Center" TextAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Padding="15" Background="#f0f0f0" CornerRadius="8">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Ternary Logic" FontWeight="Bold" FontSize="16"/>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <NumericUpDown Value="{Binding LogicA}" Minimum="-1" Maximum="1" Width="100"/>
+                            <ComboBox ItemsSource="{Binding LogicOps}" SelectedItem="{Binding SelectedLogicOp}" Width="150" />
+                            <NumericUpDown Value="{Binding LogicB}" Minimum="-1" Maximum="1" Width="100"/>
+                        </StackPanel>
+                        <TextBlock Text="{Binding LogicResult}" FontSize="18" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </TabItem>
+
+        <!-- Tab 2: Truth Tables -->
+        <TabItem Header="Truth Tables">
+            <TabControl Margin="20">
+                <TabItem Header="AND">
+                    <ItemsControl ItemsSource="{Binding TruthTableAnd}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="{Binding A, StringFormat='A: {0}'}" Width="60" HorizontalAlignment="Left"/>
+                                        <TextBlock Text="{Binding B, StringFormat='B: {0}'}" Width="60" HorizontalAlignment="Left"/>
+                                        <TextBlock Text="{Binding Result, StringFormat='Result: {0}'}" FontWeight="Bold" Foreground="Blue"/>
+                                    </StackPanel>
+                                    <Separator Height="1" Margin="0,2"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </TabItem>
+                <TabItem Header="OR">
+                    <ItemsControl ItemsSource="{Binding TruthTableOr}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="{Binding A, StringFormat='A: {0}'}" Width="60" HorizontalAlignment="Left"/>
+                                        <TextBlock Text="{Binding B, StringFormat='B: {0}'}" Width="60" HorizontalAlignment="Left"/>
+                                        <TextBlock Text="{Binding Result, StringFormat='Result: {0}'}" FontWeight="Bold" Foreground="Blue"/>
+                                    </StackPanel>
+                                    <Separator Height="1" Margin="0,2"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </TabItem>
+                <TabItem Header="XOR">
+                    <ItemsControl ItemsSource="{Binding TruthTableXor}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="{Binding A, StringFormat='A: {0}'}" Width="60" HorizontalAlignment="Left"/>
+                                        <TextBlock Text="{Binding B, StringFormat='B: {0}'}" Width="60" HorizontalAlignment="Left"/>
+                                        <TextBlock Text="{Binding Result, StringFormat='Result: {0}'}" FontWeight="Bold" Foreground="Blue"/>
+                                    </StackPanel>
+                                    <Separator Height="1" Margin="0,2"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </TabItem>
+                <TabItem Header="IMPLIES">
+                    <ItemsControl ItemsSource="{Binding TruthTableImplies}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="{Binding A, StringFormat='A: {0}'}" Width="60" HorizontalAlignment="Left"/>
+                                        <TextBlock Text="{Binding B, StringFormat='B: {0}'}" Width="60" HorizontalAlignment="Left"/>
+                                        <TextBlock Text="{Binding Result, StringFormat='Result: {0}'}" FontWeight="Bold" Foreground="Blue"/>
+                                    </StackPanel>
+                                    <Separator Height="1" Margin="0,2"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </TabItem>
+                <TabItem Header="XNOR">
+                    <ItemsControl ItemsSource="{Binding TruthTableXnor}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="{Binding A, StringFormat='A: {0}'}" Width="60" HorizontalAlignment="Left"/>
+                                        <TextBlock Text="{Binding B, StringFormat='B: {0}'}" Width="60" HorizontalAlignment="Left"/>
+                                        <TextBlock Text="{Binding Result, StringFormat='Result: {0}'}" FontWeight="Bold" Foreground="Blue"/>
+                                    </StackPanel>
+                                    <Separator Height="1" Margin="0,2"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </TabItem>
+            </TabControl>
+        </TabItem>
+
+        <!-- Tab 3: T-SCII Table -->
+        <TabItem Header="T-SCII Guide">
+            <ScrollViewer Margin="20">
+                <ItemsControl ItemsSource="{Binding SciiTable}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border BorderBrush="LightGray" BorderThickness="0,0,0,1" Padding="5">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding Symbol, StringFormat='Char: {0}'}" Width="80" FontWeight="Bold"/>
+                                    <TextBlock Text="{Binding Value, StringFormat='Val: {0}'}" Width="80"/>
+                                    <TextBlock Text="{Binding Ternary, StringFormat='T3: {0}'}" Width="120" Foreground="Blue"/>
+                                    <TextBlock Text="{Binding Base9, StringFormat='B9: {0}'}" Width="100"/>
+                                    <TextBlock Text="{Binding Base27, StringFormat='B27: {0}'}" Width="100"/>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </TabItem>
+
+        <!-- Tab 4: Converter -->
+        <TabItem Header="Converter">
+            <StackPanel Margin="20" Spacing="15" MaxWidth="400" HorizontalAlignment="Center">
+                <TextBlock Text="Universal Base Converter" FontWeight="Bold" FontSize="18" HorizontalAlignment="Center"/>
+                <TextBox Text="{Binding ConvInput, Mode=TwoWay}" PlaceholderText="Input (0x, 0b, 0t, 0n, 0y, 00, or dec)"/>
+                
+                <Grid ColumnDefinitions="Auto, *" RowDefinitions="Auto, Auto, Auto, Auto, Auto" Margin="0,10">
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Binary: " VerticalAlignment="Center"/>
+                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding ConvBin}" FontWeight="Medium"/>
+                    
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Hex: " VerticalAlignment="Center"/>
+                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ConvHex}" FontWeight="Medium"/>
+                    
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Ternary: " VerticalAlignment="Center"/>
+                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding ConvTer}" FontWeight="Medium" Foreground="Blue"/>
+                    
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Nonary (0n): " VerticalAlignment="Center"/>
+                    <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding ConvNon}" FontWeight="Medium"/>
+                    
+                    <TextBlock Grid.Row="4" Grid.Column="0" Text="27-ary (0y): " VerticalAlignment="Center"/>
+                    <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding ConvT27}" FontWeight="Medium"/>
+                </Grid>
+            </StackPanel>
+        </TabItem>
+    </TabControl>
+</Window>
