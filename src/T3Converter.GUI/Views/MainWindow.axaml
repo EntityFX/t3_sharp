@@ -1,0 +1,73 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:T3Converter.GUI.ViewModels"
+        x:Class="T3Converter.GUI.Views.MainWindow"
+        x:DataType="vm:MainViewModel"
+        Title="T3 Number Converter"
+        Width="400" Height="500"
+        WindowStartupLocation="CenterScreen">
+
+    <Design.DataContext>
+        <vm:MainViewModel/>
+    </Design.DataContext>
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="Enter Value:" FontWeight="Bold" Margin="0,0,0,5" />
+        
+        <TextBox Grid.Row="1" 
+                 Text="{Binding InputText}" 
+                 Watermark="Example: 42, 0x2A, 0b101010, 0t+0-+, 0n12, 0y1C, 0052"
+                 Margin="0,0,0,20" />
+
+        <StackPanel Grid.Row="2" Spacing="10">
+            <TextBlock Text="Results:" FontWeight="Bold" Margin="0,0,0,10" />
+            
+            <Grid ColumnDefinitions="Auto, *" Margin="0,5">
+                <TextBlock Text="Decimal: " Width="100" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="1" Text="{Binding DecimalResult}" VerticalAlignment="Center" FontWeight="SemiBold"/>
+            </Grid>
+
+            <Grid ColumnDefinitions="Auto, *" Margin="0,5">
+                <TextBlock Text="Binary: " Width="100" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="1" Text="{Binding BinaryResult}" VerticalAlignment="Center" FontWeight="SemiBold"/>
+            </Grid>
+
+            <Grid ColumnDefinitions="Auto, *" Margin="0,5">
+                <TextBlock Text="Octal: " Width="100" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="1" Text="{Binding OctalResult}" VerticalAlignment="Center" FontWeight="SemiBold"/>
+            </Grid>
+
+            <Grid ColumnDefinitions="Auto, *" Margin="0,5">
+                <TextBlock Text="Hex: " Width="100" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="1" Text="{Binding HexResult}" VerticalAlignment="Center" FontWeight="SemiBold"/>
+            </Grid>
+
+            <Grid ColumnDefinitions="Auto, *" Margin="0,5">
+                <TextBlock Text="Ternary: " Width="100" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="1" Text="{Binding TernaryResult}" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="SteelBlue"/>
+            </Grid>
+
+            <Grid ColumnDefinitions="Auto, *" Margin="0,5">
+                <TextBlock Text="Nonary: " Width="100" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="1" Text="{Binding NonaryResult}" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="SteelBlue"/>
+            </Grid>
+
+            <Grid ColumnDefinitions="Auto, *" Margin="0,5">
+                <TextBlock Text="27-ary: " Width="100" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="1" Text="{Binding TwentySevenAryResult}" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="SteelBlue"/>
+            </Grid>
+
+            <TextBlock Text="{Binding ErrorMessage}" 
+                       Foreground="Red" 
+                       Margin="0,20,0,0" 
+                       TextWrapping="Wrap" 
+                       IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+        </StackPanel>
+    </Grid>
+</Window>
