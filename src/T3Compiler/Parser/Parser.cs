@@ -32,8 +32,10 @@ namespace T3Compiler.Parser
                         string n = Expect(TokenType.Identifier).Value; Expect(TokenType.LParen);
                         var par = new List<VarDeclaration>();
                         if (Peek().Type != TokenType.RParen) par = ParseParmList();
-                        Expect(TokenType.RParen); var b = ParseCompound();
-                        p.Functions.Add(new FunctionDef { ReturnType = ts, Name = n, Parameters = par, Body = b });
+                        Expect(TokenType.RParen);
+                        // Forward declaration (semicolon) or function definition (brace)
+                        if (Peek().Type == TokenType.Semicolon) { Next(); /* forward declaration, skip */ }
+                        else { var b = ParseCompound(); p.Functions.Add(new FunctionDef { ReturnType = ts, Name = n, Parameters = par, Body = b }); }
                     }
                     else { _pos = s; ParseGlobal(p); }
                 }
@@ -103,7 +105,9 @@ namespace T3Compiler.Parser
             if (t == TokenType.LBrace) return ParseCompound();
             if (t == TokenType.KwIf) return ParseIf();
             if (t == TokenType.KwWhile) return ParseWhile();
+            if (t == TokenType.KwDo) return ParseDoWhile();
             if (t == TokenType.KwFor) return ParseFor();
+            if (t == TokenType.KwSwitch) return ParseSwitch();
             if (t == TokenType.KwReturn) return ParseRet();
             if (t == TokenType.KwBreak) { Next(); Expect(TokenType.Semicolon); return new BreakStmt(); }
             if (t == TokenType.KwContinue) { Next(); Expect(TokenType.Semicolon); return new ContinueStmt(); }
@@ -115,7 +119,9 @@ namespace T3Compiler.Parser
         CompoundStmt ParseCompound() { Expect(TokenType.LBrace); var l = new List<Statement>(); while (Peek().Type != TokenType.RBrace && Peek().Type != TokenType.EndOfFile) l.Add(ParseStmt()); Expect(TokenType.RBrace); return new CompoundStmt { Body = l }; }
         IfStmt ParseIf() { Expect(TokenType.KwIf); Expect(TokenType.LParen); var c = ParseExpr(); Expect(TokenType.RParen); var th = ParseStmt(); Statement? mb = null, el = null; if (Peek().Type == TokenType.KwMaybe || Peek().Type == TokenType.KwElse) { if (Peek().Type == TokenType.KwMaybe) { Next(); mb = ParseStmt(); } if (Peek().Type == TokenType.KwElse) { Next(); el = ParseStmt(); } } return new IfStmt { Condition = c, ThenBody = th, MaybeBody = mb, ElseBody = el }; }
         WhileStmt ParseWhile() { Expect(TokenType.KwWhile); Expect(TokenType.LParen); var c = ParseExpr(); Expect(TokenType.RParen); return new WhileStmt { Condition = c, Body = ParseStmt() }; }
-        ForStmt ParseFor() { Expect(TokenType.KwFor); Expect(TokenType.LParen); AstNode? i = Peek().Type != TokenType.Semicolon ? ParseExpr() : null; Expect(TokenType.Semicolon); AstNode? c = Peek().Type != TokenType.Semicolon ? ParseExpr() : null; Expect(TokenType.Semicolon); AstNode? s = Peek().Type != TokenType.RParen ? ParseExpr() : null; Expect(TokenType.RParen); return new ForStmt { Init = i, Condition = c, Step = s, Body = ParseStmt() }; }
+        DoWhileStmt ParseDoWhile() { Expect(TokenType.KwDo); var body = ParseStmt(); Expect(TokenType.KwWhile); Expect(TokenType.LParen); var c = ParseExpr(); Expect(TokenType.RParen); Expect(TokenType.Semicolon); return new DoWhileStmt { Condition = c, Body = body }; }
+        ForStmt ParseFor() { Expect(TokenType.KwFor); Expect(TokenType.LParen); Statement? init = null; if (Peek().Type != TokenType.Semicolon) { if (IsType(Peek().Type)) init = ParseVar(); else init = new ExpressionStmt { Expression = ParseExpr() }; } Expect(TokenType.Semicolon); AstNode? c = Peek().Type != TokenType.Semicolon ? ParseExpr() : null; Expect(TokenType.Semicolon); AstNode? s = Peek().Type != TokenType.RParen ? ParseExpr() : null; Expect(TokenType.RParen); return new ForStmt { Init = init, Condition = c, Step = s, Body = ParseStmt() }; }
+        SwitchStmt ParseSwitch() { Expect(TokenType.KwSwitch); Expect(TokenType.LParen); var expr = ParseExpr(); Expect(TokenType.RParen); Expect(TokenType.LBrace); var cases = new List<CaseStmt>(); while (Peek().Type is TokenType.KwCase or TokenType.KwDefault) { AstNode? val = null; if (Match(TokenType.KwCase)) val = ParseExpr(); else Expect(TokenType.KwDefault); Expect(TokenType.OpColon); var body = new List<Statement>(); while (Peek().Type is not (TokenType.KwCase or TokenType.KwDefault or TokenType.RBrace or TokenType.EndOfFile)) body.Add(ParseStmt()); cases.Add(new CaseStmt { Value = val, Body = body }); } Expect(TokenType.RBrace); return new SwitchStmt { Expression = expr, Cases = cases }; }
         ReturnStmt ParseRet() { Expect(TokenType.KwReturn); AstNode? v = Peek().Type != TokenType.Semicolon ? ParseExpr() : null; Expect(TokenType.Semicolon); return new ReturnStmt { Value = v }; }
 
         VarDeclaration ParseVar()

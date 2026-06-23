@@ -62,11 +62,20 @@ namespace T3Compiler.Parser
     public class WhileStmt : Statement
     { public AstNode Condition; public Statement Body; }
 
+    public class DoWhileStmt : Statement
+    { public AstNode Condition; public Statement Body; }
+
     public class ForStmt : Statement
-    { public AstNode? Init, Condition, Step; public Statement Body; }
+    { public Statement? Init; public AstNode? Condition, Step; public Statement Body; }
 
     public class BreakStmt : Statement { }
     public class ContinueStmt : Statement { }
+
+    public class SwitchStmt : Statement
+    { public AstNode Expression; public List<CaseStmt> Cases = new(); }
+
+    public class CaseStmt
+    { public AstNode? Value; public List<Statement> Body = new(); } // Value=null means default
 
     // === Top-level ===
     public class FunctionDef

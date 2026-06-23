@@ -15,19 +15,33 @@ namespace T3Compiler.CodeGen
             _varSlots.Clear();_varSizes.Clear();_arrDims.Clear();_structFields.Clear();_nextReg=3;
             _epilogueLabel = Lbl("epilogue");
             Emit($"{f.Name}:");
-            // Prologue: save caller-saved registers (all except R2 which is the return value register)
+            // Prologue: save return address in R2, pop parameters, then push return address back
+            // The caller pushes args first, then saves regs, then CALL.
+            // Stack at entry: [caller's saved regs] [args...] [ret addr]
+            // We need to pop ret addr first, then args, then push ret addr back, then save our regs.
+            if (f.Parameters.Count > 0) {
+                Emit("    POP R2");  // save return address in R2 (not saved/restored)
+                // Pop parameters in forward order (they were pushed in reverse order by caller)
+                // Use R3 (index 7) as temp register for parameter values
+                foreach (var param in f.Parameters) {
+                    Alloc(param.Name, param.Type);
+                    Emit("    POP R3");
+                    Store(param.Name, 7, 0);  // R3 = index 7
+                }
+                Emit("    PUSH R2");  // push return address back
+            }
+            // Save callee-saved registers (all except R2 which is the return value register)
             Emit("    PUSH RW");Emit("    PUSH RX");Emit("    PUSH RY");Emit("    PUSH RZ");
             Emit("    PUSH R0");Emit("    PUSH R1");Emit("    PUSH R3");Emit("    PUSH R4");
             foreach(var s in f.Body.Body)GenStmt(s);
-            // Epilogue: restore caller-saved registers (R2 is the return value, not saved/restored)
+            // Epilogue: restore callee-saved registers (R2 is the return value, not saved/restored)
             Emit($"{_epilogueLabel}:");
             Emit("    POP R4");Emit("    POP R3");Emit("    POP R1");Emit("    POP R0");
             Emit("    POP RZ");Emit("    POP RY");Emit("    POP RX");Emit("    POP RW");
             Emit("    RET");
         }
         
-        void GenStmt(Statement s){switch(s){case ExpressionStmt e:if(e.Expression!=null)GenExpr(e.Expression);break;case VarDeclaration vd:Alloc(vd.Name,vd.Type);if(vd.Type.StructName!=null&&_structDefs.TryGetValue(vd.Type.StructName,out var sf))_structFields[vd.Name]=sf;if(vd.Initializer!=null){int r=GenExpr(vd.Initializer);Store(vd.Name,r,0);}break;case ReturnStmt rs:if(rs.Value!=null){int r=GenExpr(rs.Value);Emit($"    MOV R2,{RegName(r)}");}if(_epilogueLabel!=null){int rj=AllocR();Emit($"    LIMM {RegName(rj)},{_epilogueLabel}");Emit($"    JMP {RegName(rj)}");}else Emit("    RET");break;case CompoundStmt cs:foreach(var ss in cs.Body)GenStmt(ss);break;case IfStmt ifs:GenIf(ifs);break;case WhileStmt ws:GenWhile(ws);break;case ForStmt fs:if(fs.Init!=null)GenExpr(fs.Init);if(fs.Condition!=null)GenWhile(new WhileStmt{Condition=fs.Condition,Body=Compound(fs.Body,fs.Step)});else GenStmt(fs.Body);break;}}
-        static CompoundStmt Compound(Statement b,AstNode? s){var l=new List<Statement>{b};if(s!=null)l.Add(new ExpressionStmt{Expression=s});return new CompoundStmt{Body=l};}
+        void GenStmt(Statement s){switch(s){case ExpressionStmt e:if(e.Expression!=null)GenExpr(e.Expression);break;case VarDeclaration vd:Alloc(vd.Name,vd.Type);if(vd.Type.StructName!=null&&_structDefs.TryGetValue(vd.Type.StructName,out var sf))_structFields[vd.Name]=sf;if(vd.Initializer!=null){int r=GenExpr(vd.Initializer);Store(vd.Name,r,0);}break;case ReturnStmt rs:if(rs.Value!=null){int r=GenExpr(rs.Value);Emit($"    MOV R2,{RegName(r)}");}if(_epilogueLabel!=null){int rj=AllocR();Emit($"    LIMM {RegName(rj)},{_epilogueLabel}");Emit($"    JMP {RegName(rj)}");}else Emit("    RET");break;case CompoundStmt cs:foreach(var ss in cs.Body)GenStmt(ss);break;case IfStmt ifs:GenIf(ifs);break;case WhileStmt ws:GenWhile(ws);break;case DoWhileStmt dws:GenDoWhile(dws);break;case ForStmt fs:GenFor(fs);break;case SwitchStmt ss:GenSwitch(ss);break;case BreakStmt _:{var(brk,_)=_loopStack.Peek();Jmp(brk);}break;case ContinueStmt _:{var(_,cont)=_loopStack.Peek();Jmp(cont);}break;}}
         
         void GenIf(IfStmt s){
             string le=Lbl("end"),lt=Lbl("then");
@@ -41,8 +55,8 @@ namespace T3Compiler.CodeGen
                 Emit($"{le}:");
             }else{
                 int c=GenExpr(s.Condition);
-                Emit($"    LI R0,0");
-                Emit($"    CMP {RegName(c)},R0");
+                Emit($"    LI R2,0");
+                Emit($"    CMP {RegName(c)},R2");
                 JumpReg("JNE",lt);
                 if(s.ElseBody!=null)GenStmt(s.ElseBody);
                 Jmp(le);
@@ -62,8 +76,8 @@ namespace T3Compiler.CodeGen
                 Jmp(le);
             }else{
                 int c=GenExpr(s.Condition);
-                Emit($"    LI R0,0");
-                Emit($"    CMP {RegName(c)},R0");
+                Emit($"    LI R2,0");
+                Emit($"    CMP {RegName(c)},R2");
                 JumpReg("JNE",lb);
                 Jmp(le);
             }
@@ -71,7 +85,82 @@ namespace T3Compiler.CodeGen
             Emit($"{le}:");_loopStack.Pop();
         }
         
+        void GenDoWhile(DoWhileStmt s){
+            string ll=Lbl("loop"),le=Lbl("wend");
+            _loopStack.Push((le,ll));
+            Emit($"{ll}:");
+            GenStmt(s.Body);
+            if(s.Condition is BinaryOp bo){
+                int a=GenExpr(bo.Left);int b=GenExpr(bo.Right);
+                Emit($"    CMP {RegName(a)},{RegName(b)}");
+                JumpCond(bo.Operator,ll);
+            }else{
+                int c=GenExpr(s.Condition);
+                Emit($"    LI R2,0");
+                Emit($"    CMP {RegName(c)},R2");
+                JumpReg("JNE",ll);
+            }
+            Emit($"{le}:");
+            _loopStack.Pop();
+        }
+        
+        void GenFor(ForStmt fs){
+            string ll=Lbl("floop"),lb=Lbl("fbody"),le=Lbl("fend");
+            _loopStack.Push((le,ll));
+            if(fs.Init!=null) GenStmt(fs.Init);
+            Emit($"{ll}:");
+            if(fs.Condition!=null){
+                if(fs.Condition is BinaryOp bo){
+                    int a=GenExpr(bo.Left);int b=GenExpr(bo.Right);
+                    Emit($"    CMP {RegName(a)},{RegName(b)}");
+                    JumpCond(bo.Operator,lb);
+                }else{
+                    int c=GenExpr(fs.Condition);
+                    Emit($"    LI R2,0");
+                    Emit($"    CMP {RegName(c)},R2");
+                    JumpReg("JNE",lb);
+                }
+                Jmp(le);
+            }
+            Emit($"{lb}:");
+            GenStmt(fs.Body);
+            if(fs.Step!=null) GenExpr(fs.Step);
+            Jmp(ll);
+            Emit($"{le}:");
+            _loopStack.Pop();
+        }
+        
+        void GenSwitch(SwitchStmt s){
+            int exprReg = GenExpr(s.Expression);
+            string end = Lbl("swend");
+            var labels = new List<string>();
+            for (int i = 0; i < s.Cases.Count; i++)
+                labels.Add(Lbl("scase"));
+            // Find default case index
+            int defaultIdx = -1;
+            for (int i = 0; i < s.Cases.Count; i++) {
+                if (s.Cases[i].Value == null) { defaultIdx = i; continue; }
+                int caseVal = GenExpr(s.Cases[i].Value);
+                Emit($"    CMP {RegName(exprReg)},{RegName(caseVal)}");
+                JumpReg("JE", labels[i]);
+            }
+            // Jump to default or end
+            if (defaultIdx >= 0)
+                Jmp(labels[defaultIdx]);
+            else
+                Jmp(end);
+            // Generate case bodies
+            for (int i = 0; i < s.Cases.Count; i++) {
+                Emit($"{labels[i]}:");
+                foreach (var stmt in s.Cases[i].Body)
+                    GenStmt(stmt);
+                Jmp(end);  // break after each case
+            }
+            Emit($"{end}:");
+        }
+        
         void JumpCond(string op,string l){switch(op){case"==":JumpReg("JE",l);break;case"!=":JumpReg("JNE",l);break;case"<":JumpReg("JL",l);break;case">":JumpReg("JG",l);break;case"<=":JumpReg("JLE",l);break;case">=":JumpReg("JGE",l);break;}}
+        void JumpCondInv(string op,string l){switch(op){case"==":JumpReg("JNE",l);break;case"!=":JumpReg("JE",l);break;case"<":JumpReg("JGE",l);break;case">":JumpReg("JLE",l);break;case"<=":JumpReg("JG",l);break;case">=":JumpReg("JL",l);break;}}
         void JumpReg(string cond,string l){int r=AllocR();Emit($"    LIMM {RegName(r)},{l}");Emit($"    {cond} {RegName(r)}");}
         void Jmp(string l){int r=AllocR();Emit($"    LIMM {RegName(r)},{l}");Emit($"    JMP {RegName(r)}");}
         
@@ -91,8 +180,8 @@ namespace T3Compiler.CodeGen
         
         int GenTernary(TernaryExpr te){
             int cr=GenExpr(te.Condition),r=AllocR();
-            Emit($"    LI R0,0");
-            Emit($"    CMP {RegName(cr)},R0");
+            Emit($"    LI R2,0");
+            Emit($"    CMP {RegName(cr)},R2");
             string lt=Lbl("t"),lm=Lbl("m"),ld=Lbl("d");
             JumpReg("JG",lt);JumpReg("JE",lm);
             int fR=GenExpr(te.FalseExpr);Emit($"    MOV {RegName(r)},{RegName(fR)}");Jmp(ld);
@@ -102,10 +191,45 @@ namespace T3Compiler.CodeGen
         }
         
         int EmitMemAccess(MemberAccess ma){
+            // Case 1: struct variable field access (e.g., p.x)
             if(ma.Object is Identifier id&&_varSlots.TryGetValue(id.Name,out int ba)&&_structFields.TryGetValue(id.Name,out var fl)){
                 int off=fl.FindIndex(f=>f.Name==ma.MemberName);
                 if(off<0)throw new Exception($"Unknown field: {ma.MemberName}");
                 int r=AllocR();EmitAddr(ba+off);Emit($"    LOAD {RegName(r)},{RegName(AddrReg)}");return r;
+            }
+            // Case 2: struct array element field access (e.g., pts[0].x)
+            if(ma.Object is ArrayAccess aa&&_structFields.TryGetValue(aa.ArrayName,out var fl2)){
+                int off=fl2.FindIndex(f=>f.Name==ma.MemberName);
+                if(off<0)throw new Exception($"Unknown field: {ma.MemberName}");
+                int ba2=_varSlots.TryGetValue(aa.ArrayName,out int b)?b:_nextAddr;
+                int idx=FlatIdx(aa);
+                int r=AllocR();EmitAddr(ba2+off);Emit($"    ADD {RegName(r)},{RegName(AddrReg)},{RegName(idx)}");Emit($"    LOAD {RegName(r)},{RegName(r)}");return r;
+            }
+            // Case 3: pointer to struct field access via dereference (e.g., (*pp).first)
+            // The parser creates UnaryOp("*", Identifier) for *pp.
+            // For struct member access, we need the address (pointer value), not the dereferenced value.
+            // So we use the identifier directly (it holds the address) and add the field offset.
+            if(ma.Object is UnaryOp uo&&uo.Operator=="*"&&uo.Operand is Identifier ptrId){
+                // Find the struct definition that contains this field
+                foreach(var kv in _structDefs){
+                    int off=kv.Value.FindIndex(f=>f.Name==ma.MemberName);
+                    if(off>=0){
+                        // ptrId holds the address of the struct
+                        int ptrR=GenExpr(uo.Operand); // this does LOAD to get the pointer value
+                        // But we need the address, not the value at the address!
+                        // The pointer variable holds the address, so we load the pointer value
+                        // Actually, GenExpr for Identifier loads the VALUE of the variable.
+                        // For a pointer, the value IS the address.
+                        // So ptrR holds the address of the struct.
+                        // Now add field offset and load
+                        int r=AllocR();
+                        Emit($"    LI {RegName(AddrReg)},{off}");
+                        Emit($"    ADD {RegName(r)},{RegName(ptrR)},{RegName(AddrReg)}");
+                        Emit($"    LOAD {RegName(r)},{RegName(r)}");
+                        return r;
+                    }
+                }
+                throw new Exception($"Cannot find struct definition for field '{ma.MemberName}'");
             }
             throw new Exception($"Cannot access member: {ma.MemberName}");
         }
@@ -114,6 +238,33 @@ namespace T3Compiler.CodeGen
             if(ma.Object is Identifier id&&_varSlots.TryGetValue(id.Name,out int ba)&&_structFields.TryGetValue(id.Name,out var fl)){
                 int off=fl.FindIndex(f=>f.Name==ma.MemberName);
                 if(off>=0){EmitAddr(ba+off);Emit($"    STORE {RegName(v)},{RegName(AddrReg)}");}
+            }
+            // Case 2: struct array element field store
+            if(ma.Object is ArrayAccess aa&&_structFields.TryGetValue(aa.ArrayName,out var fl2)){
+                int off=fl2.FindIndex(f=>f.Name==ma.MemberName);
+                if(off>=0){
+                    int ba2=_varSlots.TryGetValue(aa.ArrayName,out int b)?b:_nextAddr;
+                    Emit($"    PUSH {RegName(v)}");
+                    int idx=FlatIdx(aa);
+                    EmitAddr(ba2+off);
+                    Emit($"    ADD {RegName(AddrReg)},{RegName(AddrReg)},{RegName(idx)}");
+                    int v_pop=AllocR();
+                    Emit($"    POP {RegName(v_pop)}");
+                    Emit($"    STORE {RegName(v_pop)},{RegName(AddrReg)}");
+                }
+            }
+            // Case 3: pointer to struct field store via dereference (e.g., (*pp).first = x)
+            if(ma.Object is UnaryOp uo&&uo.Operator=="*"&&uo.Operand is Identifier ptrId){
+                foreach(var kv in _structDefs){
+                    int off=kv.Value.FindIndex(f=>f.Name==ma.MemberName);
+                    if(off>=0){
+                        int ptrR=GenExpr(uo.Operand);
+                        Emit($"    LI {RegName(AddrReg)},{off}");
+                        Emit($"    ADD {RegName(AddrReg)},{RegName(ptrR)},{RegName(AddrReg)}");
+                        Emit($"    STORE {RegName(v)},{RegName(AddrReg)}");
+                        return;
+                    }
+                }
             }
         }
         
@@ -184,15 +335,20 @@ namespace T3Compiler.CodeGen
         }
         
         int EmitCall(FunctionCall fc){
-            // Save caller-saved registers (RW, RX, RY, RZ, R0, R1, R3, R4)
+            // Save caller-saved registers FIRST (RW, RX, RY, RZ, R0, R1, R3, R4)
+            // Then push arguments in reverse order.
+            // Stack at function entry: [caller's saved regs] [args...] [ret addr]
+            // Callee pops ret addr, then args (on top), pushes ret addr back, saves regs.
             Emit("    PUSH RW");Emit("    PUSH RX");Emit("    PUSH RY");Emit("    PUSH RZ");
             Emit("    PUSH R0");Emit("    PUSH R1");Emit("    PUSH R3");Emit("    PUSH R4");
-            // Push arguments in reverse order
             for(int i=fc.Arguments.Count-1;i>=0;i--)Emit($"    PUSH {RegName(GenExpr(fc.Arguments[i]))}");
             Emit($"    LI R1,{fc.FunctionName}");
             Emit("    CALL R1");
-            // Pop arguments
-            for(int i=0;i<fc.Arguments.Count;i++)Emit("    POP R4");
+            // After RET, stack has: [caller's saved regs] — callee popped args before saving regs
+            // Pop args (they were pushed after saved regs, but callee popped them, so we just pop saved regs)
+            // Actually, callee pops args before saving its own regs, so after RET:
+            // Stack: [caller's saved regs] — we restore them below
+            // No args to pop — callee already popped them
             // Restore caller-saved registers
             Emit("    POP R4");Emit("    POP R3");Emit("    POP R1");Emit("    POP R0");
             Emit("    POP RZ");Emit("    POP RY");Emit("    POP RX");Emit("    POP RW");

@@ -177,21 +177,19 @@ void GenFunc(FunctionDef f) {
 // return expr → LIMM + JMP на эпилог (не RET напрямую)
 ```
 
-**4. `EmitCall` сохраняет/восстанавливает caller-saved регистры:**
+**4. `EmitCall` сохраняет caller-saved регистры ПЕРЕД аргументами:**
 ```csharp
 int EmitCall(FunctionCall fc) {
-    // Сохраняем caller-saved регистры
+    // Сохраняем caller-saved регистры ПЕРВЫМИ (чтобы аргументы были на вершине стека)
     Emit("    PUSH RW"); Emit("    PUSH RX"); Emit("    PUSH RY"); Emit("    PUSH RZ");
     Emit("    PUSH R0"); Emit("    PUSH R1"); Emit("    PUSH R3"); Emit("    PUSH R4");
-    // Push arguments in reverse order
+    // Push arguments in reverse order (после сохранения регистров)
     for(int i = fc.Arguments.Count - 1; i >= 0; i--)
         Emit($"    PUSH {RegName(GenExpr(fc.Arguments[i]))}");
     Emit($"    LI R1, {fc.FunctionName}");
     Emit("    CALL R1");
-    // Pop arguments
-    for(int i = 0; i < fc.Arguments.Count; i++)
-        Emit("    POP R4");
-    // Restore caller-saved registers
+    // После RET: callee POPнул аргументы, стек = [caller's saved regs]
+    // Восстанавливаем caller-saved регистры (аргументы уже POPнуты callee)
     Emit("    POP R4"); Emit("    POP R3"); Emit("    POP R1"); Emit("    POP R0");
     Emit("    POP RZ"); Emit("    POP RY"); Emit("    POP RX"); Emit("    POP RW");
     int r = AllocR();
@@ -199,6 +197,13 @@ int EmitCall(FunctionCall fc) {
     return r;
 }
 ```
+
+**ВАЖНО: Порядок стека критичен!**
+- Caller сохраняет регистры ПЕРВЫМИ, затем push аргументов
+- Стек при входе в функцию: `[caller's saved regs] [args...] [ret addr]`
+- Callee POPит ret addr, затем POPит аргументы (они на вершине стека)
+- Если бы caller push аргументы ПЕРВЫМИ, то стек был бы: `[args] [caller's saved regs] [ret addr]`
+- В этом случае callee POPил бы ret addr, затем первый сохранённый регистр вместо аргумента!
 
 **5. `AllocR` пропускает R1, R2, R4:**
 ```csharp
@@ -282,11 +287,61 @@ int AllocR() {
 
 ---
 
+## Phase 11: Параметры функций и новые конструкции языка ✅
+
+### Проблема
+Параметры функций передавались через стек, но не извлекались в прологе функции. Отсутствовали do/while, switch/case, break/continue, тернарный оператор, составные присваивания.
+
+### Решение
+- **Параметры функций**: Callee POPит ret addr в R2, POPит параметры в локальные слоты, PUSHит ret addr обратно, сохраняет регистры
+- **do/while**: Добавлен `DoWhileStmt` в AST, парсер `ParseDoWhile()`, генератор `GenDoWhile()`
+- **switch/case**: Добавлены `SwitchStmt`/`CaseStmt` в AST, парсер `ParseSwitch()`, генератор `GenSwitch()`
+- **break/continue**: Обработка в `GenStmt()` через `_loopStack`
+- **Тернарный оператор**: `GenTernary()` генерирует CMP + условные переходы
+- **Составные присваивания**: `+=`, `-=`, `*=`, `/=`, `%=`, `&=`, `|=`, `^=`, `<<=`, `>>=` в `EmitAssign()`
+- **Доступ к полям структур**: `struct.array[index].field` и `(*ptr).field` в `EmitMemAccess()`
+- **Forward declarations**: Парсер обрабатывает `tint func(tint n);` как объявление
+
+### Файлы
+- `src/T3Compiler/Parser/Ast.cs` — новые классы `DoWhileStmt`, `SwitchStmt`, `CaseStmt`
+- `src/T3Compiler/Parser/Parser.cs` — `ParseDoWhile()`, `ParseSwitch()`, forward declarations
+- `src/T3Compiler/CodeGen/CodeGenerator.cs` — `GenDoWhile()`, `GenSwitch()`, `GenTernary()`, параметры в `GenFunc()`, составные присваивания в `EmitAssign()`, struct pointer access в `EmitMemAccess()`
+
+---
+
+## Phase 12: Комплексные тесты (29 новых тестов) ✅
+
+Добавлены тесты в `TLangCompilerTests.cs`:
+- **Рекурсия**: Факториал с параметром (while), факториал с параметром (for)
+- **Вложенные циклы**: Умножение матриц 3x3, решето простых чисел, пузырьковая сортировка, тройной вложенный цикл
+- **Крайние случаи**: Отрицательные числа, ноль итераций, большие числа, глубокий if/else
+- **Управление**: Тернарный оператор, break/continue, for, while-true-break
+- **Массивы и указатели**: Сумма 2D массива, обмен через указатели, реверс массива
+- **Структуры**: Вложенные структуры, массив структур, доступ через указатель на структуру
+- **Составные присваивания**: Все арифметические compound ops
+- **Препроцессор**: Макрос-выражение
+- **Дополнительно**: do/while sum, do/while at-least-once, switch basic, switch default, сложное выражение
+
+---
+
+## Phase 6b: Исправление порядка стека в ABI ✅
+
+### Проблема
+Caller сохранял регистры ПОСЛЕ аргументов. Стек при входе в функцию: `[args][saved regs][ret addr]`. Callee POPил ret addr, затем POPил первый сохранённый регистр вместо аргумента. Это приводило к тому, что параметры функций не получали правильные значения.
+
+### Решение
+Изменён порядок в `EmitCall`: caller сохраняет регистры ПЕРЕД push аргументов. Стек при входе: `[saved regs][args][ret addr]`. Callee POPит ret addr, затем POPит аргументы (они на вершине), PUSHит ret addr обратно, сохраняет свои регистры.
+
+### Файл
+- `src/T3Compiler/CodeGen/CodeGenerator.cs` — строки 311-327 (EmitCall)
+
+---
+
 ## Итоговые результаты тестирования
 
 | Тестовый проект | Пройдено | Провалено |
 |----------------|----------|-----------|
 | TritTypes.Tests | 123 | 0 |
 | T3Simulator.Common.Tests | 71 | 0 |
-| T3Simulator.InOrder.Tests | 79 | 0 |
-| **Итого** | **273** | **0** |
+| T3Simulator.InOrder.Tests | 105 | 0 |
+| **Итого** | **299** | **0** |
