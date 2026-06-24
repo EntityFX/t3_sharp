@@ -10,6 +10,7 @@ namespace T3Compiler.Parser
     public class Parser
     {
         private readonly List<Token> _tokens; private int _pos;
+        private readonly HashSet<string> _typeNames = new HashSet<string>();
         public Parser(List<Token> tokens) { _tokens = tokens; _pos = 0; }
 
         private Token Peek() => _tokens[_pos];
@@ -50,6 +51,7 @@ namespace T3Compiler.Parser
         {
             bool isUnion = Peek().Type == TokenType.KwUnion; Next();
             string name = Expect(TokenType.Identifier).Value;
+            _typeNames.Add(name);
             var sd = new StructDef { Name = name, IsUnion = isUnion };
             Expect(TokenType.LBrace);
             while (Peek().Type != TokenType.RBrace)
@@ -65,6 +67,7 @@ namespace T3Compiler.Parser
         {
             Next(); // skip enum
             string name = Expect(TokenType.Identifier).Value;
+            _typeNames.Add(name);
             var ed = new EnumDef { Name = name };
             Expect(TokenType.LBrace);
             while (Peek().Type != TokenType.RBrace)
@@ -82,8 +85,15 @@ namespace T3Compiler.Parser
         int ParseExprAsInt()
         {
             var node = ParseExpr();
-            if (node is IntegerLiteral il) return int.Parse(il.Value);
+            if (node is IntegerLiteral il) return (int)LiteralToLong(il.Value);
+            if (node is UnaryOp uo && uo.Operator == "-" && uo.Operand is IntegerLiteral il2) return -(int)LiteralToLong(il2.Value);
             throw new Exception("Enum value must be an integer literal");
+        }
+
+        long LiteralToLong(string v)
+        {
+            if (v.StartsWith("0t")) return TritTypes.BalancedTernary.ParseToLong(v[2..].Replace("_", ""));
+            return long.Parse(v);
         }
 
         void ParseGlobal(AstProgram p)
@@ -104,7 +114,8 @@ namespace T3Compiler.Parser
                 {TokenType.KwTfloat,"tfloat"},{TokenType.KwTdouble,"tdouble"},
                 {TokenType.KwStruct,"struct"},{TokenType.KwUnion,"union"},
             };
-            if (m.TryGetValue(Peek().Type, out var tn)) { Next(); ts.TypeName = tn; }
+            if (Peek().Type == TokenType.Identifier && _typeNames.Contains(Peek().Value)) { ts.TypeName = Next().Value; }
+            else if (m.TryGetValue(Peek().Type, out var tn)) { Next(); ts.TypeName = tn; }
             if (ts.TypeName is "struct" or "union")
             {
                 ts.StructName = Expect(TokenType.Identifier).Value;
@@ -113,10 +124,14 @@ namespace T3Compiler.Parser
             return ts;
         }
 
-        bool IsType(TokenType t) => t is TokenType.KwVoid or TokenType.KwTrit or TokenType.KwTril
-            or TokenType.KwTryte or TokenType.KwTshort or TokenType.KwTint
-            or TokenType.KwTlong or TokenType.KwTlongLong or TokenType.KwTfloat or TokenType.KwTdouble
-            or TokenType.KwSigned or TokenType.KwUnsigned or TokenType.KwStruct or TokenType.KwUnion;
+        bool IsType(TokenType t)
+        {
+            if (t == TokenType.Identifier) return _typeNames.Contains(Peek().Value);
+            return t is TokenType.KwVoid or TokenType.KwTrit or TokenType.KwTril
+                or TokenType.KwTryte or TokenType.KwTshort or TokenType.KwTint
+                or TokenType.KwTlong or TokenType.KwTlongLong or TokenType.KwTfloat or TokenType.KwTdouble
+                or TokenType.KwSigned or TokenType.KwUnsigned or TokenType.KwStruct or TokenType.KwUnion;
+        }
 
         List<VarDeclaration> ParseParmList()
         {

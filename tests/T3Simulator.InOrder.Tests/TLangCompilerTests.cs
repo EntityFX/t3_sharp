@@ -724,5 +724,39 @@ tint main() {
     return (*pp).first + (*pp).second;
 }"));
         }
+
+        [TestMethod][Timeout(5000)]
+        public void Compile_Enum_Basic()
+        {
+            Assert.AreEqual(2, CompileAndRun(@"
+enum Color { Red = 1, Green, Blue = -1 }
+tint main() {
+    Color c = Green;
+    return c;
+}"));
+        }
+
+        [TestMethod][Timeout(5000)]
+        public void Compile_Enum_InFunction()
+        {
+            Assert.AreEqual(1, CompileAndRun(@"
+enum Color { Red = 1, Green, Blue = -1 }
+tint get_val(Color c) { return c; }
+tint main() {
+    return get_val(Red);
+}"));
+        }
+
+        [TestMethod][Timeout(5000)]
+        public void Compile_Strings_And_Strlen()
+        {
+            Assert.AreEqual(11, CompileAndRun(@"
+tint strlen(tint s);
+tint main() {
+    tint len1 = strlen(""Hello"");
+    tint len2 = strlen(""World!"");
+    return len1 + len2;
+}"));
+        }
     }
 }

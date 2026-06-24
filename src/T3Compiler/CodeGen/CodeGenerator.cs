@@ -30,10 +30,10 @@ namespace T3Compiler.CodeGen
             
             Emit("\n; --- StdLib ---");
             Emit("strlen:");
-            Emit("    POP R1"); // Assume address is pushed as arg
-            Emit("    LOAD R2,R1");
-            Emit("    PUSH R1"); // restore stack if needed, but actually just return R2
-            Emit("    MOV R2,R2"); // essentially return R2
+            Emit("    POP R1");  // Save return address
+            Emit("    POP R2");  // Pop string address
+            Emit("    LOAD R2,R2"); // Load length from [R2] into R2
+            Emit("    PUSH R1"); // Restore return address
             Emit("    RET");
             
             return _output.ToString();}
@@ -447,13 +447,10 @@ namespace T3Compiler.CodeGen
         int EmitString(string value)
         {
             string lbl = Lbl("str");
-            // T-SCII format: [Length (1 word)] [Data (N traits)]
-            // In T3 assembly, we can use .word to define these.
             _stringsToEmit.Add((lbl, value));
-            
-            // Return the address of the string (the label)
-            return Imm(0); // Placeholder, but usually we want the label as a value.
-            // Actually, we need to emit a load of the label.
+            int r = AllocR();
+            Emit($"    LIMM {RegName(r)},{lbl}");
+            return r;
         }
         static bool IsCmp(string op)=>op is"=="or"!="or"<"or">"or"<="or">=";
         long ParseInt(string v){if(v.StartsWith("0t"))return BalancedTernary.ParseToLong(v[2..].Replace("_",""));if(v.StartsWith("0y"))return P27(v[2..]);if(v.StartsWith("0n"))return P9(v[2..]);return long.TryParse(v,out long n)?n:0;}
