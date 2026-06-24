@@ -7,6 +7,7 @@ namespace T3Compiler.CodeGen
         readonly Dictionary<string,int> _varSlots=new(),_varSizes=new();
         readonly Dictionary<string,int> _enumConstants=new();
         readonly List<(string label, string value)> _stringsToEmit=new();
+        readonly List<(string label, Word18 value)> _floatsToEmit=new();
         readonly Dictionary<string,List<int>> _arrDims=new();readonly Dictionary<string,List<FieldDef>> _structFields=new();
         readonly Stack<(string brk,string cont)> _loopStack=new();readonly Dictionary<string,List<FieldDef>> _structDefs=new();
         string? _epilogueLabel;
@@ -23,10 +24,13 @@ namespace T3Compiler.CodeGen
             Emit("; T→T3");Emit("__entry:");Emit("    LI RW,main");Emit("    CALL RW");Emit("    HALT");foreach(var f in _program.Functions)GenFunc(f);
             
             Emit("\n; --- Data Section ---");
-            foreach(var (lbl, val) in _stringsToEmit){
-                string data = string.Join(", ", val.Select(c => (long)TritTypes.TScii.FromChar(c)));
-                Emit($"{lbl}: .word {val.Length}, {data}");
-            }
+        foreach(var (lbl, val) in _stringsToEmit){
+            string data = string.Join(", ", val.Select(c => (long)TritTypes.TScii.FromChar(c)));
+            Emit($"{lbl}: .word {val.Length}, {data}");
+        }
+        foreach(var (lbl, val) in _floatsToEmit){
+            Emit($"{lbl}: .word {val.ToLong()}");
+        }
             
             Emit("\n; --- StdLib ---");
             Emit("strlen:");
@@ -42,26 +46,21 @@ namespace T3Compiler.CodeGen
             _varSlots.Clear();_varSizes.Clear();_arrDims.Clear();_structFields.Clear();_nextReg=3;
             _epilogueLabel = Lbl("epilogue");
             Emit($"{f.Name}:");
-            // Prologue: save return address in R2, pop parameters, then push return address back
-            // The caller pushes args first, then saves regs, then CALL.
-            // Stack at entry: [caller's saved regs] [args...] [ret addr]
-            // We need to pop ret addr first, then args, then push ret addr back, then save our regs.
+            // Prologue: save return address temporarily to pop parameters
             if (f.Parameters.Count > 0) {
-                Emit("    POP R2");  // save return address in R2 (not saved/restored)
-                // Pop parameters in forward order (they were pushed in reverse order by caller)
-                // Use R3 (index 7) as temp register for parameter values
-                foreach (var param in f.Parameters) {
-                    Alloc(param.Name, param.Type);
-                    Emit("    POP R3");
-                    Store(param.Name, 7, 0);  // R3 = index 7
+                foreach(var param in f.Parameters) Alloc(param.Name, param.Type);
+                Emit("    POP R1"); 
+                for (int i = 0; i < f.Parameters.Count; i++) {
+                    Emit("    POP R0");
+                    Store(f.Parameters[i].Name, 4, 0);
                 }
-                Emit("    PUSH R2");  // push return address back
+                Emit("    PUSH R1");
             }
-            // Save callee-saved registers (all except R2 which is the return value register)
+            // Save callee-saved registers
             Emit("    PUSH RW");Emit("    PUSH RX");Emit("    PUSH RY");Emit("    PUSH RZ");
             Emit("    PUSH R0");Emit("    PUSH R1");Emit("    PUSH R3");Emit("    PUSH R4");
             foreach(var s in f.Body.Body)GenStmt(s);
-            // Epilogue: restore callee-saved registers (R2 is the return value, not saved/restored)
+            // Epilogue
             Emit($"{_epilogueLabel}:");
             Emit("    POP R4");Emit("    POP R3");Emit("    POP R1");Emit("    POP R0");
             Emit("    POP RZ");Emit("    POP RY");Emit("    POP RX");Emit("    POP RW");
@@ -192,8 +191,9 @@ namespace T3Compiler.CodeGen
         void Jmp(string l){int r=AllocR();Emit($"    LIMM {RegName(r)},{l}");Emit($"    JMP {RegName(r)}");}
         
         int GenExpr(AstNode n){
-            if(n is IntegerLiteral il) return Imm(ParseInt(il.Value));
-            if(n is Identifier id){
+        if(n is IntegerLiteral il) return Imm(ParseInt(il.Value));
+        if(n is FloatLiteral fl) return EmitFloat(fl.Value);
+        if(n is Identifier id){
                 if(_enumConstants.TryGetValue(id.Name,out int v)) return Imm(v);
                 return LoadV(id.Name,0);
             }
@@ -432,7 +432,7 @@ namespace T3Compiler.CodeGen
             Emit($"    STORE {RegName(v_pop)},{RegName(AddrReg)}");
         }
         
-        int _nextAddr=300;const int AddrReg=8;
+        int _nextAddr=100;const int AddrReg=8;
         void EmitAddr(long addr){if(addr>=-364&&addr<=364)Emit($"    LI {RegName(AddrReg)},{addr}");else Emit($"    LIMM {RegName(AddrReg)},{addr}");}
         void Alloc(string name,TypeSpec ts){if(!_varSlots.ContainsKey(name)){_varSlots[name]=_nextAddr;int sz=1;if(ts.StructName!=null&&_structDefs.TryGetValue(ts.StructName,out var sf)){sz=sf.Count;_structFields[name]=sf;}else if(ts.Dims.Count>0){sz=ts.Dims.Aggregate(1,(a,b)=>a*b);_arrDims[name]=ts.Dims;}_varSizes[name]=sz;_nextAddr+=sz;}}
         
@@ -450,6 +450,19 @@ namespace T3Compiler.CodeGen
             _stringsToEmit.Add((lbl, value));
             int r = AllocR();
             Emit($"    LIMM {RegName(r)},{lbl}");
+            return r;
+        }
+
+        int EmitFloat(string value)
+        {
+            string lbl = Lbl("flt");
+            double d = double.Parse(value, System.Globalization.CultureInfo.InvariantCulture);
+            T3Float tf = T3Float.FromDouble(d);
+            Word18 w = tf.ToWord18();
+            _floatsToEmit.Add((lbl, w));
+            int r = AllocR();
+            Emit($"    LIMM {RegName(r)},{lbl}");
+            Emit($"    FLW {RegName(r)},{RegName(r)}");
             return r;
         }
         static bool IsCmp(string op)=>op is"=="or"!="or"<"or">"or"<="or">=";

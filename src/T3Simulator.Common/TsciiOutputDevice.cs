@@ -15,7 +15,7 @@ namespace T3Simulator.Common
             throw new NotSupportedException("TsciiOutputDevice is an output-only device.");
         }
 
-        public void Write(TWord value)
+            public virtual void Write(TWord value)
         {
             try
             {

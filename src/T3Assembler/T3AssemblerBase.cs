@@ -6,6 +6,7 @@ namespace T3Assembler
     {
         protected readonly T3Config _config;
         protected readonly Dictionary<string,int> _labels=new();
+        protected readonly Dictionary<string, Int128> _constants=new();
         protected readonly List<string> _lines=new();
         public T3AssemblerBase(T3Config c){_config=c;}
         public abstract List<Int128> Assemble(string src);
@@ -19,6 +20,7 @@ namespace T3Assembler
         protected List<Int128> ResolveString(string t){string s=t[1..^1];var r=new List<Int128>();foreach(char c in s)r.Add(TScii.FromChar(c));r.Add(0);return r;}
         protected Int128 ResolveOperandValue(string t){
             if(IsRegister(t))return GetRegisterTrit(t);
+            if(_constants.TryGetValue(t,out var cv))return cv;
             if(long.TryParse(t,out long v))return v;
             if(_labels.TryGetValue(t,out int a))return a;
             if(t.StartsWith("t",StringComparison.OrdinalIgnoreCase))return BalancedTernary.ParseToInt128(t[1..]);

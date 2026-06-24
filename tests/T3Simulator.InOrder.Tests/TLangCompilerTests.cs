@@ -729,22 +729,22 @@ tint main() {
         public void Compile_Enum_Basic()
         {
             Assert.AreEqual(2, CompileAndRun(@"
-enum Color { Red = 1, Green, Blue = -1 }
+enum Color { Red = 1, Green, Blue = -1 };
 tint main() {
-    Color c = Green;
-    return c;
-}"));
+            Color c = Green;
+            return c;
+        }"));
         }
 
         [TestMethod][Timeout(5000)]
         public void Compile_Enum_InFunction()
         {
             Assert.AreEqual(1, CompileAndRun(@"
-enum Color { Red = 1, Green, Blue = -1 }
+enum Color { Red = 1, Green, Blue = -1 };
 tint get_val(Color c) { return c; }
 tint main() {
-    return get_val(Red);
-}"));
+            return get_val(Red);
+        }"));
         }
 
         [TestMethod][Timeout(5000)]

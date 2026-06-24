@@ -66,7 +66,8 @@ namespace T3Compiler.Parser
         void ParseEnumDef(AstProgram p)
         {
             Next(); // skip enum
-            string name = Expect(TokenType.Identifier).Value;
+            Token nameToken = Expect(TokenType.Identifier);
+            string name = nameToken.Value;
             _typeNames.Add(name);
             var ed = new EnumDef { Name = name };
             Expect(TokenType.LBrace);
@@ -78,7 +79,7 @@ namespace T3Compiler.Parser
                 ed.Members.Add(new EnumMember { Name = memberName, Value = val });
                 if (!Match(TokenType.Comma)) break;
             }
-            Expect(TokenType.RBrace); Match(TokenType.Semicolon);
+            Expect(TokenType.RBrace); Expect(TokenType.Semicolon);
             p.Enums.Add(ed);
         }
 
@@ -106,16 +107,25 @@ namespace T3Compiler.Parser
 
         TypeSpec ParseType()
         {
-            var ts = new TypeSpec { TypeName = "tint" };
-            var m = new Dictionary<TokenType, string> {
-                {TokenType.KwVoid,"void"},{TokenType.KwTrit,"trit"},{TokenType.KwTril,"tril"},
-                {TokenType.KwTryte,"tryte"},{TokenType.KwTshort,"tshort"},{TokenType.KwTint,"tint"},
-                {TokenType.KwTlong,"tlong"},{TokenType.KwTlongLong,"tlong long"},
-                {TokenType.KwTfloat,"tfloat"},{TokenType.KwTdouble,"tdouble"},
-                {TokenType.KwStruct,"struct"},{TokenType.KwUnion,"union"},
-            };
-            if (Peek().Type == TokenType.Identifier && _typeNames.Contains(Peek().Value)) { ts.TypeName = Next().Value; }
-            else if (m.TryGetValue(Peek().Type, out var tn)) { Next(); ts.TypeName = tn; }
+            TypeSpec ts;
+            if (Peek().Type == TokenType.Identifier && _typeNames.Contains(Peek().Value)) {
+                ts = new TypeSpec { TypeName = Next().Value };
+            } else {
+                var m = new Dictionary<TokenType, string> {
+                    {TokenType.KwVoid,"void"},{TokenType.KwTrit,"trit"},{TokenType.KwTril,"tril"},
+                    {TokenType.KwTryte,"tryte"},{TokenType.KwTshort,"tshort"},{TokenType.KwTint,"tint"},
+                    {TokenType.KwTlong,"tlong"},{TokenType.KwTlongLong,"tlong long"},
+                    {TokenType.KwTfloat,"tfloat"},{TokenType.KwTdouble,"tdouble"},
+                    {TokenType.KwStruct,"struct"},{TokenType.KwUnion,"union"},
+                };
+                if (m.TryGetValue(Peek().Type, out var tn)) {
+                    Next();
+                    ts = new TypeSpec { TypeName = tn };
+                } else {
+                    throw new Exception($"Unknown type: {Peek()}");
+                }
+            }
+
             if (ts.TypeName is "struct" or "union")
             {
                 ts.StructName = Expect(TokenType.Identifier).Value;
