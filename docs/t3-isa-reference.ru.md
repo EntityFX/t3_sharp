@@ -6,7 +6,83 @@
 [Pred (3)] [Opcode (6)] [Args (9)]
 ```
 
-Регистры кодируются тритовым значением (-4..+4). Phys индекс = trit + 4.
+Все поля хранятся в 18-тритном слове. Поля Pred и Opcode хранятся как raw unsigned (беззнаковые целые). Поля аргументов хранятся как signed balanced ternary (сбалансированные троичные) со смещением.
+
+### Детали кодирования полей
+
+| Поле | Позиция (LSB) | Ширина (триты) | Тип | Диапазон |
+|------|---------------|----------------|-----|----------|
+| Pred | 15 | 3 | Raw unsigned | 0..13 |
+| Opcode | 9 | 6 | Raw unsigned | 0..364 |
+| Args | 0 | 9 | Raw unsigned → sub-fields | 0..9841 |
+
+**Args sub-fields**:
+- **R-type**: `[Op1(3)] [Op2(3)] [Op3(3)]` — каждый balanced, диапазон ±13 (Phys index = value + 4)
+- **I-type**: `[Op1(3)] [Imm(6)]` — Op1 balanced (±13), Imm balanced (±364)
+- **J-type**: `[Reg(3)] [000000]` — Reg balanced (±13), 6 тритов padding (всегда 0)
+
+### Encoder (InstructionEncoder)
+
+```csharp
+// Все signed значения конвертируются в unsigned через ToUnsignedField:
+// unsigned = signed + offset, где offset = (3^width - 1) / 2
+long EncodeR(int pred, int opcode, int op1, int op2, int op3)
+long EncodeI(int pred, int opcode, int op1, long imm)
+long EncodeJ(int pred, int opcode, int reg)
+```
+
+**ToUnsignedField**: `value + offset` где `offset = (3^width - 1) / 2`.
+- Для 3 тритов: offset = 13, диапазон signed: ±13 → unsigned: 0..26
+- Для 6 тритов: offset = 364, диапазон signed: ±364 → unsigned: 0..728 (I-type imm, LI imm)
+
+### Decoder (InstructionDecoder)
+
+```csharp
+DecodedInstruction Decode(Word18 word)
+DecodedInstruction Decode(Word54 word)  // использует Word18.FromWrappedLong()
+```
+
+**Процесс декодирования**:
+1. Извлечь Pred: `ExtractRawField(word, 15, 3)` — raw unsigned
+2. Извлечь Opcode: `ExtractRawField(word, 9, 6)` — raw unsigned
+3. Извлечь Args: `ExtractRawField(word, 0, 9)` — raw unsigned
+4. В зависимости от типа (R/I/J):
+   - **R-type**: Извлечь Op1/Op2/Op3 из Args как raw unsigned (3 трита каждый), затем конвертировать в balanced: `value - 13`
+   - **I-type**: Извлечь Op1 (3 трита) и Imm (6 тритов) из Args, конвертировать в balanced: Op1 -= 13, Imm -= 364
+   - **J-type**: Извлечь Reg (3 трита) из Args, конвертировать в balanced: Reg -= 13. Imm = 0 (padding)
+
+**Важно**: Для J-type imm всегда равен 0. 6 тритов padding в младших разрядах Args гарантированно равны 0, но decoder устанавливает imm = 0 явно.
+
+### ExtractRawField и ExtractBalancedField
+
+```csharp
+// Извлекает raw unsigned значение поля: (value / 3^startPos) % 3^width
+Int128 ExtractRawField(Int128 value, int startPos, int width)
+
+// Извлекает balanced значение поля: ExtractRawField(...) - (3^width - 1) / 2
+Int128 ExtractBalancedField(Int128 value, int startPos, int width)
+```
+
+**ExtractBalancedField** предназначен для полей, которые были закодированы как unsigned (value + offset). Он НЕ подходит для извлечения полей из сбалансированного троичного числа, где поля хранятся как signed значения (например, T3Float).
+
+### ExtractBalancedTrit
+
+```csharp
+int ExtractBalancedTrit(Int128 value, int position)
+```
+
+Извлекает один сбалансированный трит из значения на заданной позиции (0 = LSB). Использует алгоритм сбалансированного троичного переноса:
+- Итерирует от позиции 0 до запрошенной позиции
+- На каждом шаге: `rem = remaining % 3`
+  - rem == 2 → trit = -1, remaining = (remaining + 1) / 3 (перенос +1)
+  - rem == -2 → trit = +1, remaining = (remaining - 1) / 3 (перенос -1)
+  - rem == 1 → trit = +1, remaining = (remaining - 1) / 3
+  - rem == -1 → trit = -1, remaining = (remaining + 1) / 3
+  - rem == 0 → trit = 0, remaining = remaining / 3
+
+**Важно**: Эта функция корректно обрабатывает переносы (carry propagation), в отличие от старой реализации, которая использовала `(value / 3^position) % 3` и не учитывала переносы из младших позиций.
+
+## Регистры
 
 | Имя | Трит | Phys | FPU |
 |------|------|------|-----|
@@ -129,7 +205,7 @@
 
 Если pred > 0, инструкция выполняется только если PR[pred-1] == +1.
 PR регистр: 9 тритов, три 3-тритных предикатных флага.
-*Примечание: реализация предикации в настоящий момент проходит стабилизацию для обеспечения согласованности между спецификацией и движком исполнения.*
+*Примечание: предикация выполняется на основе флагов PR[0..2]. Инструкция выполняется, если соответствующий флаг равен +1.*
 
 ## Задержки инструкций (такты)
 

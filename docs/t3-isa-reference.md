@@ -32,9 +32,8 @@ long EncodeJ(int pred, int opcode, int reg)
 ```
 
 **ToUnsignedField**: `value + offset` где `offset = (3^width - 1) / 2`.
-- Для 3 тритов: offset = 4, диапазон signed: ±4 → unsigned: 0..8
-- Для 6 тритов: offset = 13, диапазон signed: ±13 → unsigned: 0..26 (I-type imm)
-- Для 6 тритов: offset = 364, диапазон signed: ±364 → unsigned: 0..728 (LI imm)
+- Для 3 тритов: offset = 13, диапазон signed: ±13 → unsigned: 0..26
+- Для 6 тритов: offset = 364, диапазон signed: ±364 → unsigned: 0..728 (I-type imm, LI imm)
 
 ### Decoder (InstructionDecoder)
 

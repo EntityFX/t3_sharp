@@ -80,7 +80,7 @@ An **experimental .NET-based research prototype** for ternary processors impleme
 | Status | Components | Notes |
 |---|---|---|
 | **Stable** | TritTypes, Word18, In-Order Processor, Basic Assembler, CLI | Core functionality for T3-18 |
-| **Beta** | FPU, T-lang Compiler, Disassembler, Word54 | Functional but may have edge-case bugs |
+| **Beta** | FPU, T-lang Compiler (prototype), Disassembler, Word54 | Functional but may have edge-case bugs |
 | **Experimental** | VLIW Assembler, GUI | Initial prototypes, not fully integrated |
 | **Planned** | VLIW Processor, SIMD, Speculation, Register Windowing, Interrupts | Defined in architecture, not yet implemented |
 
@@ -192,7 +192,7 @@ Nine logical general-purpose registers:
 ```
 
 - `opcode+pred = base_opcode + pred_index x 28`
-- `imm6` range: -364 ... +364
+- `imm6` range: -364 ... +364 (offset = 364)
 
 ### Example Assembly
 

@@ -44,8 +44,8 @@ Registers encoded by trit value (-4..+4). Phys index = trit + 4.
 **Opcode field** (positions 9-14): Raw unsigned, 0..364.
 
 **Args field** (positions 0-8): Raw unsigned, then sub-fields extracted and converted to balanced by subtracting offset:
-- 3-trit sub-field: offset = 4, range ±4
-- 6-trit sub-field (I-type imm): offset = 13, range ±13 (for LI: offset = 364, range ±364)
+- 3-trit sub-field: offset = 13, range ±13
+- 6-trit sub-field (I-type imm): offset = 364, range ±364 (including LI)
 
 **J-type**: Reg in Op1 position (3 trits). Op2 and Op3 are padding (6 trits, always 0). Imm is explicitly set to 0 by the decoder.
 
@@ -180,13 +180,16 @@ Processor: `Register[reg] = Memory[PC]; PC++`
 2. PUSH arguments in reverse order
 3. LIMM R1, function_address
 4. CALL R1
-5. POP arguments (into R4 as temporary)
-6. POP restore caller-saved registers
-7. MOV result_reg, R2
+5. POP restore caller-saved registers
+6. MOV result_reg, R2
 
 **Callee (prologue)**:
 1. Function label
-2. PUSH R4, R3, R1, R0, RZ, RY, RX, RW (all except R2)
+2. If arguments exist:
+   - POP return address into temporary register
+   - POP arguments and store in local memory
+   - PUSH return address back to stack
+3. PUSH R4, R3, R1, R0, RZ, RY, RX, RW (all except R2)
 
 **Callee (epilogue)**:
 1. POP RW, RX, RY, RZ, R0, R1, R3, R4

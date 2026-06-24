@@ -51,19 +51,19 @@
 | TL‑01 | T‑lang | No standard library implementation | 🔴 Critical | ~800 | 1 |
 | TL‑02 | T‑lang | Float literals → zero | 🔴 Critical | ~300 | 1 |
 | TL‑03 | T‑lang | No string support | 🟡 High | ~400 | 1 |
-| TL‑04 | T‑lang | No `switch`/`case` | 🟡 High | ~250 | 1 |
+| TL‑04 | T‑lang | No `switch`/`case` | ✅ Done | ~250 | 1 |
 | TL‑05 | T‑lang | No `enum` | 🟡 High | ~150 | 2 |
 | TL‑06 | T‑lang | No type casts `(type)expr` | 🟡 High | ~200 | 2 |
 | TL‑07 | T‑lang | No `sizeof()` | 🟡 High | ~100 | 2 |
 | TL‑08 | T‑lang | No `typedef` | 🟡 High | ~150 | 2 |
-| TL‑09 | T‑lang | No array initialization `{1,2,3}` | 🟡 High | ~300 | 1 |
-| TL‑10 | T‑lang | No `do`/`while` | 🟢 Low | ~100 | 1 |
-| TL‑11 | T‑lang | Ternary expression not codegen'd | 🟡 High | ~200 | 2 |
+| TL‑09 | T‑lang | No array initialization `{1,2,3}` | ✅ Done | ~300 | 1 |
+| TL‑10 | T‑lang | No `do`/`while` | ✅ Done | ~100 | 1 |
+| TL‑11 | T‑lang | Ternary expression not codegen'd | ✅ Done | ~200 | 2 |
 | TL‑12 | T‑lang | No `goto` / labels | 🟢 Low | ~100 | 2 |
 | TL‑13 | T‑lang | Round-robin register allocator | 🟡 High | ~800 | 2 |
 | TL‑14 | T‑lang | No constant folding / DCE / CSE | 🟢 Low | ~600 | 2 |
-| TL‑15 | T‑lang | Caller-saved regs not preserved | 🟡 High | ~150 | 1 |
-| TL‑16 | T‑lang | LIMM word reservation broken | 🟡 High | ~100 | 1 |
+| TL‑15 | T‑lang | Caller-saved regs not preserved | ✅ Done | ~150 | 1 |
+| TL‑16 | T‑lang | LIMM word reservation broken | ✅ Done | ~100 | 1 |
 | TL‑17 | T‑lang | No `.map`/symbol table output | 🟢 Low | ~200 | 2 |
 | TL‑18 | T‑lang | No source-location error messages | 🟡 High | ~300 | 2 |
 | TL‑19 | T‑lang | No `-Werror`/`-Wall` diagnostics | 🟢 Low | ~200 | 2 |
