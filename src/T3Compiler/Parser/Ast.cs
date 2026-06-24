@@ -46,8 +46,14 @@ namespace T3Compiler.Parser
     public class FieldDef
     { public TypeSpec Type; public string Name; }
 
-    public class StructDef
-    { public string Name; public List<FieldDef> Fields = new(); public bool IsUnion; }
+public class StructDef
+{ public string Name; public List<FieldDef> Fields = new(); public bool IsUnion; }
+
+public class EnumMember
+{ public string Name; public int? Value; }
+
+public class EnumDef
+{ public string Name; public List<EnumMember> Members = new(); }
 
     // === Statements ===
     public abstract class Statement { }
@@ -81,10 +87,11 @@ namespace T3Compiler.Parser
     public class FunctionDef
     { public TypeSpec ReturnType; public string Name; public List<VarDeclaration> Parameters = new(); public CompoundStmt Body; }
 
-    public class AstProgram
-    {
-        public List<FunctionDef> Functions = new();
-        public List<VarDeclaration> Globals = new();
-        public List<StructDef> Structs = new();  // user-defined struct/union types
-    }
+public class AstProgram
+{
+    public List<FunctionDef> Functions = new();
+    public List<VarDeclaration> Globals = new();
+    public List<StructDef> Structs = new();  // user-defined struct/union types
+    public List<EnumDef> Enums = new();
+}
 }

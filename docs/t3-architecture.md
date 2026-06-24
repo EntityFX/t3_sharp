@@ -72,9 +72,9 @@ Decoding process:
 2. Extract Opcode: `ExtractRawField(word, 9, 6)` — raw unsigned
 3. Extract Args: `ExtractRawField(word, 0, 9)` — raw unsigned
 4. Based on type (R/I/J):
-   - R-type: Extract Op1/Op2/Op3 from Args (3 trits each), convert to balanced: `value - 4`
-   - I-type: Extract Op1 (3 trits) and Imm (6 trits) from Args, convert to balanced: Op1 -= 4, Imm -= 13
-   - J-type: Extract Reg (3 trits) from Args, convert to balanced: Reg -= 4. Imm = 0
+    - R-type: Extract Op1/Op2/Op3 from Args (3 trits each), convert to balanced: `value - 13`
+    - I-type: Extract Op1 (3 trits) and Imm (6 trits) from Args, convert to balanced: Op1 -= 13, Imm -= 364
+    - J-type: Extract Reg (3 trits) from Args, convert to balanced: Reg -= 13. Imm = 0
 
 ## Memory
 
@@ -254,5 +254,5 @@ See [t3-isa-reference.md](t3-isa-reference.md) for full ISA.
 |---|---|---|
 | TritTypes.Tests | 123 | 0 |
 | T3Simulator.Common.Tests | 71 | 0 |
-| T3Simulator.InOrder.Tests | 79 | 0 |
-| **Total** | **273** | **0** |
+| T3Simulator.InOrder.Tests | 105 | 0 |
+| **Total** | **299** | **0** |

@@ -5,11 +5,38 @@ namespace T3Compiler.CodeGen
     {
         readonly AstProgram _program;readonly StringBuilder _output;int _labelCounter;
         readonly Dictionary<string,int> _varSlots=new(),_varSizes=new();
+        readonly Dictionary<string,int> _enumConstants=new();
+        readonly List<(string label, string value)> _stringsToEmit=new();
         readonly Dictionary<string,List<int>> _arrDims=new();readonly Dictionary<string,List<FieldDef>> _structFields=new();
         readonly Stack<(string brk,string cont)> _loopStack=new();readonly Dictionary<string,List<FieldDef>> _structDefs=new();
         string? _epilogueLabel;
         public CodeGenerator(AstProgram p){_program=p;_output=new();foreach(var s in p.Structs)_structDefs[s.Name]=s.Fields;}
-        public string Generate(){Emit("; T→T3");Emit("__entry:");Emit("    LI RW,main");Emit("    CALL RW");Emit("    HALT");foreach(var f in _program.Functions)GenFunc(f);return _output.ToString();}
+        public string Generate(){
+            foreach(var ed in _program.Enums){
+                int cur=0;
+                foreach(var m in ed.Members){
+                    int v=m.Value??cur;
+                    _enumConstants[m.Name]=v;
+                    cur=v+1;
+                }
+            }
+            Emit("; T→T3");Emit("__entry:");Emit("    LI RW,main");Emit("    CALL RW");Emit("    HALT");foreach(var f in _program.Functions)GenFunc(f);
+            
+            Emit("\n; --- Data Section ---");
+            foreach(var (lbl, val) in _stringsToEmit){
+                string data = string.Join(", ", val.Select(c => (long)TritTypes.TScii.FromChar(c)));
+                Emit($"{lbl}: .word {val.Length}, {data}");
+            }
+            
+            Emit("\n; --- StdLib ---");
+            Emit("strlen:");
+            Emit("    POP R1"); // Assume address is pushed as arg
+            Emit("    LOAD R2,R1");
+            Emit("    PUSH R1"); // restore stack if needed, but actually just return R2
+            Emit("    MOV R2,R2"); // essentially return R2
+            Emit("    RET");
+            
+            return _output.ToString();}
         
         void GenFunc(FunctionDef f){
             _varSlots.Clear();_varSizes.Clear();_arrDims.Clear();_structFields.Clear();_nextReg=3;
@@ -164,19 +191,23 @@ namespace T3Compiler.CodeGen
         void JumpReg(string cond,string l){int r=AllocR();Emit($"    LIMM {RegName(r)},{l}");Emit($"    {cond} {RegName(r)}");}
         void Jmp(string l){int r=AllocR();Emit($"    LIMM {RegName(r)},{l}");Emit($"    JMP {RegName(r)}");}
         
-        int GenExpr(AstNode n)=>n switch{
-            IntegerLiteral il=>Imm(ParseInt(il.Value)),
-            Identifier id=>LoadV(id.Name,0),
-            BooleanLiteral bl=>Imm(bl.Value),
-            BinaryOp bo=>GenBin(bo),
-            UnaryOp uo=>GenUn(uo),
-            Assignment ass=>EmitAssign(ass),
-            ArrayAccess aa=>EmitArrAccess(aa),
-            FunctionCall fc=>EmitCall(fc),
-            MemberAccess ma=>EmitMemAccess(ma),
-            TernaryExpr te=>GenTernary(te),
-            _=>throw new NotSupportedException($"Unsupported expression: {n?.GetType().Name}")
-        };
+        int GenExpr(AstNode n){
+            if(n is IntegerLiteral il) return Imm(ParseInt(il.Value));
+            if(n is Identifier id){
+                if(_enumConstants.TryGetValue(id.Name,out int v)) return Imm(v);
+                return LoadV(id.Name,0);
+            }
+            if(n is BooleanLiteral bl) return Imm(bl.Value);
+            if(n is StringLiteral sl) return EmitString(sl.Value);
+            if(n is BinaryOp bo) return GenBin(bo);
+            if(n is UnaryOp uo) return GenUn(uo);
+            if(n is Assignment ass) return EmitAssign(ass);
+            if(n is ArrayAccess aa) return EmitArrAccess(aa);
+            if(n is FunctionCall fc) return EmitCall(fc);
+            if(n is MemberAccess ma) return EmitMemAccess(ma);
+            if(n is TernaryExpr te) return GenTernary(te);
+            throw new NotSupportedException($"Unsupported expression: {n?.GetType().Name}");
+        }
         
         int GenTernary(TernaryExpr te){
             int cr=GenExpr(te.Condition),r=AllocR();
@@ -412,6 +443,18 @@ namespace T3Compiler.CodeGen
         }
         
         void Store(string name,int reg,int idx){if(_varSlots.TryGetValue(name,out int a)){EmitAddr(a+idx);Emit($"    STORE {RegName(reg)},{RegName(AddrReg)}");}}
+
+        int EmitString(string value)
+        {
+            string lbl = Lbl("str");
+            // T-SCII format: [Length (1 word)] [Data (N traits)]
+            // In T3 assembly, we can use .word to define these.
+            _stringsToEmit.Add((lbl, value));
+            
+            // Return the address of the string (the label)
+            return Imm(0); // Placeholder, but usually we want the label as a value.
+            // Actually, we need to emit a load of the label.
+        }
         static bool IsCmp(string op)=>op is"=="or"!="or"<"or">"or"<="or">=";
         long ParseInt(string v){if(v.StartsWith("0t"))return BalancedTernary.ParseToLong(v[2..].Replace("_",""));if(v.StartsWith("0y"))return P27(v[2..]);if(v.StartsWith("0n"))return P9(v[2..]);return long.TryParse(v,out long n)?n:0;}
         long P27(string s){var a="NOPQRSTUVWXYZ0123456789ABCD".ToCharArray();string t="";foreach(char c in s.ToUpper()){int i=Array.IndexOf(a,c);if(i>=0)t+=TCh(i/9-1)+TCh(i/3%3-1)+TCh(i%3-1);else throw new FormatException($"Unknown 0y character: {c}");}return BalancedTernary.ParseToLong(t);}

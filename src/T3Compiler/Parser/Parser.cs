@@ -24,6 +24,7 @@ namespace T3Compiler.Parser
             while (Peek().Type != TokenType.EndOfFile)
             {
                 if (Peek().Type is TokenType.KwStruct or TokenType.KwUnion) { ParseStructDef(p); continue; }
+                if (Peek().Type == TokenType.KwEnum) { ParseEnumDef(p); continue; }
                 if (IsType(Peek().Type))
                 {
                     int s = _pos; var ts = ParseType();
@@ -58,6 +59,31 @@ namespace T3Compiler.Parser
             }
             Expect(TokenType.RBrace); Match(TokenType.Semicolon);
             p.Structs.Add(sd);
+        }
+
+        void ParseEnumDef(AstProgram p)
+        {
+            Next(); // skip enum
+            string name = Expect(TokenType.Identifier).Value;
+            var ed = new EnumDef { Name = name };
+            Expect(TokenType.LBrace);
+            while (Peek().Type != TokenType.RBrace)
+            {
+                string memberName = Expect(TokenType.Identifier).Value;
+                int? val = null;
+                if (Match(TokenType.OpEq)) val = (int)ParseExprAsInt();
+                ed.Members.Add(new EnumMember { Name = memberName, Value = val });
+                if (!Match(TokenType.Comma)) break;
+            }
+            Expect(TokenType.RBrace); Match(TokenType.Semicolon);
+            p.Enums.Add(ed);
+        }
+
+        int ParseExprAsInt()
+        {
+            var node = ParseExpr();
+            if (node is IntegerLiteral il) return int.Parse(il.Value);
+            throw new Exception("Enum value must be an integer literal");
         }
 
         void ParseGlobal(AstProgram p)

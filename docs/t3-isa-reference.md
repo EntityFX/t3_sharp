@@ -47,9 +47,9 @@ DecodedInstruction Decode(Word54 word)  // использует Word18.FromWrapp
 2. Извлечь Opcode: `ExtractRawField(word, 9, 6)` — raw unsigned
 3. Извлечь Args: `ExtractRawField(word, 0, 9)` — raw unsigned
 4. В зависимости от типа (R/I/J):
-   - **R-type**: Извлечь Op1/Op2/Op3 из Args как raw unsigned (3 трита каждый), затем конвертировать в balanced: `value - 4`
-   - **I-type**: Извлечь Op1 (3 трита) и Imm (6 тритов) из Args, конвертировать в balanced: Op1 -= 4, Imm -= 13
-   - **J-type**: Извлечь Reg (3 трита) из Args, конвертировать в balanced: Reg -= 4. Imm = 0 (padding)
+    - **R-type**: Извлечь Op1/Op2/Op3 из Args как raw unsigned (3 трита каждый), затем конвертировать в balanced: `value - 13`
+    - **I-type**: Извлечь Op1 (3 трита) и Imm (6 тритов) из Args, конвертировать в balanced: Op1 -= 13, Imm -= 364
+    - **J-type**: Извлечь Reg (3 трита) из Args, конвертировать в balanced: Reg -= 13. Imm = 0 (padding)
 
 **Важно**: Для J-type imm всегда равен 0. 6 тритов padding в младших разрядах Args гарантированно равны 0, но decoder устанавливает imm = 0 явно.
 
@@ -292,9 +292,8 @@ LIMM — 2-словная инструкция для загрузки знач�
 2. PUSH аргументов в обратном порядке
 3. LIMM R1, адрес_функции
 4. CALL R1
-5. POP аргументов (в R4 как временный)
-6. POP восстановление caller-saved регистров
-7. MOV результат, R2
+5. POP восстановление caller-saved регистров
+6. MOV результат, R2
 
 **Callee (пролог)**:
 1. Метка функции

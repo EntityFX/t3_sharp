@@ -17,9 +17,9 @@
 | Args | 0 | 9 | Raw unsigned → sub-fields | 0..9841 |
 
 **Args sub-fields**:
-- **R-type**: `[Op1(3)] [Op2(3)] [Op3(3)]` — каждый balanced, диапазон ±13 (Phys index = value + 4)
-- **I-type**: `[Op1(3)] [Imm(6)]` — Op1 balanced (±13), Imm balanced (±364)
-- **J-type**: `[Reg(3)] [000000]` — Reg balanced (±13), 6 тритов padding (всегда 0)
+- **R-type**: `[Op1(3)] [Op2(3)] [Op3(3)]` — каждый balanced, диапазон ±4 (Phys index = value + 4)
+- **I-type**: `[Op1(3)] [Imm(6)]` — Op1 balanced (±4), Imm balanced (±364)
+- **J-type**: `[Reg(3)] [000000]` — Reg balanced (±4), 6 тритов padding (всегда 0)
 
 ### Encoder (InstructionEncoder)
 
@@ -47,9 +47,9 @@ DecodedInstruction Decode(Word54 word)  // использует Word18.FromWrapp
 2. Извлечь Opcode: `ExtractRawField(word, 9, 6)` — raw unsigned
 3. Извлечь Args: `ExtractRawField(word, 0, 9)` — raw unsigned
 4. В зависимости от типа (R/I/J):
-   - **R-type**: Извлечь Op1/Op2/Op3 из Args как raw unsigned (3 трита каждый), затем конвертировать в balanced: `value - 13`
-   - **I-type**: Извлечь Op1 (3 трита) и Imm (6 тритов) из Args, конвертировать в balanced: Op1 -= 13, Imm -= 364
-   - **J-type**: Извлечь Reg (3 трита) из Args, конвертировать в balanced: Reg -= 13. Imm = 0 (padding)
+    - **R-type**: Извлечь Op1/Op2/Op3 из Args как raw unsigned (3 трита каждый), затем конвертировать в balanced: `value - 13`
+    - **I-type**: Извлечь Op1 (3 трита) и Imm (6 тритов) из Args, конвертировать в balanced: Op1 -= 13, Imm -= 364
+    - **J-type**: Извлечь Reg (3 трита) из Args, конвертировать в balanced: Reg -= 13. Imm = 0 (padding)
 
 **Важно**: Для J-type imm всегда равен 0. 6 тритов padding в младших разрядах Args гарантированно равны 0, но decoder устанавливает imm = 0 явно.
 
@@ -196,7 +196,7 @@ int ExtractBalancedTrit(Int128 value, int position)
 | 110 | FTOF | R | tfloat ↔ tdouble |
 | 111 | FLW | R | `Fop1 = mem[Rop2 + op3]` |
 | 112 | FSW | R | `mem[Rop2 + op3] = Fop1` |
-| 113 | FMOV | R | func:0=F→F,1=R→F,2=F→R |
+| 113 | FMOV | R | func:0=F→F, 1=R→F, 2=F→R |
 | 114 | FCLASS | R | Классификация Fop2 |
 | 115 | FSWAP | R | Обмен Fop1↔Fop2 |
 | 116 | FZERO | I | `Fop1 = 0.0` |
@@ -206,6 +206,67 @@ int ExtractBalancedTrit(Int128 value, int position)
 Если pred > 0, инструкция выполняется только если PR[pred-1] == +1.
 PR регистр: 9 тритов, три 3-тритных предикатных флага.
 *Примечание: предикация выполняется на основе флагов PR[0..2]. Инструкция выполняется, если соответствующий флаг равен +1.*
+
+## Формат T3Float
+
+**Формат**: 6 тритов экспоненты + 12 тритов мантиссы = 18 тритов.
+
+- Экспонента: signed balanced, диапазон ±364, bias = 182
+- Мантисса: signed balanced, диапазон ±88,573
+- Значение: `мантисса * 3^(экспонента - 182)`
+- Кодирование в Word18: `значение = экспонента * 3^12 + мантисса` (линейное)
+
+**ToWord18()**:
+```csharp
+long encoded = Exponent * (long)TernaryMath.Pow3(12) + Mantissa;
+return Word18.FromLong(encoded);
+```
+
+**FromWord18()**:
+```csharp
+long pow12 = (long)TernaryMath.Pow3(12);
+long raw = word.ToLong();
+long exponent = raw / pow12;
+long mantissa = raw % pow12;
+return new T3Float(exponent, mantissa);
+```
+
+**Важно**: T3Float использует прямое линейное арифметическое кодирование, а не строковое. Линейное кодирование корректно, так как деление и модуль работают с целыми числами, и переносы в сбалансированном троичном представлении не влияют на целочисленное деление.
+
+## LIMM (Large Immediate)
+
+LIMM — 2-словная инструкция для загрузки значений вне диапазона ±364.
+
+```
+Слово 1: [Pred(3)] [Opcode=LIMM(5)] [Reg(3)] [000000]
+Слово 2: [данные (18 тритов)]
+```
+
+Процессор: `Register[reg] = Memory[PC]; PC++`
+
+## ABI Компилятора T-lang
+
+### Calling Convention
+
+**Caller (Вызывающий)**:
+1. PUSH сохраняемых вызывающим регистров (RW, RX, RY, RZ, R0, R1, R3, R4)
+2. PUSH аргументов в обратном порядке
+3. LIMM R1, адрес_функции
+4. CALL R1
+5. POP восстановление сохраняемых вызывающим регистров
+6. MOV результат, R2
+
+**Callee (Вызываемый — пролог)**:
+1. Метка функции
+2. PUSH R4, R3, R1, R0, RZ, RY, RX, RW (все, кроме R2)
+
+**Callee (Вызываемый — эпилог)**:
+1. POP RW, RX, RY, RZ, R0, R1, R3, R4
+2. RET
+
+**return**: Генерирует `LIMM` + `JMP` на метку эпилога.
+
+**Важно**: R2 (return value) не сохраняется и не восстанавливается в прологе/эпилоге.
 
 ## Задержки инструкций (такты)
 

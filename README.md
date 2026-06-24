@@ -380,7 +380,7 @@ dotnet restore T3Sharp.sln
 # Build all projects (9 projects, 0 warnings)
 dotnet build T3Sharp.sln
 
-# Run all tests (269 tests)
+# Run all tests (299 tests)
 dotnet test T3Sharp.sln
 
 # Run a specific test project
