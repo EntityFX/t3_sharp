@@ -76,6 +76,8 @@ public class EnumDef
 
     public class BreakStmt : Statement { }
     public class ContinueStmt : Statement { }
+    public class GotoStmt : Statement { public string Label; }
+    public class LabeledStmt : Statement { public string Label; public Statement Body; }
 
     public class SwitchStmt : Statement
     { public AstNode Expression; public List<CaseStmt> Cases = new(); }

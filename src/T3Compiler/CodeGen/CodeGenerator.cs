@@ -16,6 +16,8 @@ namespace T3Compiler.CodeGen
         string? _epilogueLabel;
         int _nextAddr = 2000;   // allocated well past any possible code
         int _stackBase;       // stack base for locals (SP works but we use absolute)
+        readonly HashSet<string> _liveVars = new();
+        bool _fpuLive = false;
 
         // Working regs: 0(RW),1(RX),2(RY),4(R0),3(RZ),7(R3)
         // R4(8) = AddrReg, R1(5) = call temp, R2(6) = retval
@@ -112,7 +114,7 @@ namespace T3Compiler.CodeGen
             EmitCode("    RET");
         }
         
-        void GenStmt(Statement s){switch(s){case ExpressionStmt e:if(e.Expression!=null)GenExpr(e.Expression);break;case VarDeclaration vd:Alloc(vd.Name,vd.Type);if(vd.Type.StructName!=null&&_structDefs.TryGetValue(vd.Type.StructName,out var sf))_structFields[vd.Name]=sf;if(vd.Initializer!=null){int r=GenExpr(vd.Initializer);Store(vd.Name,r,0);}break;case ReturnStmt rs:if(rs.Value!=null){int r=GenExpr(rs.Value);EmitCode($"    MOV R2,{RegName(r)}");}if(_epilogueLabel!=null){int rj=AllocR();EmitCode($"    LIMM {RegName(rj)},{_epilogueLabel}");EmitCode($"    JMP {RegName(rj)}");}else EmitCode("    RET");break;case CompoundStmt cs:foreach(var ss in cs.Body)GenStmt(ss);break;case IfStmt ifs:GenIf(ifs);break;case WhileStmt ws:GenWhile(ws);break;case DoWhileStmt dws:GenDoWhile(dws);break;case ForStmt fs:GenFor(fs);break;case SwitchStmt ss:GenSwitch(ss);break;case BreakStmt _:{var(brk,_)=_loopStack.Peek();Jmp(brk);}break;case ContinueStmt _:{var(_,cont)=_loopStack.Peek();Jmp(cont);}break;}}
+        void GenStmt(Statement s){switch(s){case ExpressionStmt e:if(e.Expression!=null)GenExpr(e.Expression);break;case VarDeclaration vd:Alloc(vd.Name,vd.Type);if(vd.Type.StructName!=null&&_structDefs.TryGetValue(vd.Type.StructName,out var sf))_structFields[vd.Name]=sf;if(vd.Initializer!=null){int r=GenExpr(vd.Initializer);Store(vd.Name,r,0);}break;case ReturnStmt rs:if(rs.Value!=null){int r=GenExpr(rs.Value);EmitCode($"    MOV R2,{RegName(r)}");}if(_epilogueLabel!=null){int rj=AllocR();EmitCode($"    LIMM {RegName(rj)},{_epilogueLabel}");EmitCode($"    JMP {RegName(rj)}");}else EmitCode("    RET");break;case CompoundStmt cs:foreach(var ss in cs.Body)GenStmt(ss);break;case IfStmt ifs:GenIf(ifs);break;case WhileStmt ws:GenWhile(ws);break;case DoWhileStmt dws:GenDoWhile(dws);break;case ForStmt fs:GenFor(fs);break;case SwitchStmt ss:GenSwitch(ss);break;case BreakStmt _:{var(brk,_)=_loopStack.Peek();Jmp(brk);}break;case ContinueStmt _:{var(_,cont)=_loopStack.Peek();Jmp(cont);}break;case GotoStmt gs:Jmp($"__glbl_{gs.Label}");break;case LabeledStmt ls:EmitCode($"__glbl_{ls.Label}:");GenStmt(ls.Body);break;}}
         
         void GenIf(IfStmt s){
             string le=Lbl("end"),lt=Lbl("then");
@@ -402,15 +404,60 @@ namespace T3Compiler.CodeGen
         }
         
         int EmitCall(FunctionCall fc){
+            // ABI v3: Spill live locals to stack before CALL
+            // Spill locals (reverse order — pushed last = restored first)
+            var liveSlots = new List<(string name, int slot)>();
+            foreach(var kv in _varSlots)if(_liveVars.Contains(kv.Key))liveSlots.Add((kv.Key,kv.Value));
+            liveSlots.Reverse(); // spill in reverse so first spilled = last restored
+            foreach(var (name,_) in liveSlots){
+                int vr=LoadV(name,0);
+                EmitCode($"    PUSH {RegName(vr)}");
+            }
+            // Spill FPU registers (FTOI + PUSH for all 9 F-regs if any float used)
+            if(_fpuLive){
+                EmitCode("    FTOI R0, F4, 0");EmitCode("    PUSH R0");
+                EmitCode("    FTOI R0, F3, 0");EmitCode("    PUSH R0");
+                EmitCode("    FTOI R0, F2, 0");EmitCode("    PUSH R0");
+                EmitCode("    FTOI R0, F1, 0");EmitCode("    PUSH R0");
+                EmitCode("    FTOI R0, F0, 0");EmitCode("    PUSH R0");
+                EmitCode("    FTOI R0, FZ, 0");EmitCode("    PUSH R0");
+                EmitCode("    FTOI R0, FY, 0");EmitCode("    PUSH R0");
+                EmitCode("    FTOI R0, FX, 0");EmitCode("    PUSH R0");
+                EmitCode("    FTOI R0, FW, 0");EmitCode("    PUSH R0");
+            }
+            // Save caller-saved GP registers
             EmitCode("    PUSH RW");EmitCode("    PUSH RX");EmitCode("    PUSH RY");EmitCode("    PUSH RZ");
             EmitCode("    PUSH R0");EmitCode("    PUSH R3");EmitCode("    PUSH R1");EmitCode("    PUSH R4");
+            // Push arguments in reverse order
             for(int i=fc.Arguments.Count-1;i>=0;i--)
                 EmitCode($"    PUSH {RegName(GenExpr(fc.Arguments[i]))}");
             EmitCode($"    LI R1,{fc.FunctionName}");
             EmitCode("    CALL R1");
+            // Restore caller-saved GP registers
             EmitCode("    POP R4");EmitCode("    POP R1");EmitCode("    POP R3");EmitCode("    POP R0");
             EmitCode("    POP RZ");EmitCode("    POP RY");EmitCode("    POP RX");EmitCode("    POP RW");
-            int r=AllocR();EmitCode($"    MOV {RegName(r)},R2");return r;
+            // Restore FPU registers
+            if(_fpuLive){
+                EmitCode("    POP R0");EmitCode("    ITOF FW, R0");
+                EmitCode("    POP R0");EmitCode("    ITOF FX, R0");
+                EmitCode("    POP R0");EmitCode("    ITOF FY, R0");
+                EmitCode("    POP R0");EmitCode("    ITOF FZ, R0");
+                EmitCode("    POP R0");EmitCode("    ITOF F0, R0");
+                EmitCode("    POP R0");EmitCode("    ITOF F1, R0");
+                EmitCode("    POP R0");EmitCode("    ITOF F2, R0");
+                EmitCode("    POP R0");EmitCode("    ITOF F3, R0");
+                EmitCode("    POP R0");EmitCode("    ITOF F4, R0");
+            }
+            // Restore live locals (pop and store back to absolute addresses)
+            foreach(var (name,_) in liveSlots){
+                EmitCode("    POP R0");
+                Store(name,4,0);
+            }
+            int r=AllocR();EmitCode($"    MOV {RegName(r)},R2");
+            // Clear tracking for next call (caller state is fully restored)
+            _liveVars.Clear();
+            _fpuLive = false;
+            return r;
         }
         
         int FlatIdx(ArrayAccess aa)
@@ -465,13 +512,13 @@ namespace T3Compiler.CodeGen
         
         int LoadV(string name,int idx){
             int r=AllocR();
-            if(_varSlots.TryGetValue(name,out int a)){EmitAddr(a+idx);EmitCode($"    LOAD {RegName(r)},{RegName(AddrReg)}");return r;}
+            if(_varSlots.TryGetValue(name,out int a)){_liveVars.Add(name);EmitAddr(a+idx);EmitCode($"    LOAD {RegName(r)},{RegName(AddrReg)}");return r;}
             if(_globalLabels.TryGetValue(name,out string glbl)){EmitCode($"    LIMM {RegName(AddrReg)},{glbl}");EmitCode($"    LOAD {RegName(r)},{RegName(AddrReg)}");return r;}
             throw new Exception($"Undefined variable: {name}");
         }
         
         void Store(string name,int reg,int idx){
-            if(_varSlots.TryGetValue(name,out int a)){EmitAddr(a+idx);EmitCode($"    STORE {RegName(reg)},{RegName(AddrReg)}");return;}
+            if(_varSlots.TryGetValue(name,out int a)){_liveVars.Add(name);EmitAddr(a+idx);EmitCode($"    STORE {RegName(reg)},{RegName(AddrReg)}");return;}
             if(_globalLabels.TryGetValue(name,out string glbl)){EmitCode($"    LIMM {RegName(AddrReg)},{glbl}");EmitCode($"    STORE {RegName(reg)},{RegName(AddrReg)}");return;}
             throw new Exception($"Undefined variable: {name}");
         }

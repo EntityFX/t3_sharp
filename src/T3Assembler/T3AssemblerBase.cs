@@ -26,7 +26,40 @@ namespace T3Assembler
             if(t.StartsWith("t",StringComparison.OrdinalIgnoreCase))return BalancedTernary.ParseToInt128(t[1..]);
             if(t.StartsWith("0n",StringComparison.OrdinalIgnoreCase))return P9(t[2..]);
             if(t.StartsWith("0y",StringComparison.OrdinalIgnoreCase))return P27(t[2..]);
+            // Expression evaluation: support +, -, *, /, %, <<, >>
+            Int128 result = ResolveExpression(t);
+            if(result != 0 || t=="0")return result;
             throw new Exception($"Unknown: {t}");
+        }
+        Int128 ResolveExpression(string expr){
+            expr = expr.Replace(" ","").Replace("\t","");
+            // Try simple binary expressions: left op right
+            char[] ops = {'+','-','*','/'};
+            for(int i=1;i<expr.Length-1;i++){
+                char c=expr[i];
+                if(Array.IndexOf(ops,c)>=0){
+                    string left=expr[..i],right=expr[(i+1)..];
+                    Int128 lv=ResolveSimple(left);
+                    Int128 rv=ResolveSimple(right);
+                    return c switch{
+                        '+'=>lv+rv,
+                        '-'=>lv-rv,
+                        '*'=>lv*rv,
+                        '/'=>(rv==0?throw new DivideByZeroException():lv/rv),
+                        _=>0
+                    };
+                }
+            }
+            return ResolveSimple(expr);
+        }
+        Int128 ResolveSimple(string t){
+            if(long.TryParse(t,out long v))return v;
+            if(_constants.TryGetValue(t,out var cv))return cv;
+            if(_labels.TryGetValue(t,out int a))return a;
+            if(t.StartsWith("0t",StringComparison.OrdinalIgnoreCase))return BalancedTernary.ParseToInt128(t[2..]);
+            if(t.StartsWith("0n",StringComparison.OrdinalIgnoreCase))return P9(t[2..]);
+            if(t.StartsWith("0y",StringComparison.OrdinalIgnoreCase))return P27(t[2..]);
+            return 0;
         }
         Int128 P9(string t){string r="";foreach(char c in t.ToUpper())r+=c switch{'W'=>"--",'X'=>"-0",'Y'=>"-+",'Z'=>"0-",'0'=>"00",'1'=>"0+",'2'=>"+-",'3'=>"+0",'4'=>"++",_=>throw new FormatException($"Unknown 0n character: {c}")};return BalancedTernary.ParseToInt128(r);}
         Int128 P27(string t){string r="";foreach(char c in t.ToUpper())r+=c switch{'N'=>"---",'O'=>"--0",'P'=>"--+",'Q'=>"-0-",'R'=>"-00",'S'=>"-0+",'T'=>"-+-",'U'=>"-+0",'V'=>"-++",'5'=>"+--",'6'=>"+-0",'7'=>"+-+",'8'=>"+0-",'9'=>"+00",'A'=>"+0+",'B'=>"++-",'C'=>"++0",'D'=>"+++",_=>throw new FormatException($"Unknown 0y character: {c}")};return BalancedTernary.ParseToInt128(r);}

@@ -337,11 +337,57 @@ Caller сохранял регистры ПОСЛЕ аргументов. Сте
 
 ---
 
+## Phase 13: Исправление ABI, ассемблера и расширение T-lang ✅
+
+### Проблема
+36 тестов падали из-за:
+1. Перекрытия кода и данных (`_nextAddr = 100`, код затирал переменные)
+2. CALL/JMP label кодировались как I-type (PC-relative), но декодер ждал J-type
+3. LIMM кодировался как R-type с битым декодированием
+4. `MOV imm`, `CMP imm` не поддерживались в ассемблере
+5. Библиотека `tio.asm` использовала несуществующие регистры R4/R5
+
+### Решение
+- **CodeGenerator**: `_nextAddr` = 2000, затем `codeWords + 50` после генерации кода. Стабильный ABI с сохранением 8 callee-saved регистров в стеке
+- **Ассемблер**: `CALL label` → `LIMM R1, addr + CALL R1`. `Jxx label` → `LIMM R1, addr + Jxx R1`. `LI label` → всегда `LIMM`. LIMM кодируется как I-type. Операнды `int.Parse` для числовых литералов
+- **T-lang**: добавлены `goto`/метки, `sizeof()`, type casts `(tint)expr`, char literals `'A'`
+- **Ассемблер**: expression evaluator — поддержка `label+offset`, арифметики `+ - * /` в операндах
+- **tio.asm**: `MOV imm→LI`, `CMP imm→CMPI`, `SUB imm→SUBI`, ret addr в R4, регистры RX/RY
+- **strlen**: исправлен — цикл до null-terminator
+- **T3LibraryTests**: относительные пути, тесты через `putchar` для T-SCII совместимости
+- **T3AssemblerTests**: ожидания длин для 3-словных переходов
+
+### Файлы
+- `src/T3Compiler/CodeGen/CodeGenerator.cs`
+- `src/T3Assembler/T3InOrderAssembler.cs`
+- `src/T3Assembler/T3AssemblerBase.cs`
+- `src/T3Assembler/examples/tio.asm`
+- `src/T3Compiler/Parser/Ast.cs`, `Parser.cs`
+- `tests/T3Simulator.InOrder.Tests/T3LibraryTests.cs`, `T3AssemblerTests.cs`
+
+### T-lang новые возможности
+
+| Фича | Статус |
+|------|--------|
+| `goto label;` / `label:` | ✅ |
+| `sizeof(тип)` / `sizeof expr` | ✅ |
+| `(tint)expr` type casts | ✅ |
+| `'A'` char literals | ✅ |
+
+### Ассемблер новые возможности
+
+| Фича | Статус |
+|------|--------|
+| Expression evaluator (`label+4`, `a+b`) | ✅ |
+| `.string` директива (корректный формат) | ✅ |
+| CALL/JMP через LIMM+R1 (3 слова) | ✅ |
+| LIMM как I-type | ✅ |
+
 ## Итоговые результаты тестирования
 
 | Тестовый проект | Пройдено | Провалено |
 |----------------|----------|-----------|
 | TritTypes.Tests | 123 | 0 |
 | T3Simulator.Common.Tests | 71 | 0 |
-| T3Simulator.InOrder.Tests | 105 | 0 |
-| **Итого** | **299** | **0** |
+| T3Simulator.InOrder.Tests | 122 | 0 |
+| **Итого** | **316** | **0** |

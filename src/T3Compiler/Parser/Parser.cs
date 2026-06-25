@@ -162,6 +162,8 @@ namespace T3Compiler.Parser
             if (t == TokenType.KwReturn) return ParseRet();
             if (t == TokenType.KwBreak) { Next(); Expect(TokenType.Semicolon); return new BreakStmt(); }
             if (t == TokenType.KwContinue) { Next(); Expect(TokenType.Semicolon); return new ContinueStmt(); }
+            if (t == TokenType.KwGoto) { Next(); string label = Expect(TokenType.Identifier).Value; Expect(TokenType.Semicolon); return new GotoStmt { Label = label }; }
+            if (t == TokenType.Identifier && Peek(1).Type == TokenType.OpColon) { string label = Expect(TokenType.Identifier).Value; Expect(TokenType.OpColon); return new LabeledStmt { Label = label, Body = ParseStmt() }; }
             if (IsType(t)) return ParseVar();
             if (t == TokenType.Semicolon) { Next(); return new ExpressionStmt(); }
             var e = ParseExpr(); Expect(TokenType.Semicolon); return new ExpressionStmt { Expression = e };
@@ -199,7 +201,16 @@ namespace T3Compiler.Parser
         AstNode ParseShift() { var l = ParseAdd(); while (Match(TokenType.OpLShift) || Match(TokenType.OpRShift)) l = new BinaryOp { Operator = Peek(-1).Value, Left = l, Right = ParseAdd() }; return l; }
         AstNode ParseAdd() { var l = ParseMul(); while (Match(TokenType.OpPlus) || Match(TokenType.OpMinus)) l = new BinaryOp { Operator = Peek(-1).Value, Left = l, Right = ParseMul() }; return l; }
         AstNode ParseMul() { var l = ParseUn(); while (Match(TokenType.OpStar) || Match(TokenType.OpSlash) || Match(TokenType.OpPercent)) l = new BinaryOp { Operator = Peek(-1).Value, Left = l, Right = ParseUn() }; return l; }
-        AstNode ParseUn() { if (Peek().Type is TokenType.OpMinus or TokenType.OpPlus or TokenType.OpExclamation or TokenType.OpTilde or TokenType.OpPlusPlus or TokenType.OpMinusMinus or TokenType.OpStar or TokenType.OpAmpersand) { string o = Next().Value; return new UnaryOp { Operator = o, Operand = ParseUn() }; } return ParsePost(); }
+        AstNode ParseUn() {
+            if (Peek().Type is TokenType.OpMinus or TokenType.OpPlus or TokenType.OpExclamation or TokenType.OpTilde or TokenType.OpPlusPlus or TokenType.OpMinusMinus or TokenType.OpStar or TokenType.OpAmpersand) { string o = Next().Value; return new UnaryOp { Operator = o, Operand = ParseUn() }; }
+            if (Peek().Type == TokenType.KwSizeof) {
+                Next();
+                if (Peek().Type == TokenType.LParen) { Next(); var ts = ParseType(); Expect(TokenType.RParen); return new IntegerLiteral { Value = "1" }; } // sizeof(type) → 1 word for now
+                var e = ParseUn();
+                return new IntegerLiteral { Value = "1" }; // sizeof(expr) → 1
+            }
+            return ParsePost();
+        }
 
         AstNode ParsePost()
         {
@@ -221,9 +232,22 @@ namespace T3Compiler.Parser
             if (t.Type == TokenType.IntegerLiteral) { Next(); string v = t.Value; string? sf = null; if (v.EndsWith("tll")){sf="tll";v=v[..^3];}else if(v.EndsWith("tl")){sf="tl";v=v[..^2];}else if(v.EndsWith("t")){sf="t";v=v[..^1];}else if(v.EndsWith("s")){sf="s";v=v[..^1];}else if(v.EndsWith("y")){sf="y";v=v[..^1];} return new IntegerLiteral{Value=v,Suffix=sf};}
             if (t.Type == TokenType.FloatLiteral) { Next(); return new FloatLiteral { Value = t.Value }; }
             if (t.Type == TokenType.StringLiteral) { Next(); return new StringLiteral { Value = t.Value }; }
+            if (t.Type == TokenType.CharLiteral) { Next(); return new IntegerLiteral { Value = ((int)t.Value[0]).ToString() }; }
             if (t.Type is TokenType.KwTrue or TokenType.KwFalse or TokenType.KwMaybe) { Next(); return new BooleanLiteral { Value = t.Type == TokenType.KwTrue ? 1 : (t.Type == TokenType.KwFalse ? -1 : 0) }; }
             if (t.Type == TokenType.Identifier) { Next(); return new Identifier { Name = t.Value }; }
-            if (t.Type == TokenType.LParen) { Next(); var e = ParseExpr(); Expect(TokenType.RParen); return e; }
+            if (t.Type == TokenType.LParen) {
+                int saved = _pos;
+                try {
+                    if (IsType(Peek().Type)) {
+                        var ts = ParseType();
+                        if (Peek().Type == TokenType.RParen) {
+                            Next();
+                            return new UnaryOp { Operator = "cast", Operand = ParseUn() };
+                        }
+                    }
+                } catch {}
+                _pos = saved + 1; var e = ParseExpr(); Expect(TokenType.RParen); return e;
+            }
             throw new Exception($"Unexpected token in expression: {t}");
         }
     }

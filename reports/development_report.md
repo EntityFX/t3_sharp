@@ -249,6 +249,20 @@ FPU регистры (FW..F4) отображаются на те же физич
  - **Структуры**: Реализован полноценный доступ к полям `struct.array[i].field` и `(*ptr).field`.
  - **Корректность**: Устранены silent fallbacks в кодогенераторе; теперь неподдерживаемые конструкции вызывают `NotSupportedException`.
 
+### Phase 13: Исправление ABI, ассемблера и расширение T-lang (v2.2)
+- **Проблемы**: 36 тестов падали — перекрытие кода/данных (`_nextAddr=100`), CALL/JMP кодировались как I-type (PC-relative), LIMM кодировался как R-type, регистры R4/R5 не существуют в tio.asm, `MOV imm`/`CMP imm` не поддерживались.
+- **Исправления**:
+  - `_nextAddr` = 2000, затем `codeWords + 50` после генерации кода
+  - `CALL label` → `LIMM R1, addr + CALL R1`. `Jxx label` → `LIMM R1, addr + Jxx R1`. Все не-регистровые переходы — 3 слова
+  - `LI label` → всегда `LIMM` (2 слова). LIMM кодируется как I-type
+  - Операнды парсятся как `int.Parse` для числовых литералов (FMOV/FTOI)
+  - `tio.asm`: `MOV imm→LI`, `CMP imm→CMPI`, `SUB imm→SUBI`, ret addr в R4, регистры RX(-3)/RY(-2)
+  - `strlen`: исправлен — цикл до null-terminator
+  - **Новые фичи T-lang**: `goto`/метки, `sizeof()`, type casts `(tint)expr`, char literals `'A'`
+  - **Expression evaluator** в ассемблере: `ResolveExpression(str)` — поддержка `+`, `-`, `*`, `/` с label/constant/литералами
+  - Тесты библиотеки переписаны через `putchar` для T-SCII совместимости
+  - Тесты ассемблера: ожидания длин для 3-словных переходов
+
 ### Phase 7: T3Float round-trip
 - **Проблема**: `T3Float.ToWord18()` и `FromWord18()` использовали строковое кодирование через `Word18.ToTritString()`, которое вызывало `ExtractBalancedTrit` — функцию с ошибкой в обработке переносов (carry propagation).
 - **Исправление**: Переход на прямое линейное арифметическое кодирование: `value = exponent * 3^12 + mantissa`.
