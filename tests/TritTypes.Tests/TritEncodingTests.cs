@@ -29,7 +29,7 @@ namespace TritTypes.Tests
             // Sequence: 10 00 01 10 00 01 01 00
             // Byte 1: 10000110 (0x86)
             // Byte 2: 00010100 (0x14)
-            Assert.HasCount(2, encoded);
+            Assert.AreEqual(2, encoded.Length);
             Assert.AreEqual(0x86, encoded[0]);
             Assert.AreEqual(0x14, encoded[1]);
 

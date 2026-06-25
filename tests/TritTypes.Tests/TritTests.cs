@@ -164,9 +164,9 @@ namespace TritTypes.Tests
         [TestMethod]
         public void CompareTo_OrdersCorrectly()
         {
-            Assert.IsLessThan(0, Trit.MinusOne.CompareTo(Trit.Zero));
-            Assert.IsLessThan(0, Trit.Zero.CompareTo(Trit.PlusOne));
-            Assert.IsGreaterThan(0, Trit.PlusOne.CompareTo(Trit.MinusOne));
+            Assert.IsTrue(Trit.MinusOne.CompareTo(Trit.Zero) < 0);
+            Assert.IsTrue(Trit.Zero.CompareTo(Trit.PlusOne) < 0);
+            Assert.IsTrue(Trit.PlusOne.CompareTo(Trit.MinusOne) > 0);
             Assert.AreEqual(0, Trit.Zero.CompareTo(Trit.Zero));
         }
     }
