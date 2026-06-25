@@ -11,7 +11,7 @@ namespace T3Interpreter
         readonly Stack<Dictionary<string, T3Value>> _scopes = new();
         readonly Dictionary<string, FunctionDef> _functions = new(StringComparer.OrdinalIgnoreCase);
         T3Value _returnValue = T3Value.Void;
-        bool _didReturn;
+        bool _didReturn, _didBreak, _didContinue;
 
         public T3Interpreter(AstProgram program)
         {
