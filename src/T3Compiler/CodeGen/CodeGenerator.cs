@@ -15,7 +15,6 @@ namespace T3Compiler.CodeGen
         readonly Stack<(string brk,string cont)> _loopStack=new();readonly Dictionary<string,List<FieldDef>> _structDefs=new();
         string? _epilogueLabel;
         int _nextAddr = 2000;   // allocated well past any possible code
-        int _stackBase;       // stack base for locals (SP works but we use absolute)
         int _globalSlotAddr = 2000;
         readonly HashSet<string> _liveVars = new();
         bool _fpuLive = false;
