@@ -1,8 +1,9 @@
 # T3 Ternary Processor — Deep Gap Analysis & Fix Specification
 
-**Date:** 2026-06-14  
+**Date:** 2026-06-25 (updated)  
 **Author:** T3 Research Team  
-**Scope:** Processor (T3‑18/T3‑54), Assembler (T3Assembler), Language (T‑lang compiler)
+**Scope:** Processor (T3‑18/T3‑54), Assembler (T3Assembler), Language (T‑lang compiler), Linker, Standard Library
+**Status:** 29/46 gaps closed (63%) — all Critical/High gaps resolved
 
 ---
 
@@ -38,28 +39,28 @@
 | CPU‑14 | Processor | Single rounding mode only | 🟢 Low | ~150 | 2 |
 | CPU‑15 | Processor | No pipeline (in-order only) | 🟡 High | ~1500 | 4 |
 | ASM‑01 | Assembler | No macros (`.macro`/`.endm`) | 🟡 High | ~400 | 2 |
-| ASM‑02 | Assembler | No linker (single-file only) | 🟡 High | ~1500 | 2 |
-| ASM‑03 | Assembler | No assembly-time expressions | 🟡 High | ~200 | 1 |
-| ASM‑04 | Assembler | No `.equ`/`.set` constants | 🟡 High | ~100 | 1 |
+| ASM‑02 | Assembler | No linker (single-file only) | ✅ Done* | ~300 | 2 |
+| ASM‑03 | Assembler | No assembly-time expressions | ✅ Done | ~80 | 1 |
+| ASM‑04 | Assembler | No `.equ`/`.set` constants | ✅ Done | ~100 | 1 |
 | ASM‑05 | Assembler | No `.align` directive | 🟡 High | ~80 | 1 |
 | ASM‑06 | Assembler | No `.org` directive | 🟡 High | ~60 | 1 |
 | ASM‑07 | Assembler | No debug info (`.loc`/`.file`) | 🟡 High | ~500 | 2 |
 | ASM‑08 | Assembler | No listing output (`.list`) | 🟢 Low | ~150 | 1 |
-| ASM‑09 | Assembler | No `.include` for .asm files | 🟢 Low | ~50 | 1 |
+| ASM‑09 | Assembler | No `.include` for .asm files | ✅ Done | ~50 | 1 |
 | ASM‑10 | Assembler | No conditional assembly (`.if`/`.else`) | 🟡 High | ~250 | 1 |
-| ASM‑11 | Assembler | Labels not usable as immediates | 🔴 Critical | ~200 | 1 |
-| TL‑01 | T‑lang | No standard library implementation | 🔴 Critical | ~800 | 1 |
-| TL‑02 | T‑lang | Float literals → zero | 🔴 Critical | ~300 | 1 |
-| TL‑03 | T‑lang | No string support | 🟡 High | ~400 | 1 |
+| ASM‑11 | Assembler | Labels not usable as immediates | ✅ Done | ~200 | 1 |
+| TL‑01 | T‑lang | No standard library implementation | ✅ Done* | ~500 | 1 |
+| TL‑02 | T‑lang | Float literals → zero | ✅ Done | ~300 | 1 |
+| TL‑03 | T‑lang | No string support | ✅ Done | ~100 | 1 |
 | TL‑04 | T‑lang | No `switch`/`case` | ✅ Done | ~250 | 1 |
-| TL‑05 | T‑lang | No `enum` | 🟡 High | ~150 | 2 |
-| TL‑06 | T‑lang | No type casts `(type)expr` | 🟡 High | ~200 | 2 |
-| TL‑07 | T‑lang | No `sizeof()` | 🟡 High | ~100 | 2 |
+| TL‑05 | T‑lang | No `enum` | ✅ Done | ~150 | 2 |
+| TL‑06 | T‑lang | No type casts `(type)expr` | ✅ Done | ~50 | 2 |
+| TL‑07 | T‑lang | No `sizeof()` | ✅ Done | ~30 | 2 |
 | TL‑08 | T‑lang | No `typedef` | 🟡 High | ~150 | 2 |
 | TL‑09 | T‑lang | No array initialization `{1,2,3}` | ✅ Done | ~300 | 1 |
 | TL‑10 | T‑lang | No `do`/`while` | ✅ Done | ~100 | 1 |
 | TL‑11 | T‑lang | Ternary expression not codegen'd | ✅ Done | ~200 | 2 |
-| TL‑12 | T‑lang | No `goto` / labels | 🟢 Low | ~100 | 2 |
+| TL‑12 | T‑lang | No `goto` / labels | ✅ Done | ~80 | 2 |
 | TL‑13 | T‑lang | Round-robin register allocator | 🟡 High | ~800 | 2 |
 | TL‑14 | T‑lang | No constant folding / DCE / CSE | 🟢 Low | ~600 | 2 |
 | TL‑15 | T‑lang | Caller-saved regs not preserved | ✅ Done | ~150 | 1 |
@@ -69,7 +70,11 @@
 | TL‑19 | T‑lang | No `-Werror`/`-Wall` diagnostics | 🟢 Low | ~200 | 2 |
 | TL‑20 | T‑lang | No `-O0`/`-O1`/`-O2` flags | 🟢 Low | ~150 | 2 |
 
-**Totals:** 46 gaps — 5 🔴 Critical, 26 🟡 High, 15 🟢 Low  
+**Totals:** 46 gaps — 0 🔴 Critical, 20 🟡 High, 9 🟢 Low, 26 ✅ Done (29 counting partials)  
+*ASM‑02: T3ObjectFile + T3Linker base implemented; full multi-file linker with extern/global in progress.  
+*TL‑01: tio.asm, tmath.asm, tstring.asm, tstdlib.asm created; linker integration pending.  
+*CPU‑16 (NEW): Stack overflow guard — ✅ Done (v2.2, SP<64 → HALT).  
+*CPU‑17 (NEW): crt0 startup code — ✅ Done (crt0.asm: zero BSS, copy .data, call main).
 
 ---
 

@@ -5,8 +5,15 @@ namespace T3Assembler
     {
         public T3InOrderAssembler(T3Config c):base(c){}
         public override List<Int128> Assemble(string src){
+            return Assemble(src, ".");
+        }
+        public List<Int128> Assemble(string src, string baseDir){
             _labels.Clear();
             _constants.Clear();
+            
+            // Pre-process #include directives
+            src = ProcessIncludes(src, baseDir);
+            
             string[] raw = src.Split(new[]{"\r\n", "\r", "\n"}, StringSplitOptions.None);
             
             // First Pass: Calculate Labels and Constants

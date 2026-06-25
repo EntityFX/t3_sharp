@@ -354,6 +354,7 @@ namespace T3Simulator.InOrder
 
                 case Opcode.PUSH:
                     SP--;
+                    if (SP < 64) { IsHalted = true; return false; }
                     WriteWord(SP, GetRegisterValue(instr.PhysOp1));
                     IncrementCycles(2);
                     return false;

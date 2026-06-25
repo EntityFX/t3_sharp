@@ -18,6 +18,28 @@ namespace T3Assembler
             throw new Exception($"Unknown: {t}");
         }
         protected List<Int128> ResolveString(string t){string s=t[1..^1];var r=new List<Int128>();foreach(char c in s)r.Add(TScii.FromChar(c));r.Add(0);return r;}
+        protected string ProcessIncludes(string src, string baseDir){
+            var sb = new System.Text.StringBuilder();
+            foreach(var line in src.Split(new[]{"\r\n","\r","\n"},System.StringSplitOptions.None)){
+                string t = line.Trim();
+                if(t.StartsWith("#include")||t.StartsWith(".include")){
+                    int q1 = t.IndexOf('"');
+                    int q2 = t.IndexOf('"',q1+1);
+                    if(q2<0){q1=t.IndexOf('<');q2=t.IndexOf('>');}
+                    if(q1>=0&&q2>q1){
+                        string incName = t.Substring(q1+1,q2-q1-1);
+                        string incPath = System.IO.Path.Combine(baseDir,incName);
+                        if(System.IO.File.Exists(incPath)){
+                            string included = System.IO.File.ReadAllText(incPath);
+                            sb.AppendLine(ProcessIncludes(included,System.IO.Path.GetDirectoryName(incPath)!));
+                        }
+                    }
+                }else{
+                    sb.AppendLine(line);
+                }
+            }
+            return sb.ToString();
+        }
         protected Int128 ResolveOperandValue(string t){
             if(IsRegister(t))return GetRegisterTrit(t);
             if(_constants.TryGetValue(t,out var cv))return cv;

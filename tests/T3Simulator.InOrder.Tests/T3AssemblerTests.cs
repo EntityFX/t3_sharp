@@ -4,6 +4,8 @@ using T3Simulator.Common;
 using System.Collections.Generic;
 using System.Linq;
 using System;
+using System.IO;
+using TritTypes;
 
 namespace T3Simulator.InOrder.Tests
 {
@@ -84,6 +86,66 @@ namespace T3Simulator.InOrder.Tests
             // "World" = 5 chars + 1 null = 6 words
             // Total = 12 words.
             Assert.AreEqual(12, bin.Count);
+        }
+
+        [TestMethod]
+        public void Assemble_IncludeDirective_ResolvesDependency()
+        {
+            string baseDir = Path.Combine(Path.GetTempPath(), "t3test_" + Guid.NewGuid().ToString("N")[..8]);
+            Directory.CreateDirectory(baseDir);
+            try
+            {
+                File.WriteAllText(Path.Combine(baseDir, "lib.asm"), "LI R0, 42\nRET\n");
+                string mainSrc = ".include \"lib.asm\"\nLI R1, 100\nHALT\n";
+                var assembler = new T3InOrderAssembler(T3Config.T3_18);
+                var bin = assembler.Assemble(mainSrc, baseDir);
+                // LI R0,42=1 + RET=1 + LI R1,100=1 + HALT=1 = 4
+                Assert.AreEqual(4, bin.Count);
+            }
+            finally { Directory.Delete(baseDir, true); }
+        }
+
+        [TestMethod]
+        public void Assemble_ObjectFile_WriteReadRoundTrip()
+        {
+            string src = "LI R0, 42\nLIMM R1, 1000\nLI R2, 500\nHALT";
+            var assembler = new T3InOrderAssembler(T3Config.T3_18);
+            var bin = assembler.Assemble(src);
+
+            var obj = new T3ObjectFile();
+            obj.TextSection = bin;
+            obj.Symbols.Add(new T3ObjectFile.Symbol { Name = "main", Type = T3ObjectFile.SymbolType.GLOBAL, Section = T3ObjectFile.SectionType.TEXT, Offset = 0 });
+
+            string tmpPath = Path.GetTempFileName();
+            try
+            {
+                obj.Write(tmpPath);
+                var readBack = T3ObjectFile.Read(tmpPath);
+                Assert.AreEqual(obj.TextSection.Count, readBack.TextSection.Count);
+                Assert.AreEqual(obj.Symbols.Count, readBack.Symbols.Count);
+                Assert.AreEqual("main", readBack.Symbols[0].Name);
+            }
+            finally { File.Delete(tmpPath); }
+        }
+
+        [TestMethod]
+        public void Assemble_Linker_MergesTwoObjects()
+        {
+            var obj1 = new T3ObjectFile();
+            obj1.TextSection.Add((Int128)42);
+            obj1.TextSection.Add((Int128)43);
+            obj1.Symbols.Add(new T3ObjectFile.Symbol { Name = "func1", Type = T3ObjectFile.SymbolType.GLOBAL, Section = T3ObjectFile.SectionType.TEXT, Offset = 0 });
+
+            var obj2 = new T3ObjectFile();
+            obj2.TextSection.Add((Int128)100);
+            obj2.Symbols.Add(new T3ObjectFile.Symbol { Name = "func2", Type = T3ObjectFile.SymbolType.GLOBAL, Section = T3ObjectFile.SectionType.TEXT, Offset = 0 });
+
+            var linker = new T3Linker();
+            var image = linker.Link(new List<T3ObjectFile> { obj1, obj2 });
+            Assert.AreEqual(3, image.Count);
+            Assert.AreEqual((Int128)42, image[0]);
+            Assert.AreEqual((Int128)43, image[1]);
+            Assert.AreEqual((Int128)100, image[2]);
         }
     }
 }
