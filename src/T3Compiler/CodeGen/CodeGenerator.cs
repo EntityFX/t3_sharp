@@ -16,8 +16,10 @@ namespace T3Compiler.CodeGen
         string? _epilogueLabel;
         int _nextAddr = 2000;   // allocated well past any possible code
         int _stackBase;       // stack base for locals (SP works but we use absolute)
+        int _globalSlotAddr = 2000;
         readonly HashSet<string> _liveVars = new();
         bool _fpuLive = false;
+        readonly Dictionary<string,int> _globalSlots = new();
 
         // Working regs: 0(RW),1(RX),2(RY),4(R0),3(RZ),7(R3)
         // R4(8) = AddrReg, R1(5) = call temp, R2(6) = retval
@@ -35,25 +37,55 @@ namespace T3Compiler.CodeGen
                     cur=v+1;
                 }
             }
-            // Generate all code first
+            // Allocate global slots BEFORE codegen (use incremental indexing from 0)
+            int gSlotIdx = 0;
+            foreach(var g in _program.Globals){
+                int sz = 1;
+                if(g.Type.Dims.Count>0) sz = g.Type.Dims.Aggregate(1,(a,b)=>a*b);
+                _globalSlots[g.Name] = gSlotIdx;
+                gSlotIdx += sz;
+            }
+            
+            // Generate all code
             EmitCode("; T→T3");EmitCode("__entry:");EmitCode("    LI RW,main");EmitCode("    CALL RW");EmitCode("    HALT");
             foreach(var f in _program.Functions)GenFunc(f);
             
-            // Compute code size (lines minus blanks/comments)
+            // Compute code size
             string codeText = _codeOutput.ToString();
             int codeWords = 0;
             foreach(var line in codeText.Split(new[]{"\r\n","\r","\n"},StringSplitOptions.None)){
                 string t = line.Trim();
                 if(string.IsNullOrEmpty(t)||t.StartsWith(";"))continue;
-                // Count instruction words: LIMM = 2, others = 1
-                // For simplicity count lines — assembler handles it anyway
                 codeWords++;
             }
-            // Add padding: data starts at codeWords + 10
-            _nextAddr = codeWords + 50;
-            
             // Emit code
             _output.Append(codeText);
+            
+            // Update global slots to absolute addresses (codeWords + 100 + index)
+            int baseAddr = codeWords + 100;
+            _globalSlotAddr = baseAddr;
+            _nextAddr = baseAddr;
+            var globalsUpdated = new Dictionary<string,int>();
+            foreach(var kv in _globalSlots){
+                globalsUpdated[kv.Key] = baseAddr + kv.Value;
+                int sz = 1;
+                var g = _program.Globals.FirstOrDefault(x=>x.Name==kv.Key);
+                if(g!=null && g.Type.Dims.Count>0) sz = g.Type.Dims.Aggregate(1,(a,b)=>a*b);
+                baseAddr += sz;
+            }
+            _globalSlots.Clear();
+            foreach(var kv in globalsUpdated) _globalSlots[kv.Key] = kv.Value;
+            _globalSlotAddr = baseAddr;
+            _nextAddr = baseAddr;
+            
+            // Emit global variables as .word labels AFTER code
+            Emit("\n; --- Global Variables ---");
+            foreach(var g in _program.Globals){
+                int sz = 1;
+                if(g.Type.Dims.Count>0) sz = g.Type.Dims.Aggregate(1,(a,b)=>a*b);
+                var vals = new List<long>(new long[sz]);
+                Emit($"{g.Name}: .word {string.Join(", ", vals)}");
+            }
             
             Emit("\n; --- Data Section ---");
             foreach(var (lbl, val) in _stringsToEmit){
@@ -513,12 +545,14 @@ namespace T3Compiler.CodeGen
         int LoadV(string name,int idx){
             int r=AllocR();
             if(_varSlots.TryGetValue(name,out int a)){_liveVars.Add(name);EmitAddr(a+idx);EmitCode($"    LOAD {RegName(r)},{RegName(AddrReg)}");return r;}
+            if(_globalSlots.TryGetValue(name,out int gs)){EmitAddr((long)gs+idx);EmitCode($"    LOAD {RegName(r)},{RegName(AddrReg)}");return r;}
             if(_globalLabels.TryGetValue(name,out string glbl)){EmitCode($"    LIMM {RegName(AddrReg)},{glbl}");EmitCode($"    LOAD {RegName(r)},{RegName(AddrReg)}");return r;}
             throw new Exception($"Undefined variable: {name}");
         }
         
         void Store(string name,int reg,int idx){
             if(_varSlots.TryGetValue(name,out int a)){_liveVars.Add(name);EmitAddr(a+idx);EmitCode($"    STORE {RegName(reg)},{RegName(AddrReg)}");return;}
+            if(_globalSlots.TryGetValue(name,out int gs)){EmitAddr((long)gs+idx);EmitCode($"    STORE {RegName(reg)},{RegName(AddrReg)}");return;}
             if(_globalLabels.TryGetValue(name,out string glbl)){EmitCode($"    LIMM {RegName(AddrReg)},{glbl}");EmitCode($"    STORE {RegName(reg)},{RegName(AddrReg)}");return;}
             throw new Exception($"Undefined variable: {name}");
         }

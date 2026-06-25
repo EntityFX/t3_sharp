@@ -17,7 +17,7 @@ namespace T3Compiler.Parser
         private Token Peek(int o) => (_pos + o < _tokens.Count) ? _tokens[_pos + o] : new Token(TokenType.EndOfFile, "", 0, 0);
         private Token Next() { var t = _tokens[_pos]; if (_pos < _tokens.Count - 1) _pos++; return t; }
         private bool Match(TokenType t) { if (Peek().Type == t) { Next(); return true; } return false; }
-        private Token Expect(TokenType t) { if (Peek().Type == t) return Next(); throw new Exception($"Expected {t} but got {Peek()}"); }
+        private Token Expect(TokenType t) { if (Peek().Type == t) return Next(); var tk=Peek(); throw new Exception($"{tk.Line}:{tk.Column}: error: expected {t} but got {tk.Type}({tk.Value})"); }
 
         public AstProgram ParseProgram()
         {
@@ -100,6 +100,7 @@ namespace T3Compiler.Parser
         void ParseGlobal(AstProgram p)
         {
             var ts = ParseType(); string n = Expect(TokenType.Identifier).Value;
+            while (Match(TokenType.LBracket)) { var d = ParseExpr(); Expect(TokenType.RBracket); if (d is IntegerLiteral il && int.TryParse(il.Value, out int sz)) ts.Dims.Add(sz); }
             AstNode? init = null; if (Match(TokenType.OpEq)) init = ParseExpr();
             Expect(TokenType.Semicolon);
             p.Globals.Add(new VarDeclaration { Name = n, Type = ts, Initializer = init });

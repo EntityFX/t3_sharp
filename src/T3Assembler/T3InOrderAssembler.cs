@@ -157,6 +157,7 @@ namespace T3Assembler
                 return ResolveString($"\"{content}\"");
             }
             if(line.StartsWith("\""))return ResolveString(line);
+            if(line.StartsWith(".align")){var p=line.Split(new[]{' ','\t'},StringSplitOptions.RemoveEmptyEntries);if(p.Length<2)throw new Exception(".align needs argument");int al=int.Parse(p[1]);int pad=al-(pc%al);if(pad==al)pad=0;var r=new List<Int128>();for(int i=0;i<pad;i++)r.Add(0);return r;}
             if(line.StartsWith(".word")){var p=line.Split(new[]{' ','\t',','},StringSplitOptions.RemoveEmptyEntries);if(p.Length<2)throw new Exception("Invalid .word");if(p[1].StartsWith("\""))return ResolveString(p[1]);return new List<Int128>{ResolveOperandValue(p[1])};}
             int pred=0;string pl=line;
             if(line.StartsWith("(")){int cp=line.IndexOf(')');if(cp!=-1){string pp=line[1..cp].ToLower();if(pp.StartsWith("p")&&int.TryParse(pp[1..],out int pi)){pred=pi;pl=line[(cp+1)..].Trim();}}}
@@ -193,6 +194,6 @@ namespace T3Assembler
             else return new List<Int128>{InstructionEncoder.EncodeR(pred,(int)op,op1,op2,op3)};
         }
         bool IsJumpMnemonic(string m)=>m is"JMP"or"JE"or"JNE"or"JL"or"JG"or"JM"or"JLE"or"JGE"or"CALL";
-        bool IsIType(Opcode op)=>op switch{Opcode.MOVI or Opcode.LI or Opcode.LIMM or Opcode.ADDI or Opcode.SUBI or Opcode.MULI or Opcode.DIVI or Opcode.MODI or Opcode.NEGI or Opcode.ANDI or Opcode.ORI or Opcode.XORI or Opcode.SHLI or Opcode.SHRI or Opcode.LOADI or Opcode.STOREI or Opcode.CMPI or Opcode.INI or Opcode.OUTI or Opcode.FZERO=>true,_=>false};
+        bool IsIType(Opcode op)=>op switch{Opcode.MOVI or Opcode.LI or Opcode.LIMM or Opcode.ADDI or Opcode.SUBI or Opcode.MULI or Opcode.DIVI or Opcode.MODI or Opcode.NEGI or Opcode.ANDI or Opcode.ORI or Opcode.XORI or Opcode.SHLI or Opcode.SHRI or Opcode.LOADI or Opcode.STOREI or Opcode.CMPI or Opcode.INI or Opcode.OUTI or Opcode.FZERO or Opcode.PUSHI or Opcode.POPI=>true,_=>false};
     }
 }

@@ -92,6 +92,10 @@ namespace T3Simulator.Common
         FMOV = 113,
         FCLASS = 114,
         FSWAP = 115,
-        FZERO = 116
+        FZERO = 116,
+
+        // Stack immediate
+        PUSHI = 117,
+        POPI = 118
     }
 }

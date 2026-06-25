@@ -365,6 +365,18 @@ namespace T3Simulator.InOrder
                     IncrementCycles(2);
                     return false;
 
+                case Opcode.PUSHI:
+                    SP--;
+                    if (SP < 64) { IsHalted = true; return false; }
+                    WriteWord(SP, FromLong(instr.Immediate));
+                    IncrementCycles(2);
+                    return false;
+
+                case Opcode.POPI:
+                    SetRegisterValue(instr.PhysOp1, FromLong(instr.Immediate));
+                    IncrementCycles(1);
+                    return false;
+
                 case Opcode.IN:
                     long portIn = ToLong(GetRegisterValue(instr.PhysOp2));
                     SetRegisterValue(instr.PhysOp1, DeviceManager.Read(portIn));

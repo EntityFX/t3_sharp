@@ -93,7 +93,8 @@ namespace T3Simulator.Common
             Opcode.MOVI or Opcode.LI or Opcode.LIMM or
             Opcode.ADDI or Opcode.SUBI or Opcode.MULI or Opcode.DIVI or Opcode.MODI or Opcode.NEGI or
             Opcode.ANDI or Opcode.ORI or Opcode.XORI or Opcode.SHLI or Opcode.SHRI or
-            Opcode.LOADI or Opcode.STOREI or Opcode.CMPI or Opcode.INI or Opcode.OUTI or Opcode.FZERO => true,
+            Opcode.LOADI or Opcode.STOREI or Opcode.CMPI or Opcode.INI or Opcode.OUTI or Opcode.FZERO or
+            Opcode.PUSHI or Opcode.POPI => true,
             _ => false
         };
 
