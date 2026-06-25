@@ -56,7 +56,13 @@ namespace T3Simulator.Common
             if (mnemonic is "HALT" or "RET" or "NOP") { }
             else if (mnemonic == "LI") sb.Append($" {GetRegName(instr.PhysOp1)}, {instr.Immediate}");
             else if (mnemonic == "NEG") sb.Append($" {GetRegName(instr.PhysOp1)}");
-            else if (mnemonic is "MOV" or "CMP") sb.Append($" {GetRegName(instr.PhysOp1)}, {GetRegName(instr.PhysOp2)}");
+            else if (mnemonic is "MOV" or "CMP")
+            {
+                if (instr.PhysOp3 != 0)
+                    sb.Append($" {GetRegName(instr.PhysOp1)}, {GetRegName(instr.PhysOp2)}, {GetRegName(instr.PhysOp3)}");
+                else
+                    sb.Append($" {GetRegName(instr.PhysOp1)}, {GetRegName(instr.PhysOp2)}");
+            }
             else if (mnemonic is "ADD" or "SUB" or "MUL" or "DIV" or "MOD" or "AND" or "OR" or "XOR" or "SHL" or "SHR")
             {
                 sb.Append($" {GetRegName(instr.PhysOp1)}, {GetRegName(instr.PhysOp2)}, {GetRegName(instr.PhysOp3)}");
