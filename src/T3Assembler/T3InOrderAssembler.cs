@@ -114,8 +114,15 @@ namespace T3Assembler
             var ip = line.Split(new[] { ' ', '\t', ',' }, StringSplitOptions.RemoveEmptyEntries);
             if (ip.Length == 0) return 0;
             string mn = ip[0].ToUpper();
+            if (IsJumpMnemonic(mn) && ip.Length > 1 && !IsRegister(ip[1])) {
+                // All label-based jumps: LIMM R1, addr; Jxx R1 = 3 words
+                return 3;
+            }
             if (mn == "LI") {
                 string valStr = ip.Length > 2 ? ip[2] : "0";
+                // Labels/names always use LIMM (2 words) — match AssembleLine behavior
+                if (!long.TryParse(valStr, out _) && !valStr.StartsWith("0t") && !valStr.StartsWith("0y") && !valStr.StartsWith("0n"))
+                    return 2;
                 try {
                     long rv = (long)ResolveOperandValue(valStr);
                     if (rv > 364 || rv < -364) return 2;
@@ -149,18 +156,31 @@ namespace T3Assembler
             var ip=pl.Split(new[]{' ','\t',','},StringSplitOptions.RemoveEmptyEntries);if(ip.Length==0)throw new Exception("Empty");
             string mn=ip[0].ToUpper();Opcode op=GetOpcode(mn);
             int op1=0,op2=0,op3=0;long imm=0;
-            if(ip.Length>1)op1=IsRegister(ip[1])?GetRegisterTrit(ip[1]):0;
-            if(ip.Length>2)op2=IsRegister(ip[2])?GetRegisterTrit(ip[2]):0;
-            if(ip.Length>3)op3=IsRegister(ip[3])?GetRegisterTrit(ip[3]):0;
+            if(ip.Length>1){if(IsRegister(ip[1]))op1=GetRegisterTrit(ip[1]);else if(int.TryParse(ip[1],out int i1))op1=i1;}
+            if(ip.Length>2){if(IsRegister(ip[2]))op2=GetRegisterTrit(ip[2]);else if(int.TryParse(ip[2],out int i2))op2=i2;}
+            if(ip.Length>3){if(IsRegister(ip[3]))op3=GetRegisterTrit(ip[3]);else if(int.TryParse(ip[3],out int i3))op3=i3;}
 
             if(IsJumpMnemonic(mn)){
                 string opn=ip.Length>1?ip[1]:"0";
-                if(IsRegister(opn)){long enc=InstructionEncoder.EncodeJ(pred,(int)op,GetRegisterTrit(opn));return new List<Int128>{enc};}
-                else if(_labels.ContainsKey(opn)){long tgt=(long)ResolveOperandValue(opn);imm=tgt-pc;long enc=InstructionEncoder.EncodeI(pred,(int)op,0,imm);return new List<Int128>{enc};}
-                else{imm=(long)ResolveOperandValue(opn);long enc=InstructionEncoder.EncodeI(pred,(int)op,0,imm);return new List<Int128>{enc};}
+                // Label-based jumps: LIMM R1, target; Jxx R1 (register-indirect, 3 words)
+                if(!IsRegister(opn)){
+                    long tgtAddr = _labels.TryGetValue(opn,out int laddr)?laddr:(long)ResolveOperandValue(opn);
+                    return new List<Int128>{InstructionEncoder.EncodeI(pred,(int)Opcode.LIMM,1,0),(Int128)tgtAddr,InstructionEncoder.EncodeJ(pred,(int)op,1)};
+                }
+                // Register-indirect: single word J-type
+                long enc=InstructionEncoder.EncodeJ(pred,(int)op,GetRegisterTrit(opn));return new List<Int128>{enc};
             }
-            else if(mn=="LI"){long rv=(long)ResolveOperandValue(ip.Length>2?ip[2]:"0");if(rv>364||rv<-364)return new List<Int128>{InstructionEncoder.EncodeR(pred,(int)Opcode.LIMM,op1,0,0),ResolveOperandValue(ip[2])};return new List<Int128>{InstructionEncoder.EncodeI(pred,(int)Opcode.LI,op1,rv)};}
-            else if(mn=="LIMM")return new List<Int128>{InstructionEncoder.EncodeR(pred,(int)Opcode.LIMM,op1,0,0),ResolveOperandValue(ip[2])};
+            // LI with label in first operand position: always LIMM (2 words) for consistency
+            else if(mn=="LI"){
+                string valStr = ip.Length>2?ip[2]:"0";
+                // If value is a label or constant name → always LIMM
+                if(!long.TryParse(valStr,out _)&&!valStr.StartsWith("0t")&&!valStr.StartsWith("0y")&&!valStr.StartsWith("0n"))
+                    return new List<Int128>{InstructionEncoder.EncodeI(pred,(int)Opcode.LIMM,op1,0),(Int128)ResolveOperandValue(valStr)};
+                long rv=(long)ResolveOperandValue(valStr);
+                if(rv>364||rv<-364)return new List<Int128>{InstructionEncoder.EncodeI(pred,(int)Opcode.LIMM,op1,0),(Int128)rv};
+                return new List<Int128>{InstructionEncoder.EncodeI(pred,(int)Opcode.LI,op1,rv)};
+            }
+            else if(mn=="LIMM")return new List<Int128>{InstructionEncoder.EncodeI(pred,(int)Opcode.LIMM,op1,0),(Int128)ResolveOperandValue(ip[2])};
             else if(mn=="INI"||mn=="OUTI"){if(ip.Length>2)imm=(long)ResolveOperandValue(ip[2]);return new List<Int128>{InstructionEncoder.EncodeI(pred,(int)op,op1,imm)};}
             else if(IsIType(op)){if(ip.Length>2)imm=(long)ResolveOperandValue(ip[2]);return new List<Int128>{InstructionEncoder.EncodeI(pred,(int)op,op1,imm)};}
             else return new List<Int128>{InstructionEncoder.EncodeR(pred,(int)op,op1,op2,op3)};

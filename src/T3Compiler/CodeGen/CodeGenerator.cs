@@ -3,15 +3,27 @@ namespace T3Compiler.CodeGen
 {
     public class CodeGenerator
     {
-        readonly AstProgram _program;readonly StringBuilder _output;int _labelCounter;
+        readonly AstProgram _program;readonly StringBuilder _output;readonly StringBuilder _codeOutput;
+        int _labelCounter;
         readonly Dictionary<string,int> _varSlots=new(),_varSizes=new();
+        readonly Dictionary<string,string> _globalLabels=new();
         readonly Dictionary<string,int> _enumConstants=new();
         readonly List<(string label, string value)> _stringsToEmit=new();
         readonly List<(string label, Word18 value)> _floatsToEmit=new();
+        readonly List<(string label, long value)> _globalsToEmit=new();
         readonly Dictionary<string,List<int>> _arrDims=new();readonly Dictionary<string,List<FieldDef>> _structFields=new();
         readonly Stack<(string brk,string cont)> _loopStack=new();readonly Dictionary<string,List<FieldDef>> _structDefs=new();
         string? _epilogueLabel;
-        public CodeGenerator(AstProgram p){_program=p;_output=new();foreach(var s in p.Structs)_structDefs[s.Name]=s.Fields;}
+        int _nextAddr = 2000;   // allocated well past any possible code
+        int _stackBase;       // stack base for locals (SP works but we use absolute)
+
+        // Working regs: 0(RW),1(RX),2(RY),4(R0),3(RZ),7(R3)
+        // R4(8) = AddrReg, R1(5) = call temp, R2(6) = retval
+
+        public CodeGenerator(AstProgram p){
+            _program=p;_output=new();_codeOutput=new();
+            foreach(var s in p.Structs)_structDefs[s.Name]=s.Fields;
+        }
         public string Generate(){
             foreach(var ed in _program.Enums){
                 int cur=0;
@@ -21,112 +33,145 @@ namespace T3Compiler.CodeGen
                     cur=v+1;
                 }
             }
-            Emit("; T→T3");Emit("__entry:");Emit("    LI RW,main");Emit("    CALL RW");Emit("    HALT");foreach(var f in _program.Functions)GenFunc(f);
+            // Generate all code first
+            EmitCode("; T→T3");EmitCode("__entry:");EmitCode("    LI RW,main");EmitCode("    CALL RW");EmitCode("    HALT");
+            foreach(var f in _program.Functions)GenFunc(f);
+            
+            // Compute code size (lines minus blanks/comments)
+            string codeText = _codeOutput.ToString();
+            int codeWords = 0;
+            foreach(var line in codeText.Split(new[]{"\r\n","\r","\n"},StringSplitOptions.None)){
+                string t = line.Trim();
+                if(string.IsNullOrEmpty(t)||t.StartsWith(";"))continue;
+                // Count instruction words: LIMM = 2, others = 1
+                // For simplicity count lines — assembler handles it anyway
+                codeWords++;
+            }
+            // Add padding: data starts at codeWords + 10
+            _nextAddr = codeWords + 50;
+            
+            // Emit code
+            _output.Append(codeText);
             
             Emit("\n; --- Data Section ---");
-        foreach(var (lbl, val) in _stringsToEmit){
-            string data = string.Join(", ", val.Select(c => (long)TritTypes.TScii.FromChar(c)));
-            Emit($"{lbl}: .word {val.Length}, {data}");
-        }
-        foreach(var (lbl, val) in _floatsToEmit){
-            Emit($"{lbl}: .word {val.ToLong()}");
-        }
+            foreach(var (lbl, val) in _stringsToEmit){
+                Emit($".string {lbl} \"{val}\"");
+            }
+            foreach(var (lbl, val) in _floatsToEmit){
+                Emit($"{lbl}: .word {val.ToLong()}");
+            }
+            foreach(var (lbl, val) in _globalsToEmit){
+                Emit($"{lbl}: .word {val}");
+            }
             
             Emit("\n; --- StdLib ---");
             Emit("strlen:");
-            Emit("    POP R1");  // Save return address
-            Emit("    POP R2");  // Pop string address
-            Emit("    LOAD R2,R2"); // Load length from [R2] into R2
-            Emit("    PUSH R1"); // Restore return address
+            Emit("    POP R1");
+            Emit("    POP R0");
+            Emit("    PUSH R1");
+            Emit("    LI R2, 0");
+            Emit("strlen_loop:");
+            Emit("    LOAD R1, R0");
+            Emit("    CMPI R1, 0");
+            Emit("    JE strlen_end");
+            Emit("    ADDI R2, 1");
+            Emit("    ADDI R0, 1");
+            Emit("    JMP strlen_loop");
+            Emit("strlen_end:");
             Emit("    RET");
             
             return _output.ToString();}
         
         void GenFunc(FunctionDef f){
-            _varSlots.Clear();_varSizes.Clear();_arrDims.Clear();_structFields.Clear();_nextReg=3;
+            _varSlots.Clear();_varSizes.Clear();_arrDims.Clear();_structFields.Clear();
+            _nextReg = 0;
             _epilogueLabel = Lbl("epilogue");
-            Emit($"{f.Name}:");
-            // Prologue: save return address temporarily to pop parameters
-            if (f.Parameters.Count > 0) {
-                foreach(var param in f.Parameters) Alloc(param.Name, param.Type);
-                Emit("    POP R1"); 
-                for (int i = 0; i < f.Parameters.Count; i++) {
-                    Emit("    POP R0");
-                    Store(f.Parameters[i].Name, 4, 0);
-                }
-                Emit("    PUSH R1");
+
+            foreach(var param in f.Parameters) Alloc(param.Name, param.Type);
+
+            EmitCode($"{f.Name}:");
+            
+            // Prologue: pop params, then save callee-saved
+            EmitCode("    POP R2");   // save ret addr
+            for (int i = 0; i < f.Parameters.Count; i++) {
+                EmitCode("    POP R0");
+                Store(f.Parameters[i].Name, 4, 0);
             }
+            EmitCode("    PUSH R2");   // restore ret addr
+            
             // Save callee-saved registers
-            Emit("    PUSH RW");Emit("    PUSH RX");Emit("    PUSH RY");Emit("    PUSH RZ");
-            Emit("    PUSH R0");Emit("    PUSH R1");Emit("    PUSH R3");Emit("    PUSH R4");
+            EmitCode("    PUSH RW");EmitCode("    PUSH RX");EmitCode("    PUSH RY");EmitCode("    PUSH RZ");
+            EmitCode("    PUSH R0");EmitCode("    PUSH R3");EmitCode("    PUSH R1");EmitCode("    PUSH R4");
+            
             foreach(var s in f.Body.Body)GenStmt(s);
+            
             // Epilogue
-            Emit($"{_epilogueLabel}:");
-            Emit("    POP R4");Emit("    POP R3");Emit("    POP R1");Emit("    POP R0");
-            Emit("    POP RZ");Emit("    POP RY");Emit("    POP RX");Emit("    POP RW");
-            Emit("    RET");
+            EmitCode($"{_epilogueLabel}:");
+            EmitCode("    POP R4");EmitCode("    POP R1");EmitCode("    POP R3");EmitCode("    POP R0");
+            EmitCode("    POP RZ");EmitCode("    POP RY");EmitCode("    POP RX");EmitCode("    POP RW");
+            EmitCode("    RET");
         }
         
-        void GenStmt(Statement s){switch(s){case ExpressionStmt e:if(e.Expression!=null)GenExpr(e.Expression);break;case VarDeclaration vd:Alloc(vd.Name,vd.Type);if(vd.Type.StructName!=null&&_structDefs.TryGetValue(vd.Type.StructName,out var sf))_structFields[vd.Name]=sf;if(vd.Initializer!=null){int r=GenExpr(vd.Initializer);Store(vd.Name,r,0);}break;case ReturnStmt rs:if(rs.Value!=null){int r=GenExpr(rs.Value);Emit($"    MOV R2,{RegName(r)}");}if(_epilogueLabel!=null){int rj=AllocR();Emit($"    LIMM {RegName(rj)},{_epilogueLabel}");Emit($"    JMP {RegName(rj)}");}else Emit("    RET");break;case CompoundStmt cs:foreach(var ss in cs.Body)GenStmt(ss);break;case IfStmt ifs:GenIf(ifs);break;case WhileStmt ws:GenWhile(ws);break;case DoWhileStmt dws:GenDoWhile(dws);break;case ForStmt fs:GenFor(fs);break;case SwitchStmt ss:GenSwitch(ss);break;case BreakStmt _:{var(brk,_)=_loopStack.Peek();Jmp(brk);}break;case ContinueStmt _:{var(_,cont)=_loopStack.Peek();Jmp(cont);}break;}}
+        void GenStmt(Statement s){switch(s){case ExpressionStmt e:if(e.Expression!=null)GenExpr(e.Expression);break;case VarDeclaration vd:Alloc(vd.Name,vd.Type);if(vd.Type.StructName!=null&&_structDefs.TryGetValue(vd.Type.StructName,out var sf))_structFields[vd.Name]=sf;if(vd.Initializer!=null){int r=GenExpr(vd.Initializer);Store(vd.Name,r,0);}break;case ReturnStmt rs:if(rs.Value!=null){int r=GenExpr(rs.Value);EmitCode($"    MOV R2,{RegName(r)}");}if(_epilogueLabel!=null){int rj=AllocR();EmitCode($"    LIMM {RegName(rj)},{_epilogueLabel}");EmitCode($"    JMP {RegName(rj)}");}else EmitCode("    RET");break;case CompoundStmt cs:foreach(var ss in cs.Body)GenStmt(ss);break;case IfStmt ifs:GenIf(ifs);break;case WhileStmt ws:GenWhile(ws);break;case DoWhileStmt dws:GenDoWhile(dws);break;case ForStmt fs:GenFor(fs);break;case SwitchStmt ss:GenSwitch(ss);break;case BreakStmt _:{var(brk,_)=_loopStack.Peek();Jmp(brk);}break;case ContinueStmt _:{var(_,cont)=_loopStack.Peek();Jmp(cont);}break;}}
         
         void GenIf(IfStmt s){
             string le=Lbl("end"),lt=Lbl("then");
             if(s.Condition is BinaryOp bo){
                 int a=GenExpr(bo.Left);int b=GenExpr(bo.Right);
-                Emit($"    CMP {RegName(a)},{RegName(b)}");
+                EmitCode($"    CMP {RegName(a)},{RegName(b)}");
                 JumpCond(bo.Operator,lt);
                 if(s.ElseBody!=null)GenStmt(s.ElseBody);
                 Jmp(le);
-                Emit($"{lt}:");GenStmt(s.ThenBody);
-                Emit($"{le}:");
+                EmitCode($"{lt}:");GenStmt(s.ThenBody);
+                EmitCode($"{le}:");
             }else{
                 int c=GenExpr(s.Condition);
-                Emit($"    LI R2,0");
-                Emit($"    CMP {RegName(c)},R2");
+                EmitCode($"    LI R2,0");
+                EmitCode($"    CMP {RegName(c)},R2");
                 JumpReg("JNE",lt);
                 if(s.ElseBody!=null)GenStmt(s.ElseBody);
                 Jmp(le);
-                Emit($"{lt}:");GenStmt(s.ThenBody);
-                Emit($"{le}:");
+                EmitCode($"{lt}:");GenStmt(s.ThenBody);
+                EmitCode($"{le}:");
             }
         }
         
         void GenWhile(WhileStmt s){
             string ll=Lbl("loop"),lb=Lbl("body"),le=Lbl("wend");
             _loopStack.Push((le,ll));
-            Emit($"{ll}:");
+            EmitCode($"{ll}:");
             if(s.Condition is BinaryOp bo){
                 int a=GenExpr(bo.Left);int b=GenExpr(bo.Right);
-                Emit($"    CMP {RegName(a)},{RegName(b)}");
+                EmitCode($"    CMP {RegName(a)},{RegName(b)}");
                 JumpCond(bo.Operator,lb);
                 Jmp(le);
             }else{
                 int c=GenExpr(s.Condition);
-                Emit($"    LI R2,0");
-                Emit($"    CMP {RegName(c)},R2");
+                EmitCode($"    LI R2,0");
+                EmitCode($"    CMP {RegName(c)},R2");
                 JumpReg("JNE",lb);
                 Jmp(le);
             }
-            Emit($"{lb}:");GenStmt(s.Body);Jmp(ll);
-            Emit($"{le}:");_loopStack.Pop();
+            EmitCode($"{lb}:");GenStmt(s.Body);Jmp(ll);
+            EmitCode($"{le}:");_loopStack.Pop();
         }
         
         void GenDoWhile(DoWhileStmt s){
             string ll=Lbl("loop"),le=Lbl("wend");
             _loopStack.Push((le,ll));
-            Emit($"{ll}:");
+            EmitCode($"{ll}:");
             GenStmt(s.Body);
             if(s.Condition is BinaryOp bo){
                 int a=GenExpr(bo.Left);int b=GenExpr(bo.Right);
-                Emit($"    CMP {RegName(a)},{RegName(b)}");
+                EmitCode($"    CMP {RegName(a)},{RegName(b)}");
                 JumpCond(bo.Operator,ll);
             }else{
                 int c=GenExpr(s.Condition);
-                Emit($"    LI R2,0");
-                Emit($"    CMP {RegName(c)},R2");
+                EmitCode($"    LI R2,0");
+                EmitCode($"    CMP {RegName(c)},R2");
                 JumpReg("JNE",ll);
             }
-            Emit($"{le}:");
+            EmitCode($"{le}:");
             _loopStack.Pop();
         }
         
@@ -134,25 +179,25 @@ namespace T3Compiler.CodeGen
             string ll=Lbl("floop"),lb=Lbl("fbody"),le=Lbl("fend");
             _loopStack.Push((le,ll));
             if(fs.Init!=null) GenStmt(fs.Init);
-            Emit($"{ll}:");
+            EmitCode($"{ll}:");
             if(fs.Condition!=null){
                 if(fs.Condition is BinaryOp bo){
                     int a=GenExpr(bo.Left);int b=GenExpr(bo.Right);
-                    Emit($"    CMP {RegName(a)},{RegName(b)}");
+                    EmitCode($"    CMP {RegName(a)},{RegName(b)}");
                     JumpCond(bo.Operator,lb);
                 }else{
                     int c=GenExpr(fs.Condition);
-                    Emit($"    LI R2,0");
-                    Emit($"    CMP {RegName(c)},R2");
+                    EmitCode($"    LI R2,0");
+                    EmitCode($"    CMP {RegName(c)},R2");
                     JumpReg("JNE",lb);
                 }
                 Jmp(le);
             }
-            Emit($"{lb}:");
+            EmitCode($"{lb}:");
             GenStmt(fs.Body);
             if(fs.Step!=null) GenExpr(fs.Step);
             Jmp(ll);
-            Emit($"{le}:");
+            EmitCode($"{le}:");
             _loopStack.Pop();
         }
         
@@ -162,33 +207,29 @@ namespace T3Compiler.CodeGen
             var labels = new List<string>();
             for (int i = 0; i < s.Cases.Count; i++)
                 labels.Add(Lbl("scase"));
-            // Find default case index
             int defaultIdx = -1;
             for (int i = 0; i < s.Cases.Count; i++) {
                 if (s.Cases[i].Value == null) { defaultIdx = i; continue; }
                 int caseVal = GenExpr(s.Cases[i].Value);
-                Emit($"    CMP {RegName(exprReg)},{RegName(caseVal)}");
+                EmitCode($"    CMP {RegName(exprReg)},{RegName(caseVal)}");
                 JumpReg("JE", labels[i]);
             }
-            // Jump to default or end
             if (defaultIdx >= 0)
                 Jmp(labels[defaultIdx]);
             else
                 Jmp(end);
-            // Generate case bodies
             for (int i = 0; i < s.Cases.Count; i++) {
-                Emit($"{labels[i]}:");
+                EmitCode($"{labels[i]}:");
                 foreach (var stmt in s.Cases[i].Body)
                     GenStmt(stmt);
-                Jmp(end);  // break after each case
+                Jmp(end);
             }
-            Emit($"{end}:");
+            EmitCode($"{end}:");
         }
         
         void JumpCond(string op,string l){switch(op){case"==":JumpReg("JE",l);break;case"!=":JumpReg("JNE",l);break;case"<":JumpReg("JL",l);break;case">":JumpReg("JG",l);break;case"<=":JumpReg("JLE",l);break;case">=":JumpReg("JGE",l);break;}}
-        void JumpCondInv(string op,string l){switch(op){case"==":JumpReg("JNE",l);break;case"!=":JumpReg("JE",l);break;case"<":JumpReg("JGE",l);break;case">":JumpReg("JLE",l);break;case"<=":JumpReg("JG",l);break;case">=":JumpReg("JL",l);break;}}
-        void JumpReg(string cond,string l){int r=AllocR();Emit($"    LIMM {RegName(r)},{l}");Emit($"    {cond} {RegName(r)}");}
-        void Jmp(string l){int r=AllocR();Emit($"    LIMM {RegName(r)},{l}");Emit($"    JMP {RegName(r)}");}
+        void JumpReg(string cond,string l){int r=AllocR();EmitCode($"    LIMM {RegName(r)},{l}");EmitCode($"    {cond} {RegName(r)}");}
+        void Jmp(string l){int r=AllocR();EmitCode($"    LIMM {RegName(r)},{l}");EmitCode($"    JMP {RegName(r)}");}
         
         int GenExpr(AstNode n){
         if(n is IntegerLiteral il) return Imm(ParseInt(il.Value));
@@ -211,52 +252,38 @@ namespace T3Compiler.CodeGen
         
         int GenTernary(TernaryExpr te){
             int cr=GenExpr(te.Condition),r=AllocR();
-            Emit($"    LI R2,0");
-            Emit($"    CMP {RegName(cr)},R2");
+            EmitCode($"    LI R2,0");
+            EmitCode($"    CMP {RegName(cr)},R2");
             string lt=Lbl("t"),lm=Lbl("m"),ld=Lbl("d");
             JumpReg("JG",lt);JumpReg("JE",lm);
-            int fR=GenExpr(te.FalseExpr);Emit($"    MOV {RegName(r)},{RegName(fR)}");Jmp(ld);
-            Emit($"{lm}:");int mR=GenExpr(te.MaybeExpr);Emit($"    MOV {RegName(r)},{RegName(mR)}");Jmp(ld);
-            Emit($"{lt}:");int tR=GenExpr(te.TrueExpr);Emit($"    MOV {RegName(r)},{RegName(tR)}");
-            Emit($"{ld}:");return r;
+            int fR=GenExpr(te.FalseExpr);EmitCode($"    MOV {RegName(r)},{RegName(fR)}");Jmp(ld);
+            EmitCode($"{lm}:");int mR=GenExpr(te.MaybeExpr);EmitCode($"    MOV {RegName(r)},{RegName(mR)}");Jmp(ld);
+            EmitCode($"{lt}:");int tR=GenExpr(te.TrueExpr);EmitCode($"    MOV {RegName(r)},{RegName(tR)}");
+            EmitCode($"{ld}:");return r;
         }
         
         int EmitMemAccess(MemberAccess ma){
-            // Case 1: struct variable field access (e.g., p.x)
             if(ma.Object is Identifier id&&_varSlots.TryGetValue(id.Name,out int ba)&&_structFields.TryGetValue(id.Name,out var fl)){
                 int off=fl.FindIndex(f=>f.Name==ma.MemberName);
                 if(off<0)throw new Exception($"Unknown field: {ma.MemberName}");
-                int r=AllocR();EmitAddr(ba+off);Emit($"    LOAD {RegName(r)},{RegName(AddrReg)}");return r;
+                int r=AllocR();EmitAddr(ba+off);EmitCode($"    LOAD {RegName(r)},{RegName(AddrReg)}");return r;
             }
-            // Case 2: struct array element field access (e.g., pts[0].x)
             if(ma.Object is ArrayAccess aa&&_structFields.TryGetValue(aa.ArrayName,out var fl2)){
                 int off=fl2.FindIndex(f=>f.Name==ma.MemberName);
                 if(off<0)throw new Exception($"Unknown field: {ma.MemberName}");
                 int ba2=_varSlots.TryGetValue(aa.ArrayName,out int b)?b:_nextAddr;
                 int idx=FlatIdx(aa);
-                int r=AllocR();EmitAddr(ba2+off);Emit($"    ADD {RegName(r)},{RegName(AddrReg)},{RegName(idx)}");Emit($"    LOAD {RegName(r)},{RegName(r)}");return r;
+                int r=AllocR();EmitAddr(ba2+off);EmitCode($"    ADD {RegName(r)},{RegName(AddrReg)},{RegName(idx)}");EmitCode($"    LOAD {RegName(r)},{RegName(r)}");return r;
             }
-            // Case 3: pointer to struct field access via dereference (e.g., (*pp).first)
-            // The parser creates UnaryOp("*", Identifier) for *pp.
-            // For struct member access, we need the address (pointer value), not the dereferenced value.
-            // So we use the identifier directly (it holds the address) and add the field offset.
             if(ma.Object is UnaryOp uo&&uo.Operator=="*"&&uo.Operand is Identifier ptrId){
-                // Find the struct definition that contains this field
                 foreach(var kv in _structDefs){
                     int off=kv.Value.FindIndex(f=>f.Name==ma.MemberName);
                     if(off>=0){
-                        // ptrId holds the address of the struct
-                        int ptrR=GenExpr(uo.Operand); // this does LOAD to get the pointer value
-                        // But we need the address, not the value at the address!
-                        // The pointer variable holds the address, so we load the pointer value
-                        // Actually, GenExpr for Identifier loads the VALUE of the variable.
-                        // For a pointer, the value IS the address.
-                        // So ptrR holds the address of the struct.
-                        // Now add field offset and load
+                        int ptrR=GenExpr(uo.Operand);
                         int r=AllocR();
-                        Emit($"    LI {RegName(AddrReg)},{off}");
-                        Emit($"    ADD {RegName(r)},{RegName(ptrR)},{RegName(AddrReg)}");
-                        Emit($"    LOAD {RegName(r)},{RegName(r)}");
+                        EmitCode($"    LI {RegName(AddrReg)},{off}");
+                        EmitCode($"    ADD {RegName(r)},{RegName(ptrR)},{RegName(AddrReg)}");
+                        EmitCode($"    LOAD {RegName(r)},{RegName(r)}");
                         return r;
                     }
                 }
@@ -268,31 +295,29 @@ namespace T3Compiler.CodeGen
         void EmitMemStore(MemberAccess ma,int v){
             if(ma.Object is Identifier id&&_varSlots.TryGetValue(id.Name,out int ba)&&_structFields.TryGetValue(id.Name,out var fl)){
                 int off=fl.FindIndex(f=>f.Name==ma.MemberName);
-                if(off>=0){EmitAddr(ba+off);Emit($"    STORE {RegName(v)},{RegName(AddrReg)}");}
+                if(off>=0){EmitAddr(ba+off);EmitCode($"    STORE {RegName(v)},{RegName(AddrReg)}");}
             }
-            // Case 2: struct array element field store
             if(ma.Object is ArrayAccess aa&&_structFields.TryGetValue(aa.ArrayName,out var fl2)){
                 int off=fl2.FindIndex(f=>f.Name==ma.MemberName);
                 if(off>=0){
                     int ba2=_varSlots.TryGetValue(aa.ArrayName,out int b)?b:_nextAddr;
-                    Emit($"    PUSH {RegName(v)}");
+                    EmitCode($"    PUSH {RegName(v)}");
                     int idx=FlatIdx(aa);
                     EmitAddr(ba2+off);
-                    Emit($"    ADD {RegName(AddrReg)},{RegName(AddrReg)},{RegName(idx)}");
+                    EmitCode($"    ADD {RegName(AddrReg)},{RegName(AddrReg)},{RegName(idx)}");
                     int v_pop=AllocR();
-                    Emit($"    POP {RegName(v_pop)}");
-                    Emit($"    STORE {RegName(v_pop)},{RegName(AddrReg)}");
+                    EmitCode($"    POP {RegName(v_pop)}");
+                    EmitCode($"    STORE {RegName(v_pop)},{RegName(AddrReg)}");
                 }
             }
-            // Case 3: pointer to struct field store via dereference (e.g., (*pp).first = x)
             if(ma.Object is UnaryOp uo&&uo.Operator=="*"&&uo.Operand is Identifier ptrId){
                 foreach(var kv in _structDefs){
                     int off=kv.Value.FindIndex(f=>f.Name==ma.MemberName);
                     if(off>=0){
                         int ptrR=GenExpr(uo.Operand);
-                        Emit($"    LI {RegName(AddrReg)},{off}");
-                        Emit($"    ADD {RegName(AddrReg)},{RegName(ptrR)},{RegName(AddrReg)}");
-                        Emit($"    STORE {RegName(v)},{RegName(AddrReg)}");
+                        EmitCode($"    LI {RegName(AddrReg)},{off}");
+                        EmitCode($"    ADD {RegName(AddrReg)},{RegName(ptrR)},{RegName(AddrReg)}");
+                        EmitCode($"    STORE {RegName(v)},{RegName(AddrReg)}");
                         return;
                     }
                 }
@@ -301,41 +326,52 @@ namespace T3Compiler.CodeGen
         
         int GenUn(UnaryOp uo){
             if(uo.Operator=="&"){
-                if(uo.Operand is Identifier id&&_varSlots.TryGetValue(id.Name,out int a))return Imm(a);
-                if(uo.Operand is MemberAccess ma&&ma.Object is Identifier id2&&_varSlots.TryGetValue(id2.Name,out int ba2)&&_structFields.TryGetValue(id2.Name,out var fl2)){int off=fl2.FindIndex(f=>f.Name==ma.MemberName);if(off>=0)return Imm(ba2+off);}
-                if(uo.Operand is ArrayAccess aa){int arrB=_varSlots.TryGetValue(aa.ArrayName,out int b)?b:_nextAddr;int idx=FlatIdx(aa);int ra=AllocR();Emit($"    LIMM {RegName(ra)},{arrB}");Emit($"    ADD {RegName(ra)},{RegName(ra)},{RegName(idx)}");return ra;}
+                if(uo.Operand is Identifier id){
+                    if(_varSlots.TryGetValue(id.Name,out int a))return Imm(a);
+                    if(_globalLabels.TryGetValue(id.Name,out string glbl)){int r=AllocR();EmitCode($"    LIMM {RegName(r)},{glbl}");return r;}
+                    throw new Exception($"Cannot take address of {id.Name}");
+                }
+                if(uo.Operand is MemberAccess ma&&ma.Object is Identifier id2&&_varSlots.TryGetValue(id2.Name,out int ba2)&&_structFields.TryGetValue(id2.Name,out var fl2)){
+                    int off=fl2.FindIndex(f=>f.Name==ma.MemberName);
+                    if(off>=0)return Imm(ba2+off);
+                }
+                if(uo.Operand is ArrayAccess aa){
+                    int arrB=_varSlots.TryGetValue(aa.ArrayName,out int b)?b:_nextAddr;
+                    int idx=FlatIdx(aa);
+                    int ra=AllocR();EmitCode($"    LIMM {RegName(ra)},{arrB}");EmitCode($"    ADD {RegName(ra)},{RegName(ra)},{RegName(idx)}");return ra;
+                }
                 throw new Exception($"Cannot take address of {uo.Operand?.GetType().Name}");
             }
-            if(uo.Operator=="*"){int pr=GenExpr(uo.Operand),r=AllocR();Emit($"    LOAD {RegName(r)},{RegName(pr)}");return r;}
-            int o=GenExpr(uo.Operand),r2=AllocR();Emit($"    {(uo.Operator=="-"?"NEG":"MOV")} {RegName(r2)},{RegName(o)}");return r2;
+            if(uo.Operator=="*"){int pr=GenExpr(uo.Operand),r=AllocR();EmitCode($"    LOAD {RegName(r)},{RegName(pr)}");return r;}
+            int o=GenExpr(uo.Operand),r2=AllocR();EmitCode($"    {(uo.Operator=="-"?"NEG":"MOV")} {RegName(r2)},{RegName(o)}");return r2;
         }
         
         int GenBin(BinaryOp bo)
         {
             int l1 = GenExpr(bo.Left);
-            Emit($"    PUSH {RegName(l1)}");
+            EmitCode($"    PUSH {RegName(l1)}");
             int r1 = GenExpr(bo.Right);
             int l2 = AllocR();
             while (l2 == r1) l2 = AllocR();
-            Emit($"    POP {RegName(l2)}");
+            EmitCode($"    POP {RegName(l2)}");
 
             if (IsCmp(bo.Operator))
             {
                 int resReg = AllocR();
-                Emit($"    CMP {RegName(l2)},{RegName(r1)}");
+                EmitCode($"    CMP {RegName(l2)},{RegName(r1)}");
                 string lt = Lbl("t"), ld = Lbl("d");
                 JumpCond(bo.Operator, lt);
-                Emit($"    LI {RegName(resReg)},-1");
+                EmitCode($"    LI {RegName(resReg)},-1");
                 Jmp(ld);
-                Emit($"{lt}:");
-                Emit($"    LI {RegName(resReg)},1");
-                Emit($"{ld}:");
+                EmitCode($"{lt}:");
+                EmitCode($"    LI {RegName(resReg)},1");
+                EmitCode($"{ld}:");
                 return resReg;
             }
             int resultReg = AllocR();
             while (resultReg == l2 || resultReg == r1) resultReg = AllocR();
             string op = bo.Operator switch { "+" => "ADD", "-" => "SUB", "*" => "MUL", "/" => "DIV", "%" => "MOD", "&" => "AND", "|" => "OR", "^" => "XOR", "<<" => "SHL", ">>" => "SHR", _ => throw new NotSupportedException($"Unsupported binary operator: {bo.Operator}") };
-            Emit($"    {op} {RegName(resultReg)},{RegName(l2)},{RegName(r1)}");
+            EmitCode($"    {op} {RegName(resultReg)},{RegName(l2)},{RegName(r1)}");
             return resultReg;
         }
         
@@ -349,15 +385,15 @@ namespace T3Compiler.CodeGen
             else
             {
                 int lh = GenExpr(ass.Target);
-                Emit($"    PUSH {RegName(lh)}");
+                EmitCode($"    PUSH {RegName(lh)}");
                 int rh = GenExpr(ass.Value);
                 int r_lh = AllocR();
                 while (r_lh == rh) r_lh = AllocR();
-                Emit($"    POP {RegName(r_lh)}");
+                EmitCode($"    POP {RegName(r_lh)}");
                 string op = ass.Operator switch { "+=" => "ADD", "-=" => "SUB", "*=" => "MUL", "/=" => "DIV", "%=" => "MOD", "&=" => "AND", "|=" => "OR", "^=" => "XOR", "<<=" => "SHL", ">>=" => "SHR", _ => throw new NotSupportedException($"Unsupported assignment operator: {ass.Operator}") };
                 v = AllocR();
                 while (v == rh || v == r_lh) v = AllocR();
-                Emit($"    {op} {RegName(v)},{RegName(r_lh)},{RegName(rh)}");
+                EmitCode($"    {op} {RegName(v)},{RegName(r_lh)},{RegName(rh)}");
             }
             if (ass.Target is Identifier id) Store(id.Name, v, 0);
             else if (ass.Target is ArrayAccess aa) EmitArrStore(aa, v);
@@ -366,24 +402,15 @@ namespace T3Compiler.CodeGen
         }
         
         int EmitCall(FunctionCall fc){
-            // Save caller-saved registers FIRST (RW, RX, RY, RZ, R0, R1, R3, R4)
-            // Then push arguments in reverse order.
-            // Stack at function entry: [caller's saved regs] [args...] [ret addr]
-            // Callee pops ret addr, then args (on top), pushes ret addr back, saves regs.
-            Emit("    PUSH RW");Emit("    PUSH RX");Emit("    PUSH RY");Emit("    PUSH RZ");
-            Emit("    PUSH R0");Emit("    PUSH R1");Emit("    PUSH R3");Emit("    PUSH R4");
-            for(int i=fc.Arguments.Count-1;i>=0;i--)Emit($"    PUSH {RegName(GenExpr(fc.Arguments[i]))}");
-            Emit($"    LI R1,{fc.FunctionName}");
-            Emit("    CALL R1");
-            // After RET, stack has: [caller's saved regs] — callee popped args before saving regs
-            // Pop args (they were pushed after saved regs, but callee popped them, so we just pop saved regs)
-            // Actually, callee pops args before saving its own regs, so after RET:
-            // Stack: [caller's saved regs] — we restore them below
-            // No args to pop — callee already popped them
-            // Restore caller-saved registers
-            Emit("    POP R4");Emit("    POP R3");Emit("    POP R1");Emit("    POP R0");
-            Emit("    POP RZ");Emit("    POP RY");Emit("    POP RX");Emit("    POP RW");
-            int r=AllocR();Emit($"    MOV {RegName(r)},R2");return r;
+            EmitCode("    PUSH RW");EmitCode("    PUSH RX");EmitCode("    PUSH RY");EmitCode("    PUSH RZ");
+            EmitCode("    PUSH R0");EmitCode("    PUSH R3");EmitCode("    PUSH R1");EmitCode("    PUSH R4");
+            for(int i=fc.Arguments.Count-1;i>=0;i--)
+                EmitCode($"    PUSH {RegName(GenExpr(fc.Arguments[i]))}");
+            EmitCode($"    LI R1,{fc.FunctionName}");
+            EmitCode("    CALL R1");
+            EmitCode("    POP R4");EmitCode("    POP R1");EmitCode("    POP R3");EmitCode("    POP R0");
+            EmitCode("    POP RZ");EmitCode("    POP RY");EmitCode("    POP RX");EmitCode("    POP RW");
+            int r=AllocR();EmitCode($"    MOV {RegName(r)},R2");return r;
         }
         
         int FlatIdx(ArrayAccess aa)
@@ -392,64 +419,69 @@ namespace T3Compiler.CodeGen
                 return GenExpr(aa.Indices[0]);
 
             int r = AllocR();
-            Emit($"    LI {RegName(r)},0");
+            EmitCode($"    LI {RegName(r)},0");
             for (int i = 0; i < dims.Count; i++)
             {
-                Emit($"    PUSH {RegName(r)}");
+                EmitCode($"    PUSH {RegName(r)}");
                 int idxR = GenExpr(aa.Indices[i]);
                 int stride = 1;
                 for (int j = i + 1; j < dims.Count; j++) stride *= dims[j];
                 int sR = AllocR();
                 while (sR == idxR) sR = AllocR();
-                Emit($"    LI {RegName(sR)},{stride}");
+                EmitCode($"    LI {RegName(sR)},{stride}");
                 
                 int t = AllocR();
                 while (t == idxR || t == sR) t = AllocR();
-                Emit($"    MUL {RegName(t)},{RegName(idxR)},{RegName(sR)}");
+                EmitCode($"    MUL {RegName(t)},{RegName(idxR)},{RegName(sR)}");
                 
                 int r_restored = AllocR();
                 while (r_restored == t) r_restored = AllocR();
-                Emit($"    POP {RegName(r_restored)}");
+                EmitCode($"    POP {RegName(r_restored)}");
                 
                 int nextR = AllocR();
                 while (nextR == r_restored || nextR == t) nextR = AllocR();
-                Emit($"    ADD {RegName(nextR)},{RegName(r_restored)},{RegName(t)}");
+                EmitCode($"    ADD {RegName(nextR)},{RegName(r_restored)},{RegName(t)}");
                 r = nextR;
             }
             return r;
         }
         
-        int EmitArrAccess(ArrayAccess aa){int ba=_varSlots.TryGetValue(aa.ArrayName,out int b)?b:_nextAddr;int off=FlatIdx(aa);EmitAddr(ba);Emit($"    ADD {RegName(AddrReg)},{RegName(AddrReg)},{RegName(off)}");int r=AllocR();Emit($"    LOAD {RegName(r)},{RegName(AddrReg)}");return r;}
+        int EmitArrAccess(ArrayAccess aa){int ba=_varSlots.TryGetValue(aa.ArrayName,out int b)?b:_nextAddr;int off=FlatIdx(aa);EmitAddr(ba);EmitCode($"    ADD {RegName(AddrReg)},{RegName(AddrReg)},{RegName(off)}");int r=AllocR();EmitCode($"    LOAD {RegName(r)},{RegName(AddrReg)}");return r;}
         void EmitArrStore(ArrayAccess aa,int v)
         {
             int ba = _varSlots.TryGetValue(aa.ArrayName, out int b) ? b : _nextAddr;
-            Emit($"    PUSH {RegName(v)}");
+            EmitCode($"    PUSH {RegName(v)}");
             int off = FlatIdx(aa);
             EmitAddr(ba);
-            Emit($"    ADD {RegName(AddrReg)},{RegName(AddrReg)},{RegName(off)}");
+            EmitCode($"    ADD {RegName(AddrReg)},{RegName(AddrReg)},{RegName(off)}");
             int v_pop = AllocR();
-            Emit($"    POP {RegName(v_pop)}");
-            Emit($"    STORE {RegName(v_pop)},{RegName(AddrReg)}");
+            EmitCode($"    POP {RegName(v_pop)}");
+            EmitCode($"    STORE {RegName(v_pop)},{RegName(AddrReg)}");
         }
         
-        int _nextAddr=100;const int AddrReg=8;
-        void EmitAddr(long addr){if(addr>=-364&&addr<=364)Emit($"    LI {RegName(AddrReg)},{addr}");else Emit($"    LIMM {RegName(AddrReg)},{addr}");}
+        const int AddrReg = 8;
+        void EmitAddr(long addr){if(addr>=-364&&addr<=364)EmitCode($"    LI {RegName(AddrReg)},{addr}");else EmitCode($"    LIMM {RegName(AddrReg)},{addr}");}
         void Alloc(string name,TypeSpec ts){if(!_varSlots.ContainsKey(name)){_varSlots[name]=_nextAddr;int sz=1;if(ts.StructName!=null&&_structDefs.TryGetValue(ts.StructName,out var sf)){sz=sf.Count;_structFields[name]=sf;}else if(ts.Dims.Count>0){sz=ts.Dims.Aggregate(1,(a,b)=>a*b);_arrDims[name]=ts.Dims;}_varSizes[name]=sz;_nextAddr+=sz;}}
         
         int LoadV(string name,int idx){
             int r=AllocR();
-            if(_varSlots.TryGetValue(name,out int a)){EmitAddr(a+idx);Emit($"    LOAD {RegName(r)},{RegName(AddrReg)}");return r;}
+            if(_varSlots.TryGetValue(name,out int a)){EmitAddr(a+idx);EmitCode($"    LOAD {RegName(r)},{RegName(AddrReg)}");return r;}
+            if(_globalLabels.TryGetValue(name,out string glbl)){EmitCode($"    LIMM {RegName(AddrReg)},{glbl}");EmitCode($"    LOAD {RegName(r)},{RegName(AddrReg)}");return r;}
             throw new Exception($"Undefined variable: {name}");
         }
         
-        void Store(string name,int reg,int idx){if(_varSlots.TryGetValue(name,out int a)){EmitAddr(a+idx);Emit($"    STORE {RegName(reg)},{RegName(AddrReg)}");}}
+        void Store(string name,int reg,int idx){
+            if(_varSlots.TryGetValue(name,out int a)){EmitAddr(a+idx);EmitCode($"    STORE {RegName(reg)},{RegName(AddrReg)}");return;}
+            if(_globalLabels.TryGetValue(name,out string glbl)){EmitCode($"    LIMM {RegName(AddrReg)},{glbl}");EmitCode($"    STORE {RegName(reg)},{RegName(AddrReg)}");return;}
+            throw new Exception($"Undefined variable: {name}");
+        }
 
         int EmitString(string value)
         {
             string lbl = Lbl("str");
             _stringsToEmit.Add((lbl, value));
             int r = AllocR();
-            Emit($"    LIMM {RegName(r)},{lbl}");
+            EmitCode($"    LIMM {RegName(r)},{lbl}");
             return r;
         }
 
@@ -461,8 +493,8 @@ namespace T3Compiler.CodeGen
             Word18 w = tf.ToWord18();
             _floatsToEmit.Add((lbl, w));
             int r = AllocR();
-            Emit($"    LIMM {RegName(r)},{lbl}");
-            Emit($"    FLW {RegName(r)},{RegName(r)}");
+            EmitCode($"    LIMM {RegName(r)},{lbl}");
+            EmitCode($"    FLW {RegName(r)},{RegName(r)}");
             return r;
         }
         static bool IsCmp(string op)=>op is"=="or"!="or"<"or">"or"<="or">=";
@@ -470,10 +502,20 @@ namespace T3Compiler.CodeGen
         long P27(string s){var a="NOPQRSTUVWXYZ0123456789ABCD".ToCharArray();string t="";foreach(char c in s.ToUpper()){int i=Array.IndexOf(a,c);if(i>=0)t+=TCh(i/9-1)+TCh(i/3%3-1)+TCh(i%3-1);else throw new FormatException($"Unknown 0y character: {c}");}return BalancedTernary.ParseToLong(t);}
         long P9(string s){string t="";foreach(char c in s.ToUpper())t+=c switch{'W'=>"--",'X'=>"-0",'Y'=>"-+",'Z'=>"0-",'0'=>"00",'1'=>"0+",'2'=>"+-",'3'=>"+0",'4'=>"++",_=>throw new FormatException($"Unknown 0n character: {c}")};return BalancedTernary.ParseToLong(t);}
         static string TCh(int t)=>t==-1?"-":t==1?"+":"0";
-        int _nextReg=3;
-        int AllocR(){while(_nextReg==5||_nextReg==6||_nextReg==8)_nextReg=(_nextReg+1)%9;int r=_nextReg;_nextReg=(_nextReg+1)%9;return r;}
-        int Imm(long v){int r=AllocR();if(v>=-364&&v<=364)Emit($"    LI {RegName(r)},{v}");else {Emit($"    LIMM {RegName(r)},{v}");}return r;}
-        string Lbl(string pfx)=>$"{pfx}_{_labelCounter++}";void Emit(string s="")=>_output.AppendLine(s);
+        int _nextReg=0;
+        int AllocR(){
+            while(true){
+                if(_nextReg!=5&&_nextReg!=6&&_nextReg!=8)break;
+                _nextReg=(_nextReg+1)%9;
+            }
+            int r=_nextReg;
+            _nextReg=(_nextReg+1)%9;
+            return r;
+        }
+        int Imm(long v){int r=AllocR();if(v>=-364&&v<=364)EmitCode($"    LI {RegName(r)},{v}");else{EmitCode($"    LIMM {RegName(r)},{v}");}return r;}
+        string Lbl(string pfx)=>$"{pfx}_{_labelCounter++}";
+        void Emit(string s="")=>_output.AppendLine(s);
+        void EmitCode(string s="")=>_codeOutput.AppendLine(s);
         string RegName(int i) => i switch {
             0 => "RW", 1 => "RX", 2 => "RY", 3 => "RZ",
             4 => "R0", 5 => "R1", 6 => "R2", 7 => "R3", 8 => "R4",

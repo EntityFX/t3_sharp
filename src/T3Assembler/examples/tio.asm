@@ -1,112 +1,103 @@
-; ==============================================================================
-; T-lang Standard I/O Library (tio.asm)
-; 
-; This library provides basic I/O functionality via port 0 (T-SCII Output).
-; All functions assume the T3-18/54 architecture.
-; ==============================================================================
-
-; --- Constants ---
+; T3-18 I/O Library — 9 registers: RW(-4) RX(-3) RY(-2) RZ(-1) R0(0) R1(1) R2(2) R3(3) R4(4)
 PORT_OUT equ 0
-T_ZERO   equ 0
-T_TEN    equ 10
 
-; ------------------------------------------------------------------------------
-; putchar(char c)
-; Input: R0 = character to print
-; ------------------------------------------------------------------------------
 putchar:
     OUTI R0, PORT_OUT
     RET
 
-; ------------------------------------------------------------------------------
-; printstring(string *s)
-; Input: R0 = pointer to null-terminated string
-; ------------------------------------------------------------------------------
 printstring:
-    LOAD R1, R0          ; Load character from string pointer
-    CMP R1, 0            ; Check for null terminator
-    JE end_printstring
-    PUSH R0              ; Save current pointer
-    MOV R0, R1           ; Move char to R0 for putchar
+    POP R4               ; save ret addr in R4
+    MOV R1, R0
+ps_loop:
+    LOAD R0, R1
+    CMPI R0, 0
+    JE ps_end
+    MOV R0, R0            ; R0 has the char
+    PUSH R1
+    PUSH R4
     CALL putchar
-    POP R0               ; Restore pointer
-    ADDI R0, 1           ; Move to next character
-    JMP printstring
-end_printstring:
+    POP R4
+    POP R1
+    ADDI R1, 1
+    JMP ps_loop
+ps_end:
+    PUSH R4               ; restore ret addr
     RET
 
-; ------------------------------------------------------------------------------
-; printint(int n)
-; Input: R0 = integer to print
-; Note: Uses stack to reverse digits.
-; ------------------------------------------------------------------------------
 printint:
-    ; Handle negative numbers
-    CMP R0, 0
-    JGE start_div
+    POP R4               ; save ret addr in R4
+    CMPI R0, 0
+    JGE pi_div
     PUSH R0
-    MOV R0, 45           ; '-' in ASCII/T-SCII
+    LI R0, 45
+    PUSH R4
     CALL putchar
+    POP R4
     POP R0
-    NEG R0               ; Make positive for processing
-
-start_div:
-    MOV R1, 10           ; Divisor
-    MOV R2, R0           ; Current value
-    MOV R3, 0            ; Digit count for stack popping
-div_loop:
-    DIV R4, R2, R1       ; R4 = R2 / 10
-    MOD R5, R2, R1       ; R5 = R2 % 10
-    PUSH R5              ; Store digit on stack
-    ADDI R3, 1           ; Increment digit count
-    MOV R2, R4           ; Update value to quotient
-    CMP R2, 0
-    JNE div_loop
-pop_loop:
-    POP R0               ; Get digit from stack
-    ADDI R0, 48          ; Convert to T-SCII ('0' = 48)
+    NEG R0
+pi_div:
+    LI R1, 10
+    LI R3, 0
+pi_divloop:
+    CMPI R0, 0
+    JE pi_pop
+    DIV R2, R0, R1
+    MOD R0, R0, R1
+    PUSH R0              ; push remainder digit
+    ADDI R3, 1
+    MOV R0, R2           ; R0 = quotient
+    JMP pi_divloop
+pi_pop:
+    CMPI R3, 0
+    JE pi_exit
+    POP R0
+    ADDI R0, 48
+    PUSH R3
+    PUSH R4
     CALL putchar
-    SUB R3, 1
-    CMP R3, 0
-    JNE pop_loop
+    POP R4
+    POP R3
+    SUBI R3, 1
+    JMP pi_pop
+pi_exit:
+    PUSH R4              ; restore ret addr
     RET
 
-; ------------------------------------------------------------------------------
-; printfloat(float f)
-; Input: F0 = float value to print
-; ------------------------------------------------------------------------------
 printfloat:
-    ; 1. Print Integer Part
-    FTOI R1, F0, 0       ; R1 = (int)F0
-    PUSH F0              ; Save original float
-    MOV R0, R1
+    POP R4               ; save ret addr
+    FTOI R0, F0, 0
+    PUSH R4
     CALL printint
-    POP F0
+    POP R4
     
-    ; 2. Print Decimal Point
-    MOV R0, 46           ; '.' in ASCII/T-SCII
+    LI R0, 46
+    PUSH R4
     CALL putchar
+    POP R4
     
-    ; 3. Print Fractional Part
-    FMOV F1, F0, 0       ; F1 = F0
-    FMOV F2, R1, 1       ; F2 = (float)R1
-    FSUB F1, F1, F2      ; F1 = F0 - int(F0)
-    
-    MOV R2, 10
-    FMOV F2, R2, 1       ; F2 = 10.0
-    
-    MOV R3, 0            ; Precision counter
-    MOV R4, 6            ; Limit to 6 decimal places
-frac_loop:
-    FMUL F3, F1, F2      ; F3 = F1 * 10.0
-    FTOI R0, F3, 0       ; R0 = (int)(F1 * 10.0)
-    PUSH F1              ; Save current fraction
-    ADDI R0, 48          ; Convert to T-SCII
+    FMOV F1, F0, 0
+    FTOI R0, F0, 0
+    FMOV F2, R0, 1
+    FSUB F1, F1, F2
+    LI R2, 10
+    FMOV F2, R2, 1
+    LI R3, 0
+pf_loop:
+    CMPI R3, 6
+    JGE pf_end
+    FMUL F3, F1, F2
+    FTOI R0, F3, 0
+    ADDI R0, 48
+    PUSH R3
+    PUSH R4
     CALL putchar
-    POP F1
-    FMOV F4, R0, 1       ; F4 = (float)digit
-    FSUB F1, F3, F4      ; F1 = (F1 * 10.0) - digit
+    POP R4
+    POP R3
+    FMOV F3, R0, 1
+    FMUL F4, F1, F2
+    FSUB F1, F4, F3
     ADDI R3, 1
-    CMP R3, R4
-    JNE frac_loop
+    JMP pf_loop
+pf_end:
+    PUSH R4              ; restore ret addr
     RET

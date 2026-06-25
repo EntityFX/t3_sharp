@@ -49,8 +49,8 @@ namespace T3Simulator.InOrder.Tests
             // We'll use a simulator to run it and see if it halts.
             
             // Actually, let's just verify the binary length.
-            // Expected length: 1 + 2 + 1 + 1 + 1 = 6.
-            Assert.AreEqual(6, bin.Count);
+            // Expected length: 1 + 2 + 3 + 1 + 1 = 8 (JMP label is 3 words: LIMM R1,addr + JMP R1).
+            Assert.AreEqual(8, bin.Count);
         }
 
         [TestMethod]
@@ -66,8 +66,8 @@ namespace T3Simulator.InOrder.Tests
             var assembler = new T3InOrderAssembler(T3Config.T3_18);
             var bin = assembler.Assemble(src);
             
-            // Length: JMP (1), HALT (1), LI (1), HALT (1) = 4
-            Assert.AreEqual(4, bin.Count);
+            // Length: JMP target (3 words: LIMM R1,target + JMP R1), HALT (1), LI (1), HALT (1) = 6
+            Assert.AreEqual(6, bin.Count);
         }
 
         [TestMethod]
