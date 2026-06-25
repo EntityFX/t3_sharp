@@ -1,70 +1,50 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
-using Avalonia.Threading;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Platform.Storage;
 using T3Simulator.GUI.Views;
 
-namespace T3Simulator.GUI.Services;
-
-public class AvaloniaFileDialogService : IFileDialogService
+namespace T3Simulator.GUI.Services
 {
-    /// <summary>
-    /// Opens a file dialog to select a file.
-    /// Uses Dispatcher.UIThread.InvokeAsync to ensure the dialog runs on the STA thread.
-    /// </summary>
-    public async Task<string?> OpenFileAsync(string filter)
+    public class AvaloniaFileDialogService : IFileDialogService
     {
-        return await Dispatcher.UIThread.InvokeAsync(() =>
+        private static Window? GetMainWindow()
         {
-            try
-            {
-                // System.Windows.Forms dialogs MUST be created and shown on an STA thread.
-                // Avalonia's main thread is STA, so we use Dispatcher.UIThread.
-                using var dialog = new System.Windows.Forms.OpenFileDialog
-                {
-                    Filter = filter,
-                    Title = "Open Ternary Program"
-                };
-
-                if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-                {
-                    return dialog.FileName;
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error opening file: {ex.Message}");
-            }
+            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+                return desktop.MainWindow;
             return null;
-        });
-    }
+        }
 
-    /// <summary>
-    /// Opens a file dialog to save a file.
-    /// Uses Dispatcher.UIThread.InvokeAsync to ensure the dialog runs on the STA thread.
-    /// </summary>
-    public async Task<string?> SaveFileAsync(string filter, string defaultFileName)
-    {
-        return await Dispatcher.UIThread.InvokeAsync(() =>
+        public async Task<string?> OpenFileAsync(string filter)
         {
-            try
-            {
-                using var dialog = new System.Windows.Forms.SaveFileDialog
-                {
-                    Filter = filter,
-                    FileName = defaultFileName,
-                    Title = "Save Execution Log"
-                };
+            var window = GetMainWindow();
+            if (window == null) return null;
 
-                if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-                {
-                    return dialog.FileName;
-                }
-            }
-            catch (Exception ex)
+            var files = await window.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
             {
-                System.Diagnostics.Debug.WriteLine($"Error saving file: {ex.Message}");
-            }
-            return null;
-        });
+                Title = "Open Ternary Program",
+                AllowMultiple = false
+            });
+
+            var file = files?.FirstOrDefault();
+            return file?.Path.LocalPath;
+        }
+
+        public async Task<string?> SaveFileAsync(string filter, string defaultFileName)
+        {
+            var window = GetMainWindow();
+            if (window == null) return null;
+
+            var file = await window.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+            {
+                Title = "Save Execution Log",
+                SuggestedFileName = defaultFileName
+            });
+
+            return file?.Path.LocalPath;
+        }
     }
 }
