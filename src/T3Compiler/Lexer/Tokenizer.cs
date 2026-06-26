@@ -70,8 +70,8 @@ namespace T3Compiler.Lexer
                 // Delimiters
                 if (TokenizeDelimiter()) continue;
 
-                // Unknown — skip
-                _pos++; _col++;
+                // Unknown character
+                throw new Exception($"Unexpected character '{c}' at line {_line}, col {_col}");
             }
             _tokens.Add(new Token(TokenType.EndOfFile, "", _line, _col));
             return _tokens;

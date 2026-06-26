@@ -188,11 +188,11 @@ Nine logical general-purpose registers:
 
 **I-type (Register-Immediate):**
 ```
-[ opcode+pred (6) | op1 (3) | op2 (3) | imm6 (6) ]
+[ pred (3) | opcode (6) | op1 (3) | imm6 (6) ]
 ```
 
-- `opcode+pred = base_opcode + pred_index x 28`
-- `imm6` range: -364 ... +364 (offset = 364)
+- `opcode` is the base opcode (0-27); `pred` selects predicate flag (0 = always)
+- `imm6` range: -364 ... +364 (offset = 364); I-type uses `op1` as destination register
 
 ### Example Assembly
 
@@ -370,10 +370,10 @@ T3Sharp/
 │   ├── T3Calculator.GUI/               # Ternary calculator GUI
 │   └── T3NumberConverter/              # Decimal ↔ ternary/9-ary/27-ary converter
 └── tests/
-    ├── TritTypes.Tests/                # Unit tests for ternary types (77 tests)
-    ├── T3Simulator.Common.Tests/       # Unit tests for common components (130 tests)
-    ├── T3Simulator.InOrder.Tests/      # Instruction & integration tests (62 tests)
-    └── T3Interpreter.Tests/            # T-lang interpreter tests
+    ├── TritTypes.Tests/                # Unit tests for ternary types
+    ├── T3Simulator.Common.Tests/       # Unit tests for common components
+    ├── T3Simulator.InOrder.Tests/      # Instruction & integration tests
+    └── T3Interpreter.Tests/            # T-lang interpreter & equivalence tests
 ```
 
 ---
@@ -384,10 +384,10 @@ T3Sharp/
 # Restore dependencies
 dotnet restore T3Sharp.sln
 
-# Build all projects (9 projects, 0 warnings)
+# Build all projects
 dotnet build T3Sharp.sln
 
-# Run all tests (299 tests)
+# Run all tests
 dotnet test T3Sharp.sln
 
 # Run a specific test project
