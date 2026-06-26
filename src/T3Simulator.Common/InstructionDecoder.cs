@@ -34,19 +34,19 @@ namespace T3Simulator.Common
             int op1 = 0, op2 = 0, op3 = 0;
             long imm = 0;
 
-            if (IsRType(op))
+            if (op.IsRType())
             {
                 // Extract sub-fields from raw args and convert to balanced by subtracting offset
                 op1 = (int)(TritTypes.TernaryMath.ExtractRawField(rawArgs, 6, 3) - OFFSET_3);
                 op2 = (int)(TritTypes.TernaryMath.ExtractRawField(rawArgs, 3, 3) - OFFSET_3);
                 op3 = (int)(TritTypes.TernaryMath.ExtractRawField(rawArgs, 0, 3) - OFFSET_3);
             }
-            else if (IsIType(op))
+            else if (op.IsIType())
             {
                 op1 = (int)(TritTypes.TernaryMath.ExtractRawField(rawArgs, 6, 3) - OFFSET_3);
                 imm = (long)(TritTypes.TernaryMath.ExtractRawField(rawArgs, 0, 6) - OFFSET_6);
             }
-            else if (IsJType(op))
+            else if (op.IsJType())
             {
                 // J-type: [Pred(3)][Opcode(6)][Reg(3)][000000]
                 // The lower 6 trits are padding (all zeros), so imm is always 0.
@@ -75,35 +75,6 @@ namespace T3Simulator.Common
             if (word is Word18 w18) return Decode(w18);
             return Decode(Word18.FromLong(word.ToLong()));
         }
-
-        private static bool IsRType(Opcode op) => op switch
-        {
-            Opcode.ADD or Opcode.SUB or Opcode.MUL or Opcode.DIV or Opcode.MOD or Opcode.NEG or
-            Opcode.AND or Opcode.OR or Opcode.XOR or Opcode.SHL or Opcode.SHR or
-            Opcode.MOV or Opcode.CMP or Opcode.LOAD or Opcode.STORE or Opcode.PUSH or Opcode.POP or
-            Opcode.IN or Opcode.OUT or
-            Opcode.FADD or Opcode.FSUB or Opcode.FMUL or Opcode.FDIV or Opcode.FSQRT or
-            Opcode.FABS or Opcode.FNEG or Opcode.FCMP or Opcode.FTOF or Opcode.FSWAP or
-            Opcode.FMOV or Opcode.FTOI or Opcode.FCLASS or Opcode.ITOF or Opcode.FLW or Opcode.FSW => true,
-            _ => false
-        };
-
-        private static bool IsIType(Opcode op) => op switch
-        {
-            Opcode.MOVI or Opcode.LI or Opcode.LIMM or
-            Opcode.ADDI or Opcode.SUBI or Opcode.MULI or Opcode.DIVI or Opcode.MODI or Opcode.NEGI or
-            Opcode.ANDI or Opcode.ORI or Opcode.XORI or Opcode.SHLI or Opcode.SHRI or
-            Opcode.LOADI or Opcode.STOREI or Opcode.CMPI or Opcode.INI or Opcode.OUTI or Opcode.FZERO or
-            Opcode.PUSHI or Opcode.POPI => true,
-            _ => false
-        };
-
-        private static bool IsJType(Opcode op) => op switch
-        {
-            Opcode.JMP or Opcode.JE or Opcode.JNE or Opcode.JL or Opcode.JG or Opcode.JM or
-            Opcode.JLE or Opcode.JGE or Opcode.CALL => true,
-            _ => false
-        };
 
         private const int REGISTER_OFFSET = 4;
         private const long IMM_OFFSET = 364;

@@ -578,10 +578,7 @@ namespace T3Compiler.CodeGen
             return r;
         }
         static bool IsCmp(string op)=>op is"=="or"!="or"<"or">"or"<="or">=";
-        long ParseInt(string v){if(v.StartsWith("0t"))return BalancedTernary.ParseToLong(v[2..].Replace("_",""));if(v.StartsWith("0y"))return P27(v[2..]);if(v.StartsWith("0n"))return P9(v[2..]);return long.TryParse(v,out long n)?n:0;}
-        long P27(string s){var a="NOPQRSTUVWXYZ0123456789ABCD".ToCharArray();string t="";foreach(char c in s.ToUpper()){int i=Array.IndexOf(a,c);if(i>=0)t+=TCh(i/9-1)+TCh(i/3%3-1)+TCh(i%3-1);else throw new FormatException($"Unknown 0y character: {c}");}return BalancedTernary.ParseToLong(t);}
-        long P9(string s){string t="";foreach(char c in s.ToUpper())t+=c switch{'W'=>"--",'X'=>"-0",'Y'=>"-+",'Z'=>"0-",'0'=>"00",'1'=>"0+",'2'=>"+-",'3'=>"+0",'4'=>"++",_=>throw new FormatException($"Unknown 0n character: {c}")};return BalancedTernary.ParseToLong(t);}
-        static string TCh(int t)=>t==-1?"-":t==1?"+":"0";
+        long ParseInt(string v) => LiteralParser.ParseInt(v);
         int _nextReg=0;
         int AllocR(){
             while(true){
