@@ -187,11 +187,11 @@ namespace T3Interpreter
         T3Value GetVar(string name)
         {
             if (_enumValues.TryGetValue(name, out int ev)) return T3Value.FromInt(ev);
-            // Lexical scoping: check top scope first, then walk down
-            var arr = _scopes.ToArray();
-            for (int i = arr.Length - 1; i >= 0; i--)
+            // Lexical scoping: check innermost scope first.
+            // Stack.ToArray() returns [top, ..., bottom] (LIFO order).
+            foreach (var scope in _scopes)
             {
-                if (arr[i].TryGetValue(name, out var v)) return v;
+                if (scope.TryGetValue(name, out var v)) return v;
             }
             throw new Exception($"Undefined variable: {name}");
         }
