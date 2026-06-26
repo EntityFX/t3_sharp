@@ -255,8 +255,10 @@ Nine logical general-purpose registers:
 
 ```asm
 ; VLIW bundle syntax (supported by VLIW Assembler)
-{ ADD R0, R1, R2 | MUL R3, R4, R5 | LOAD R6, R7 }
-;  Slot 0           Slot 1           Slot 2
+{ ADD R0, R1, R2 | MUL R3, R4, R0 | LOAD R1, R2 }
+;  Slot 0            Slot 1           Slot 2
+; Note: VLIW Assembler is experimental; supports R0-R4, RW, RX, RY, RZ.
+; Execution backend is planned (not yet implemented).
 ```
 
 > **Full architecture reference:** [docs/t3-architecture.md](docs/t3-architecture.md)

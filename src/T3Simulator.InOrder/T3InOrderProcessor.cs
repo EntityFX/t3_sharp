@@ -12,8 +12,12 @@ namespace T3Simulator.InOrder
     /// </summary>
     public class T3InOrderProcessor<TWord> : ProcessorBase<TWord> where TWord : IT3Word<TWord>
     {
+        /// <summary>Last processor error message (set on exception; read by CLI/UI).</summary>
+        public string? LastError { get; private set; }
+
         public T3InOrderProcessor(T3Config config) : base(config)
         {
+            LastError = null;
         }
 
         public override bool Step()

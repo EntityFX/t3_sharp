@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using T3Compiler.Parser;
 using TritTypes;
 
@@ -25,6 +26,22 @@ namespace T3Interpreter
         {
             if (!_functions.TryGetValue("main", out var main)) throw new Exception("main() not found");
             _scopes.Push(new());
+            // Initialize globals
+            foreach (var g in _program.Globals)
+            {
+                T3Value init = T3Value.FromInt(0);
+                if (g.Type.Dims.Count > 0)
+                {
+                    int sz = g.Type.Dims.Aggregate(1, (a, b) => a * b);
+                    init = T3Value.FromArray(sz);
+                }
+                else if (g.Type.StructName != null)
+                {
+                    init = T3Value.FromStruct();
+                }
+                if (g.Initializer != null) init = Eval(g.Initializer);
+                _scopes.Peek()[g.Name] = init;
+            }
             EvalStmt(main.Body);
             return _returnValue.AsInt();
         }
@@ -133,7 +150,23 @@ namespace T3Interpreter
             {
                 case ExpressionStmt es: if (es.Expression != null) Eval(es.Expression); break;
                 case CompoundStmt cs: foreach (var st in cs.Body) { EvalStmt(st); if (_didReturn) return; } break;
-                case VarDeclaration vd: SetVar(vd.Name, vd.Initializer != null ? Eval(vd.Initializer) : T3Value.FromInt(0)); break;
+                case VarDeclaration vd:
+                    T3Value defaultVal;
+                    if (vd.Type.Dims.Count > 0)
+                    {
+                        int sz = vd.Type.Dims.Aggregate(1, (a, b) => a * b);
+                        defaultVal = T3Value.FromArray(sz);
+                    }
+                    else if (vd.Type.StructName != null)
+                    {
+                        defaultVal = T3Value.FromStruct();
+                    }
+                    else
+                    {
+                        defaultVal = T3Value.FromInt(0);
+                    }
+                    SetVar(vd.Name, vd.Initializer != null ? Eval(vd.Initializer) : defaultVal);
+                    break;
                 case ReturnStmt rs: _returnValue = rs.Value != null ? Eval(rs.Value) : T3Value.FromInt(0); _didReturn = true; break;
                 case IfStmt ifs: EvalIf(ifs); break;
                 case WhileStmt ws: EvalWhile(ws); break;
@@ -154,7 +187,12 @@ namespace T3Interpreter
         T3Value GetVar(string name)
         {
             if (_enumValues.TryGetValue(name, out int ev)) return T3Value.FromInt(ev);
-            foreach (var scope in _scopes) { if (scope.TryGetValue(name, out var v)) return v; }
+            // Lexical scoping: check top scope first, then walk down
+            var arr = _scopes.ToArray();
+            for (int i = arr.Length - 1; i >= 0; i--)
+            {
+                if (arr[i].TryGetValue(name, out var v)) return v;
+            }
             throw new Exception($"Undefined variable: {name}");
         }
         void SetVar(string name, T3Value val) { if (_scopes.Count > 0) _scopes.Peek()[name] = val; }

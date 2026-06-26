@@ -27,11 +27,9 @@ namespace T3Assembler
                 if (ci != -1) {
                     string lb = cl[..ci].Trim();
                     if (!string.IsNullOrWhiteSpace(lb) && lb.All(c => char.IsLetterOrDigit(c) || c == '_')) {
-                        if (!_labels.ContainsKey(lb)) _labels[lb] = addr;
+                        if (_labels.ContainsKey(lb)) throw new Exception($"Duplicate label '{lb}' at address {addr}");
+                        _labels[lb] = addr;
                         cl = cl[(ci + 1)..].Trim();
-                    } else {
-                        // If the label is invalid, we treat it as a regular line or ignore it
-                        // but for this assembler, we assume labels are well-formed.
                     }
                 }
 
@@ -61,14 +59,16 @@ namespace T3Assembler
                         if (words[1] == ".string" || words[1] == ".word") {
                             string lb = words[0];
                             if (lb.All(c => char.IsLetterOrDigit(c) || c == '_')) {
-                                if (!_labels.ContainsKey(lb)) _labels[lb] = addr;
+                            if (_labels.ContainsKey(lb)) throw new Exception($"Duplicate label '{lb}' at address {addr}");
+                            _labels[lb] = addr;
                             }
                         }
                         // Format 2: .string label "..."
                         else if (words[0] == ".string" || words[0] == ".word") {
                             string lb = words[1];
                             if (lb.All(c => char.IsLetterOrDigit(c) || c == '_')) {
-                                if (!_labels.ContainsKey(lb)) _labels[lb] = addr;
+                                if (_labels.ContainsKey(lb)) throw new Exception($"Duplicate label '{lb}' at address {addr}");
+                                _labels[lb] = addr;
                             }
                         }
                     }
@@ -151,7 +151,8 @@ namespace T3Assembler
                 if (words.Length >= 2) {
                     string label = words[0] == ".string" ? words[1] : words[0];
                     if (label.All(c => char.IsLetterOrDigit(c) || c == '_')) {
-                        if (!_labels.ContainsKey(label)) _labels[label] = pc;
+                        if (_labels.ContainsKey(label)) throw new Exception($"Duplicate label '{label}' at address {pc}");
+                        _labels[label] = pc;
                     }
                 }
                 return ResolveString($"\"{content}\"");

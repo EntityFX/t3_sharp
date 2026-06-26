@@ -78,11 +78,12 @@ Status categories:
 
 | Component | Status | Notes |
 |-----------|--------|-------|
-| `T3Float` (tfloat) | **Experimental** | 6-trit exponent + 12-trit mantissa; `FromDouble`/`ToDouble` round-trip. |
-| `T3Fpu` arithmetic (Add/Sub/Mul/Div/Sqrt) | **Experimental** | Functional; uses `double` for intermediate computation. |
+| `T3Float` (tfloat) | **Experimental** | 6 trit exponent + 12 trit mantissa. Approximate model: `FromDouble` quantizes to integer/power-of-3 mantissa; full tfloat precision not yet achieved. |
+| `T3Fpu` arithmetic (Add/Sub/Mul/Div/Sqrt) | **Experimental** | Integer-oriented approximation; `Div` uses integer division for exponent=182. Uses `double` intermediates; 12-trit mantissa range not fully utilized. |
 | FSR / status flags | **Planned** | FSR port defined (`0x20`); flags not fully implemented. |
 | Rounding modes | **Planned** | Not implemented. |
 | FPU exception handling | **Experimental** | Division by zero / sqrt negative throw .NET exceptions; processor halts. |
+| `LOADI`/`STOREI` | **Experimental** | Semantics: base register (op2) + immediate offset. Requires two registers (destination + base) in one I-type slot; full encoding may need I2-type expansion. |
 
 ---
 

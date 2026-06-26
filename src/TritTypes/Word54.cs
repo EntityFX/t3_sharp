@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System;
+using System.Numerics;
 
 namespace TritTypes
 {
@@ -120,7 +121,7 @@ namespace TritTypes
         // Arithmetic operators
         public static Word54 operator +(Word54 a, Word54 b) => FromWrapped(a._value + b._value);
         public static Word54 operator -(Word54 a, Word54 b) => FromWrapped(a._value - b._value);
-        public static Word54 operator *(Word54 a, Word54 b) => FromWrapped(a._value * b._value);
+        public static Word54 operator *(Word54 a, Word54 b) => FromWrapped((Int128)((BigInteger)a._value * (BigInteger)b._value));
         public static Word54 operator /(Word54 a, Word54 b)
         {
             if (b._value == 0) throw new DivideByZeroException();
@@ -147,7 +148,7 @@ namespace TritTypes
         public static Word54 operator <<(Word54 t, int shift)
         {
             if (shift < 0) throw new ArgumentOutOfRangeException(nameof(shift));
-            return FromWrapped(t._value * Pow3(shift));
+            return FromWrapped((Int128)((BigInteger)t._value * (BigInteger)Pow3(shift)));
         }
         public static Word54 operator >>(Word54 t, int shift)
         {
