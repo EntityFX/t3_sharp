@@ -68,7 +68,7 @@ Status categories:
 | Lexer / Tokenizer | **Supported** | Full tokenization for T-lang. |
 | Parser / AST | **Supported** | `IfStmt` has `MaybeBody`; ternary expressions supported. |
 | Preprocessor | **Experimental** | Basic `#include` support. |
-| `T3Interpreter` (AST walker) | **Supported** | Full three-valued `if`/`maybe`/`else`; scopes, functions, arrays, structs. |
+| `T3Interpreter` (AST walker) | **Experimental** | Scalar subset: three-valued `if`/`maybe`/`else`, scopes (dynamic), functions. Arrays/structs/globals not yet initialized from declarations; string/float literals return 0. |
 | `T3Compiler` (`CodeGenerator`) | **Experimental** | Generates T3 assembly; `MaybeBody` supported (2026-06-26); calling convention uses stack-based save/restore. |
 | Interpreter ↔ Compiler equivalence | **Experimental** | Partial — not all language features verified across both backends. |
 

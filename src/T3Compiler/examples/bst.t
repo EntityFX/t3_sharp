@@ -15,15 +15,3 @@ tint main() {
     }
     return C[0]+C[1]+C[2]+C[3]+C[4]+C[5]+C[6]+C[7]+C[8];
 }
-</content>
-<write_to_file>
-<path>src/T3Compiler/examples/bst.t</path>
-<content>
-tint main() {
-    tint tree[7];  // simple BST: root=5, left=3, right=7
-    tree[0]=5; tree[1]=3; tree[2]=7;
-    tree[3]=2; tree[4]=4; tree[5]=6; tree[6]=8;
-    tint sum = 0; tint i = 0;
-    while (i < 7) { sum = sum + tree[i]; i = i + 1; }
-    return sum;  // 5+3+7+2+4+6+8 = 35
-}

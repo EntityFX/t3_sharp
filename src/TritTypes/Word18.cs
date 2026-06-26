@@ -112,11 +112,11 @@ namespace TritTypes
         public Word18 Negate() => -this;
 
         // Shifts
-        public static Word18 operator <<(Word18 t, int shift)
-        {
-            if (shift < 0) throw new ArgumentOutOfRangeException(nameof(shift));
-            return FromWrapped(t._value * Pow3(shift));
-        }
+    public static Word18 operator <<(Word18 t, int shift)
+    {
+        if (shift < 0) throw new ArgumentOutOfRangeException(nameof(shift));
+        return FromWrapped((long)t._value * Pow3(shift));
+    }
         public static Word18 operator >>(Word18 t, int shift)
         {
             if (shift < 0) throw new ArgumentOutOfRangeException(nameof(shift));

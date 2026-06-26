@@ -25,7 +25,12 @@ namespace TritTypes
 
         public long ToLong() => _value;
 
-        public static Tryte FromLong(long value) => new Tryte((short)value);
+        public static Tryte FromLong(long value)
+        {
+            if (value < MinValue || value > MaxValue)
+                throw new ArgumentOutOfRangeException(nameof(value), $"Tryte value must be between {MinValue} and {MaxValue}");
+            return new Tryte((short)value);
+        }
 
         public override string ToString()
         {

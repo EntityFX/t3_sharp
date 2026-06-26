@@ -25,7 +25,7 @@ namespace T3Simulator.Common
                 }
                 throw new DeviceStallException(port);
             }
-            return default!;
+            throw new InvalidOperationException($"No device registered on port {port}");
         }
 
         public void Write(long port, TWord value)
@@ -33,7 +33,9 @@ namespace T3Simulator.Common
             if (_devices.TryGetValue(port, out var device))
             {
                 device.Write(value);
+                return;
             }
+            throw new InvalidOperationException($"No device registered on port {port}");
         }
 
         public bool IsDeviceReady(long port)

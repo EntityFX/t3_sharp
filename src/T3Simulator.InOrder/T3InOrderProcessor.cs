@@ -182,7 +182,7 @@ namespace T3Simulator.InOrder
                     return false;
 
                 case Opcode.ANDI:
-                    SetRegisterValue(instr.PhysOp1, T3Alu.TritAnd(GetRegisterValue(instr.PhysOp2), FromLong(instr.Immediate)));
+                    SetRegisterValue(instr.PhysOp1, T3Alu.TritAnd(GetRegisterValue(instr.PhysOp1), FromLong(instr.Immediate)));
                     IncrementCycles(1);
                     return false;
 
@@ -192,7 +192,7 @@ namespace T3Simulator.InOrder
                     return false;
 
                 case Opcode.ORI:
-                    SetRegisterValue(instr.PhysOp1, T3Alu.TritOr(GetRegisterValue(instr.PhysOp2), FromLong(instr.Immediate)));
+                    SetRegisterValue(instr.PhysOp1, T3Alu.TritOr(GetRegisterValue(instr.PhysOp1), FromLong(instr.Immediate)));
                     IncrementCycles(1);
                     return false;
 
@@ -202,7 +202,7 @@ namespace T3Simulator.InOrder
                     return false;
 
                 case Opcode.XORI:
-                    SetRegisterValue(instr.PhysOp1, T3Alu.TritXor(GetRegisterValue(instr.PhysOp2), FromLong(instr.Immediate)));
+                    SetRegisterValue(instr.PhysOp1, T3Alu.TritXor(GetRegisterValue(instr.PhysOp1), FromLong(instr.Immediate)));
                     IncrementCycles(1);
                     return false;
 
@@ -214,7 +214,7 @@ namespace T3Simulator.InOrder
                     return false;
 
                 case Opcode.SHLI:
-                    TWord valShlI = GetRegisterValue(instr.PhysOp2);
+                    TWord valShlI = GetRegisterValue(instr.PhysOp1);
                     int shiftLI = (int)instr.Immediate;
                     SetRegisterValue(instr.PhysOp1, T3Alu.ShiftLeft(valShlI, shiftLI));
                     IncrementCycles(1);
@@ -228,7 +228,7 @@ namespace T3Simulator.InOrder
                     return false;
 
                 case Opcode.SHRI:
-                    TWord valShrI = GetRegisterValue(instr.PhysOp2);
+                    TWord valShrI = GetRegisterValue(instr.PhysOp1);
                     int shiftRI = (int)instr.Immediate;
                     SetRegisterValue(instr.PhysOp1, T3Alu.ShiftRight(valShrI, shiftRI));
                     IncrementCycles(1);

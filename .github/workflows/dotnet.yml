@@ -2,26 +2,41 @@ name: .NET CI
 
 on:
   push:
-    branches: [ master, feature/* ]
+    branches: [ master ]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'reports/**'
   pull_request:
     branches: [ master ]
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+
     steps:
-    - uses: actions/checkout@v4
-    - name: Setup .NET
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup .NET 8.0
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '8.0.x'
-    - name: Restore
+
+    - name: Restore dependencies
       run: dotnet restore T3Sharp.sln
+
     - name: Build
-      run: dotnet build T3Sharp.sln --no-restore -c Release
+      run: dotnet build T3Sharp.sln --configuration Release --no-restore
+
     - name: Test TritTypes
-      run: dotnet test tests/TritTypes.Tests/TritTypes.Tests.csproj --no-build -c Release
-    - name: Test Simulator
-      run: dotnet test tests/T3Simulator.InOrder.Tests/T3Simulator.InOrder.Tests.csproj --no-build -c Release
-    - name: Test Interpreter
-      run: dotnet test tests/T3Interpreter.Tests/T3Interpreter.Tests.csproj --no-build -c Release
+      run: dotnet test tests/TritTypes.Tests/TritTypes.Tests.csproj --configuration Release --no-build --logger "console;verbosity=normal"
+
+    - name: Test T3Simulator.Common
+      run: dotnet test tests/T3Simulator.Common.Tests/T3Simulator.Common.Tests.csproj --configuration Release --no-build --logger "console;verbosity=normal"
+
+    - name: Test T3Simulator.InOrder
+      run: dotnet test tests/T3Simulator.InOrder.Tests/T3Simulator.InOrder.Tests.csproj --configuration Release --no-build --logger "console;verbosity=normal"
+
+    - name: Test T3Interpreter
+      run: dotnet test tests/T3Interpreter.Tests/T3Interpreter.Tests.csproj --configuration Release --no-build --logger "console;verbosity=normal"
