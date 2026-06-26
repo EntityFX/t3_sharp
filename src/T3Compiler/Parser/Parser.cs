@@ -190,7 +190,7 @@ namespace T3Compiler.Parser
         // === Expressions ===
         AstNode ParseExpr() => ParseAssign();
         AstNode ParseAssign() { var l = ParseTernary(); if (IsAss(Peek().Type)) { string o = Next().Value; return new Assignment { Target = l, Operator = o, Value = ParseAssign() }; } return l; }
-        static bool IsAss(TokenType t) => t is TokenType.OpEq or TokenType.OpPlusEq or TokenType.OpMinusEq or TokenType.OpStarEq or TokenType.OpSlashEq or TokenType.OpPercentEq;
+        static bool IsAss(TokenType t) => t is TokenType.OpEq or TokenType.OpPlusEq or TokenType.OpMinusEq or TokenType.OpStarEq or TokenType.OpSlashEq or TokenType.OpPercentEq or TokenType.OpAmpEq or TokenType.OpPipeEq or TokenType.OpCaretEq or TokenType.OpLShiftEq or TokenType.OpRShiftEq;
 
         AstNode ParseTernary() { var l = ParseOr(); if (Peek().Type == TokenType.OpTernaryQuestion) { Next(); var t = ParseExpr(); Expect(TokenType.OpTernaryMaybe); var m = ParseExpr(); Expect(TokenType.OpTernaryFalse); var f = ParseExpr(); return new TernaryExpr { Condition = l, TrueExpr = t, MaybeExpr = m, FalseExpr = f }; } return l; }
         AstNode ParseOr() { var l = ParseAnd(); while (Match(TokenType.OpPipePipe)) l = new BinaryOp { Operator = "||", Left = l, Right = ParseAnd() }; return l; }

@@ -41,6 +41,16 @@ namespace TritTypes
             return normalized - offset;
         }
 
+        /// <summary>Safe modular wrap for intermediate results larger than Int128.</summary>
+        private static Int128 Wrap(BigInteger value)
+        {
+            BigInteger range = (BigInteger)Pow3(54);
+            BigInteger offset = (range - 1) / 2;
+            BigInteger normalized = (value + offset) % range;
+            if (normalized < 0) normalized += range;
+            return (Int128)(normalized - offset);
+        }
+
         public Int128 ToInt128() => _value;
         public int ToInt() => (int)(long)_value;
         public long ToLong() => (long)_value;
@@ -121,7 +131,7 @@ namespace TritTypes
         // Arithmetic operators
         public static Word54 operator +(Word54 a, Word54 b) => FromWrapped(a._value + b._value);
         public static Word54 operator -(Word54 a, Word54 b) => FromWrapped(a._value - b._value);
-        public static Word54 operator *(Word54 a, Word54 b) => FromWrapped((Int128)((BigInteger)a._value * (BigInteger)b._value));
+        public static Word54 operator *(Word54 a, Word54 b) => new Word54(Wrap((BigInteger)a._value * (BigInteger)b._value), true);
         public static Word54 operator /(Word54 a, Word54 b)
         {
             if (b._value == 0) throw new DivideByZeroException();
@@ -148,7 +158,7 @@ namespace TritTypes
         public static Word54 operator <<(Word54 t, int shift)
         {
             if (shift < 0) throw new ArgumentOutOfRangeException(nameof(shift));
-            return FromWrapped((Int128)((BigInteger)t._value * (BigInteger)Pow3(shift)));
+            return new Word54(Wrap((BigInteger)t._value * (BigInteger)Pow3(shift)), true);
         }
         public static Word54 operator >>(Word54 t, int shift)
         {

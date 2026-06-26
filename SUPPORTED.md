@@ -35,7 +35,7 @@ Status categories:
 | `InstructionEncoder` | **Supported** | Strict encoding; throws on out-of-range fields. |
 | `InstructionDecoder` | **Supported** | Full decode for 18-trit instructions; `Decode(Word54)` extracts lower 18 trits. |
 | `T3Disassembler` | **Supported** | All 66 opcodes have mnemonics; I/R/J format printing. |
-| `Opcode` enum | **Supported** | 66 opcodes defined. |
+| `Opcode` enum | **Supported** | 69 opcodes defined. |
 | `T3Config` | **Supported** | Processor configuration (word size, latencies). |
 
 ---

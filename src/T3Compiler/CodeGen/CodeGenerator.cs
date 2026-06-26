@@ -393,6 +393,47 @@ namespace T3Compiler.CodeGen
         
         int GenBin(BinaryOp bo)
         {
+            // Short-circuit logical operators
+            if (bo.Operator is "&&" or "||")
+            {
+                int scReg = AllocR();
+                int leftR = GenExpr(bo.Left);
+                EmitCode($"    MOV {RegName(scReg)},{RegName(leftR)}");
+                string skipLbl = Lbl("sc");
+                if (bo.Operator == "&&")
+                {
+                    // If left == false (-1) → skip right, result stays -1
+                    EmitCode($"    CMPI {RegName(leftR)},0");
+                    JumpReg("JL", skipLbl);
+                    int rightR = GenExpr(bo.Right);
+                    // If right == false (-1) → result = -1, else result = 1
+                    EmitCode($"    CMPI {RegName(rightR)},0");
+                    string falseLbl = Lbl("f");
+                    JumpReg("JL", falseLbl);
+                    EmitCode($"    LI {RegName(scReg)},1");
+                    Jmp(skipLbl);
+                    EmitCode($"{falseLbl}:");
+                    EmitCode($"    LI {RegName(scReg)},-1");
+                }
+                else // "||"
+                {
+                    // If left == true (+1) → skip right, result stays +1
+                    EmitCode($"    CMPI {RegName(leftR)},0");
+                    JumpReg("JG", skipLbl);
+                    int rightR = GenExpr(bo.Right);
+                    // If right == true (+1) → result = 1, else result = -1
+                    EmitCode($"    CMPI {RegName(rightR)},0");
+                    string trueLbl = Lbl("t");
+                    JumpReg("JG", trueLbl);
+                    EmitCode($"    LI {RegName(scReg)},-1");
+                    Jmp(skipLbl);
+                    EmitCode($"{trueLbl}:");
+                    EmitCode($"    LI {RegName(scReg)},1");
+                }
+                EmitCode($"{skipLbl}:");
+                return scReg;
+            }
+
             // Constant folding: if both operands are integer literals, compute at compile time
             if (!IsCmp(bo.Operator) && bo.Left is IntegerLiteral il && bo.Right is IntegerLiteral ir)
             {
