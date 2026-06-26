@@ -1,6 +1,12 @@
 using System;using System.Collections.Generic;using System.Linq;using TritTypes;using T3Simulator.Common;
 namespace T3Assembler
 {
+    /// <summary>
+    /// Two-pass in-order assembler for T3-18.
+    /// Label-based jumps (JMP/JE/JNE/JL/JG/JM/JLE/JGE/CALL label) use
+    /// R1 as a scratch register: LIMM R1, addr; Jxx R1 (3 words).
+    /// Caller must not rely on R1 being preserved across such jumps.
+    /// </summary>
     public class T3InOrderAssembler : T3AssemblerBase
     {
         public T3InOrderAssembler(T3Config c):base(c){}

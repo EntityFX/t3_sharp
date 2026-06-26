@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace T3Compiler.Preprocessor
@@ -15,6 +16,7 @@ namespace T3Compiler.Preprocessor
         private readonly Dictionary<string, string> _macros;          // #define NAME value
         private readonly Dictionary<string, string[]> _funcMacros;    // #define NAME(args) body
         private readonly Stack<bool> _conditionalStack;               // true=active, false=skipped
+        private bool _branchTaken;                                     // true once any branch of #if/#elif/#else is taken
 
         public T3Preprocessor(List<string>? includePaths = null)
         {
@@ -147,22 +149,33 @@ namespace T3Compiler.Preprocessor
                             break;
 
                         case "elif":
-                            // TODO: implement properly (pop and push for elif)
+                            if (_conditionalStack.Count > 1)
+                            {
+                                _conditionalStack.Pop();
+                                bool parentActive = _conditionalStack.Peek();
+                                bool cond = parentActive && !_branchTaken && EvaluateConditional(dirArgs);
+                                _conditionalStack.Push(cond);
+                                if (cond) _branchTaken = true;
+                            }
                             break;
 
                         case "else":
                             if (_conditionalStack.Count > 1)
                             {
-                                bool prev = _conditionalStack.Pop();
-                                // Only flip if parent is active
+                                _conditionalStack.Pop();
                                 bool parentActive = _conditionalStack.Peek();
-                                _conditionalStack.Push(parentActive && !prev);
+                                bool cond = parentActive && !_branchTaken;
+                                _conditionalStack.Push(cond);
+                                if (cond) _branchTaken = true;
                             }
                             break;
 
                         case "endif":
                             if (_conditionalStack.Count > 1)
+                            {
                                 _conditionalStack.Pop();
+                                _branchTaken = false;
+                            }
                             break;
 
                         case "error":
@@ -220,10 +233,61 @@ namespace T3Compiler.Preprocessor
 
         private string ExpandMacros(string line)
         {
+            // Expand function-like macros first: NAME(args)
+            line = ExpandFuncMacros(line);
+            // Then simple macros
             foreach (var kv in _macros)
             {
-                // Simple word replacement
                 line = ReplaceWord(line, kv.Key, kv.Value);
+            }
+            return line;
+        }
+
+        private string ExpandFuncMacros(string line)
+        {
+            foreach (var kv in _funcMacros)
+            {
+                string name = kv.Key;
+                string argsDef = kv.Value[0]; // "arg1, arg2, ..."
+                string body = kv.Value[1];
+                // Find calls: NAME(...)
+                int pos = 0;
+                while (pos < line.Length)
+                {
+                    int nameIdx = line.IndexOf(name, pos, StringComparison.Ordinal);
+                    if (nameIdx < 0) break;
+                    // Check word boundary before name
+                    if (nameIdx > 0 && IsIdentChar(line[nameIdx - 1]))
+                    {
+                        pos = nameIdx + name.Length;
+                        continue;
+                    }
+                    // Check for '(' after name
+                    int parenIdx = nameIdx + name.Length;
+                    if (parenIdx >= line.Length || line[parenIdx] != '(')
+                    {
+                        pos = parenIdx;
+                        continue;
+                    }
+                    // Find closing ')'
+                    int closeIdx = line.IndexOf(')', parenIdx + 1);
+                    if (closeIdx < 0) break;
+                    // Extract call arguments
+                    string callArgs = line.Substring(parenIdx + 1, closeIdx - parenIdx - 1);
+                    // Split call arguments
+                    var callArgList = callArgs.Split(',').Select(a => a.Trim()).ToArray();
+                    // Split definition arguments
+                    var defArgNames = argsDef.Split(',').Select(a => a.Trim()).ToArray();
+                    // Build replacement
+                    string replacement = body;
+                    for (int i = 0; i < defArgNames.Length && i < callArgList.Length; i++)
+                    {
+                        replacement = ReplaceWord(replacement, defArgNames[i], callArgList[i]);
+                    }
+                    // Replace the macro call
+                    line = line.Substring(0, nameIdx) + replacement + line.Substring(closeIdx + 1);
+                    pos = nameIdx + replacement.Length;
+                }
             }
             return line;
         }
