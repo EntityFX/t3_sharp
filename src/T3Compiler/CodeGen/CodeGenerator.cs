@@ -417,6 +417,7 @@ namespace T3Compiler.CodeGen
             while (resultReg == l2 || resultReg == r1) resultReg = AllocR();
             string op = bo.Operator switch { "+" => "ADD", "-" => "SUB", "*" => "MUL", "/" => "DIV", "%" => "MOD", "&" => "AND", "|" => "OR", "^" => "XOR", "<<" => "SHL", ">>" => "SHR", _ => throw new NotSupportedException($"Unsupported binary operator: {bo.Operator}") };
             EmitCode($"    {op} {RegName(resultReg)},{RegName(l2)},{RegName(r1)}");
+            FreeR(l2); FreeR(r1);
             return resultReg;
         }
         
@@ -592,7 +593,14 @@ namespace T3Compiler.CodeGen
         static bool IsCmp(string op)=>op is"=="or"!="or"<"or">"or"<="or">=";
         long ParseInt(string v) => LiteralParser.ParseInt(v);
         int _nextReg=0;
+        readonly Stack<int> _freeRegs = new();
+
+        /// <summary>Allocate a temporary register.</summary>
         int AllocR(){
+            while(_freeRegs.Count>0){
+                int fr=_freeRegs.Pop();
+                if(fr!=5&&fr!=6&&fr!=8)return fr;
+            }
             while(true){
                 if(_nextReg!=5&&_nextReg!=6&&_nextReg!=8)break;
                 _nextReg=(_nextReg+1)%9;
@@ -600,6 +608,11 @@ namespace T3Compiler.CodeGen
             int r=_nextReg;
             _nextReg=(_nextReg+1)%9;
             return r;
+        }
+
+        /// <summary>Release a temporary register for reuse.</summary>
+        void FreeR(int r){
+            if(r>=0&&r<9&&r!=5&&r!=6&&r!=8)_freeRegs.Push(r);
         }
         int Imm(long v){int r=AllocR();if(v>=-364&&v<=364)EmitCode($"    LI {RegName(r)},{v}");else{EmitCode($"    LIMM {RegName(r)},{v}");}return r;}
         string Lbl(string pfx)=>$"{pfx}_{_labelCounter++}";
