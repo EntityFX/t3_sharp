@@ -27,8 +27,8 @@ namespace T3Interpreter
         public static T3Value operator +(T3Value a, T3Value b) => FromInt(a.AsInt() + b.AsInt());
         public static T3Value operator -(T3Value a, T3Value b) => FromInt(a.AsInt() - b.AsInt());
         public static T3Value operator *(T3Value a, T3Value b) => FromInt(a.AsInt() * b.AsInt());
-        public static T3Value operator /(T3Value a, T3Value b) => FromInt(b.AsInt() == 0 ? 0 : a.AsInt() / b.AsInt());
-        public static T3Value operator %(T3Value a, T3Value b) => FromInt(b.AsInt() == 0 ? 0 : a.AsInt() % b.AsInt());
+        public static T3Value operator /(T3Value a, T3Value b) => FromInt(b.AsInt() == 0 ? throw new DivideByZeroException() : a.AsInt() / b.AsInt());
+        public static T3Value operator %(T3Value a, T3Value b) => FromInt(b.AsInt() == 0 ? throw new DivideByZeroException() : a.AsInt() % b.AsInt());
 
         public T3Value GetElement(int idx) => _arrayVal != null && idx >= 0 && idx < _arrayVal.Length ? _arrayVal[idx] : FromInt(0);
         public void SetElement(int idx, T3Value v) { if (_arrayVal != null && idx >= 0 && idx < _arrayVal.Length) _arrayVal[idx] = v; }

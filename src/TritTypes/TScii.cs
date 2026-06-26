@@ -96,7 +96,7 @@ namespace TritTypes
             for (int code = 0; code < 256; code++)
                 symbols[364 + code] = cp1251[code];
 
-            // 3. Additional symbols (U = 620 … 728)
+            // 3. Additional symbols (U = 620 … 727; index 728 is reserved as '\0' = end-of-table sentinel)
             char[] additional2 = new char[]
             {
                 '░','▒','▓','█','▀','▄','▌','▐','░','▒','▓','█','▀','▄','▌','▐','░','▒','▓','█','␀',
