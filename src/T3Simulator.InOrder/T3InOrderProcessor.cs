@@ -373,8 +373,9 @@ namespace T3Simulator.InOrder
                     return false;
 
                 case Opcode.POPI:
-                    SetRegisterValue(instr.PhysOp1, FromLong(instr.Immediate));
-                    IncrementCycles(1);
+                    SetRegisterValue(instr.PhysOp1, ReadWord(SP + instr.Immediate));
+                    SP++;
+                    IncrementCycles(2);
                     return false;
 
                 case Opcode.IN:

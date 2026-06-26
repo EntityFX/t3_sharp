@@ -34,8 +34,8 @@ namespace T3Simulator.Common
         /// </summary>
         private static long ToUnsignedField(long value, long range, long offset)
         {
-            if (value < -offset) value = -offset;
-            if (value > offset) value = offset;
+            if (value < -offset || value > offset)
+                throw new ArgumentOutOfRangeException($"Immediate value {value} out of range [{-offset}, {offset}]");
             return value + offset;
         }
 

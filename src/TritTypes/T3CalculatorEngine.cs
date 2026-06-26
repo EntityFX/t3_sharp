@@ -48,7 +48,7 @@ namespace TritTypes
                     if (IsTrit(c) && (i == 0 || !IsOperator(input[i - 1])))
                     {
                         StringBuilder sb = new StringBuilder();
-                        while (i < input.Length & IsTrit(input[i]))
+                        while (i < input.Length && IsTrit(input[i]))
                         {
                             sb.Append(input[i]);
                             i++;
@@ -64,7 +64,7 @@ namespace TritTypes
                 else if (IsTrit(c))
                 {
                     StringBuilder sb = new StringBuilder();
-                    while (i < input.Length & IsTrit(input[i]))
+                    while (i < input.Length && IsTrit(input[i]))
                     {
                         sb.Append(input[i]);
                         i++;
@@ -85,7 +85,7 @@ namespace TritTypes
         private long ParseExpression(List<string> tokens, ref int pos)
         {
             long left = ParseTerm(tokens, ref pos);
-            while (pos < tokens.Count & (tokens[pos] == "+" || tokens[pos] == "-"))
+            while (pos < tokens.Count && (tokens[pos] == "+" || tokens[pos] == "-"))
             {
                 string op = tokens[pos++];
                 long right = ParseTerm(tokens, ref pos);
@@ -98,7 +98,7 @@ namespace TritTypes
         private long ParseTerm(List<string> tokens, ref int pos)
         {
             long left = ParseFactor(tokens, ref pos);
-            while (pos < tokens.Count & (tokens[pos] == "*" || tokens[pos] == "/"))
+            while (pos < tokens.Count && (tokens[pos] == "*" || tokens[pos] == "/"))
             {
                 string op = tokens[pos++];
                 long right = ParseFactor(tokens, ref pos);
