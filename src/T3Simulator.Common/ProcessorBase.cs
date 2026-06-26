@@ -170,6 +170,8 @@ namespace T3Simulator.Common
             if (address == Memory<TWord>.ADDR_CYCLE_HIGH) return FromLong(_cycleCount >> 32);
             if (address == Memory<TWord>.ADDR_INST_COUNT) return FromLong(_instructionCount);
             if (address == Memory<TWord>.ADDR_STALL_COUNT) return FromLong(_stallCount);
+            if (address == Memory<TWord>.ADDR_TIMER_CTRL) return FromLong(0);
+            if (address == Memory<TWord>.ADDR_TIMER_CMP) return FromLong(0);
 
             return Memory.Read(address);
         }
@@ -184,10 +186,8 @@ namespace T3Simulator.Common
                 _stallCount = 0;
                 return;
             }
-            if (address >= Memory<TWord>.ADDR_CYCLE_HIGH)
-            {
-                return;
-            }
+            // All other MMIO addresses: ignore writes
+            if (Memory<TWord>.IsMmioAddress(address)) return;
             Memory.Write(address, value);
         }
 
