@@ -1,0 +1,127 @@
+# Supported Components — T3Sharp
+
+This document lists the implementation status of every major component in the T3Sharp project.  
+Status categories:
+
+| Status | Meaning |
+|--------|---------|
+| **Supported** | Implemented, tested in CI, semantic contract is stable. |
+| **Experimental** | Functional prototype; may have known gaps; tests may be incomplete. |
+| **Planned** | Design exists in specification/docs; no execution backend yet. |
+| **Specification-only** | Described in architecture documents; no code exists. |
+
+---
+
+## Core Types
+
+| Component | Status | Notes |
+|-----------|--------|-------|
+| `Trit`, `Tryte` | **Supported** | Core balanced-ternary primitives. |
+| `Word18` | **Supported** | 18-trit word; arithmetic, comparison, shifts, tritwise ops. |
+| `Word54` | **Experimental** | 54-trit word; arithmetic implemented, generic path is partial (lower-18 extraction in decoder). |
+| `IT3Word<TSelf>` | **Supported** | Generic interface with static abstract members. |
+| `T3ArithmeticEngine` | **Supported** | Expression evaluator for assembler `.equ` directives. |
+| `TScii` | **Supported** | 6-trit T-SCII encoding table (CP1251-compatible zone at 0..255). |
+
+---
+
+## Simulator — Common Infrastructure
+
+| Component | Status | Notes |
+|-----------|--------|-------|
+| `ProcessorBase<TWord>` | **Supported** | Abstract processor; register file, PC, SP, counters, MMIO. |
+| `Memory<TWord>` | **Supported** | Word-addressed memory (1M words); MMIO region at top of address space. |
+| `DeviceManager<TWord>` | **Experimental** | Port-mapped I/O; basic register/unregister. |
+| `InstructionEncoder` | **Supported** | Strict encoding; throws on out-of-range fields. |
+| `InstructionDecoder` | **Supported** | Full decode for 18-trit instructions; `Decode(Word54)` extracts lower 18 trits. |
+| `T3Disassembler` | **Supported** | All 66 opcodes have mnemonics; I/R/J format printing. |
+| `Opcode` enum | **Supported** | 66 opcodes defined. |
+| `T3Config` | **Supported** | Processor configuration (word size, latencies). |
+
+---
+
+## Simulator — In-Order Processor
+
+| Component | Status | Notes |
+|-----------|--------|-------|
+| `T3InOrderProcessor` | **Supported** | Full in-order execution for T3-18; all base + FPU instructions. |
+| Predication (PR register) | **Supported** | NOP-on-fail emulation. |
+| Stack instructions (PUSH/POP/PUSHI/POPI/CALL/RET) | **Supported** | Stack grows downward from top of memory. |
+| Hardware counters (cycle/inst/stall) | **Supported** | Readable via MMIO; CYCLE_LOW write resets all counters. |
+| MMIO timer interface | **Experimental** | Addresses defined; read returns 0; write is ignored. |
+
+---
+
+## Assembler
+
+| Component | Status | Notes |
+|-----------|--------|-------|
+| `T3Assembler` | **Supported** | Two-pass assembler; labels, `.word`, `.string`, `.equ`. |
+| VLIW Assembler (`T3VliwAssembler`) | **Experimental** | Assembles three 18-trit slots into Word54 bundle. |
+
+---
+
+## T-lang Toolchain
+
+| Component | Status | Notes |
+|-----------|--------|-------|
+| Lexer / Tokenizer | **Supported** | Full tokenization for T-lang. |
+| Parser / AST | **Supported** | `IfStmt` has `MaybeBody`; ternary expressions supported. |
+| Preprocessor | **Experimental** | Basic `#include` support. |
+| `T3Interpreter` (AST walker) | **Supported** | Full three-valued `if`/`maybe`/`else`; scopes, functions, arrays, structs. |
+| `T3Compiler` (`CodeGenerator`) | **Experimental** | Generates T3 assembly; `MaybeBody` supported (2026-06-26); calling convention uses stack-based save/restore. |
+| Interpreter ↔ Compiler equivalence | **Experimental** | Partial — not all language features verified across both backends. |
+
+---
+
+## FPU
+
+| Component | Status | Notes |
+|-----------|--------|-------|
+| `T3Float` (tfloat) | **Experimental** | 6-trit exponent + 12-trit mantissa; `FromDouble`/`ToDouble` round-trip. |
+| `T3Fpu` arithmetic (Add/Sub/Mul/Div/Sqrt) | **Experimental** | Functional; uses `double` for intermediate computation. |
+| FSR / status flags | **Planned** | FSR port defined (`0x20`); flags not fully implemented. |
+| Rounding modes | **Planned** | Not implemented. |
+| FPU exception handling | **Experimental** | Division by zero / sqrt negative throw .NET exceptions; processor halts. |
+
+---
+
+## Microarchitectures
+
+| Component | Status | Notes |
+|-----------|--------|-------|
+| T3-18 In-Order | **Supported** | Single-ALU, sequential, predication emulated. |
+| T3-54 In-Order | **Experimental** | Generic path exists but `Decode(Word54)` extracts lower 18 trits; FPU ops cast via `Word18`. |
+| VLIW Processor | **Planned** | Design in specification; no execution backend. |
+| SIMD instructions (VADD3, VMUL3, …) | **Planned** | Defined in ISA; no implementation. |
+| Speculation (SPEK/COMMIT/ROLLBACK) | **Planned** | Defined in ISA; no implementation. |
+| Register Windowing | **Planned** | `RegisterWindow` helper and `WP` field exist; not integrated into register access. |
+
+---
+
+## Tools & GUI
+
+| Component | Status | Notes |
+|-----------|--------|-------|
+| CLI Simulator (`T3Simulator.CLI`) | **Supported** | Interactive REPL with breakpoints, trace, disasm, memory dump. |
+| Number Converter (`T3NumberConverter`) | **Supported** | Decimal ↔ ternary/9-ary/27-ary. |
+| `T3Converter.GUI` | **Experimental** | GUI prototype. |
+| `T3Calculator.GUI` | **Experimental** | GUI prototype. |
+| `T3Interpreter.CLI` | **Experimental** | CLI runner for T-lang interpreter. |
+| `T3Simulator.GUI` | **Experimental** | GUI prototype. |
+
+---
+
+## Testing & CI
+
+| Component | Status | Notes |
+|-----------|--------|-------|
+| `TritTypes.Tests` | **Supported** | In CI. |
+| `T3Simulator.Common.Tests` | **Supported** | In CI; FPU tests use independent expected values (2026-06-26). |
+| `T3Simulator.InOrder.Tests` | **Supported** | In CI. |
+| `T3Interpreter.Tests` | **Experimental** | In CI (2026-06-26); coverage being expanded. |
+| Equivalence tests (interpreter vs compiler+simulator) | **Planned** | Not yet implemented. |
+
+---
+
+*Last updated: 2026-06-26*

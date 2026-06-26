@@ -156,7 +156,7 @@ Nine logical general-purpose registers:
 
 - **1M words** of physical memory (1,048,576 words)
 - Word-addressed; stack grows downward
-- MMIO-mapped hardware counters at `0x3FFFF00`-`0x3FFFF02`
+- MMIO-mapped hardware counters in a dedicated region immediately after physical memory (e.g. at `0x100000`+ for 1M words)
 
 ---
 
@@ -357,16 +357,21 @@ T3Sharp/
 ├── src/
 │   ├── TritTypes/                      # Core ternary types (Trit, Tryte, Word18, Word54)
 │   ├── T3Assembler/                    # T3 assembly language assembler
+│   ├── T3Compiler/                     # T-lang compiler (prototype)
+│   ├── T3Interpreter/                  # T-lang interpreter (AST walker)
+│   ├── T3Interpreter.CLI/              # T-lang interpreter CLI runner
 │   ├── T3Simulator.Common/             # Shared infrastructure (ProcessorBase, Memory, Devices)
 │   ├── T3Simulator.CLI/                # Interactive command-line simulator
-│   ├── T3Simulator.GUI/                # Graphical UI (planned)
+│   ├── T3Simulator.GUI/                # Graphical UI (prototype)
 │   ├── T3Simulator.InOrder/            # In-order processor implementation
-│   ├── T3Simulator.VLIW/               # VLIW processor implementation (T3-54)
+│   ├── T3Converter.GUI/                # Number converter GUI
+│   ├── T3Calculator.GUI/               # Ternary calculator GUI
 │   └── T3NumberConverter/              # Decimal ↔ ternary/9-ary/27-ary converter
 └── tests/
     ├── TritTypes.Tests/                # Unit tests for ternary types (77 tests)
     ├── T3Simulator.Common.Tests/       # Unit tests for common components (130 tests)
-    └── T3Simulator.InOrder.Tests/      # Instruction & integration tests (62 tests)
+    ├── T3Simulator.InOrder.Tests/      # Instruction & integration tests (62 tests)
+    └── T3Interpreter.Tests/            # T-lang interpreter tests
 ```
 
 ---
@@ -405,6 +410,7 @@ GitHub Actions pipeline automatically builds and runs tests on push/PR to `main`
 | [docs/t3-isa-reference.md](docs/t3-isa-reference.md) | English | Complete instruction set reference |
 | [docs/t3-isa-reference.ru.md](docs/t3-isa-reference.ru.md) | Russian | Complete instruction set reference |
 | [docs/ternary-computing-documentation.md](docs/ternary-computing-documentation.md) | English | Scientific documentation on ternary computing (balanced ternary math, arithmetic, logic) |
+| [SUPPORTED.md](SUPPORTED.md) | English | Component implementation status (Supported / Experimental / Planned / Specification-only) |
 
 ---
 

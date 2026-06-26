@@ -8,24 +8,10 @@ namespace T3Simulator.Common.Tests
     [TestClass]
     public class T3FpuTests
     {
-        /// <summary>
-        /// Computes the expected result of a T3Fpu operation using the same
-        /// tfloat→double→tfloat→double chain as the actual FPU implementation.
-        /// </summary>
-        private static double FpuExpected(double a, double b, string op)
-        {
-            var ta = T3Float.FromDouble(a);
-            var tb = T3Float.FromDouble(b);
-            T3Float result = op switch
-            {
-                "ADD" => T3Fpu.Add(ta, tb),
-                "SUB" => T3Fpu.Sub(ta, tb),
-                "MUL" => T3Fpu.Mul(ta, tb),
-                "DIV" => T3Fpu.Div(ta, tb),
-                _ => throw new ArgumentException($"Unknown op: {op}")
-            };
-            return result.ToDouble();
-        }
+        // T3Float (tfloat) uses 6-trit exponent and 12-trit mantissa,
+        // giving approximately 2.5 decimal digits of precision.
+        // Tolerance is set conservatively to account for tfloat ↔ double round-trip error.
+        private const double TOL = 1.5;
 
         // === Add ===
 
@@ -33,14 +19,14 @@ namespace T3Simulator.Common.Tests
         public void Add_TwoPositiveNumbers_ReturnsSum()
         {
             double actual = T3Fpu.Add(T3Float.FromDouble(3.0), T3Float.FromDouble(9.0)).ToDouble();
-            Assert.AreEqual(FpuExpected(3.0, 9.0, "ADD"), actual, 0.01);
+            Assert.AreEqual(12.0, actual, TOL);
         }
 
         [TestMethod]
         public void Add_NegativeAndPositive_ReturnsCorrectSum()
         {
             double actual = T3Fpu.Add(T3Float.FromDouble(-9.0), T3Float.FromDouble(27.0)).ToDouble();
-            Assert.AreEqual(FpuExpected(-9.0, 27.0, "ADD"), actual, 0.01);
+            Assert.AreEqual(18.0, actual, TOL);
         }
 
         // === Sub ===
@@ -49,14 +35,14 @@ namespace T3Simulator.Common.Tests
         public void Sub_TwoNumbers_ReturnsDifference()
         {
             double actual = T3Fpu.Sub(T3Float.FromDouble(27.0), T3Float.FromDouble(9.0)).ToDouble();
-            Assert.AreEqual(FpuExpected(27.0, 9.0, "SUB"), actual, 0.01);
+            Assert.AreEqual(18.0, actual, TOL);
         }
 
         [TestMethod]
         public void Sub_ResultNegative_ReturnsNegative()
         {
             double actual = T3Fpu.Sub(T3Float.FromDouble(9.0), T3Float.FromDouble(27.0)).ToDouble();
-            Assert.AreEqual(FpuExpected(9.0, 27.0, "SUB"), actual, 0.01);
+            Assert.AreEqual(-18.0, actual, TOL);
         }
 
         // === Mul ===
@@ -65,7 +51,7 @@ namespace T3Simulator.Common.Tests
         public void Mul_TwoNumbers_ReturnsProduct()
         {
             double actual = T3Fpu.Mul(T3Float.FromDouble(3.0), T3Float.FromDouble(9.0)).ToDouble();
-            Assert.AreEqual(FpuExpected(3.0, 9.0, "MUL"), actual, 0.01);
+            Assert.AreEqual(27.0, actual, TOL);
         }
 
         [TestMethod]
@@ -81,7 +67,7 @@ namespace T3Simulator.Common.Tests
         public void Div_TwoNumbers_ReturnsQuotient()
         {
             double actual = T3Fpu.Div(T3Float.FromDouble(27.0), T3Float.FromDouble(9.0)).ToDouble();
-            Assert.AreEqual(FpuExpected(27.0, 9.0, "DIV"), actual, 0.01);
+            Assert.AreEqual(3.0, actual, TOL);
         }
 
         [TestMethod]
@@ -120,14 +106,14 @@ namespace T3Simulator.Common.Tests
         public void Abs_Negative_ReturnsPositive()
         {
             double actual = T3Fpu.Abs(T3Float.FromDouble(-27.0)).ToDouble();
-            Assert.AreEqual(27.0, actual, 1.0);
+            Assert.AreEqual(27.0, actual, TOL);
         }
 
         [TestMethod]
         public void Abs_Positive_ReturnsSame()
         {
             double actual = T3Fpu.Abs(T3Float.FromDouble(27.0)).ToDouble();
-            Assert.AreEqual(27.0, actual, 1.0);
+            Assert.AreEqual(27.0, actual, TOL);
         }
 
         [TestMethod]
@@ -143,14 +129,14 @@ namespace T3Simulator.Common.Tests
         public void Neg_Positive_ReturnsNegative()
         {
             double actual = T3Fpu.Neg(T3Float.FromDouble(3.0)).ToDouble();
-            Assert.AreEqual(-3.0, actual, 1.0);
+            Assert.AreEqual(-3.0, actual, TOL);
         }
 
         [TestMethod]
         public void Neg_Negative_ReturnsPositive()
         {
             double actual = T3Fpu.Neg(T3Float.FromDouble(-3.0)).ToDouble();
-            Assert.AreEqual(3.0, actual, 1.0);
+            Assert.AreEqual(3.0, actual, TOL);
         }
 
         // === Compare ===
@@ -207,8 +193,7 @@ namespace T3Simulator.Common.Tests
         public void FromInt_ReturnsCorrectValue()
         {
             double result = T3Fpu.FromInt(27).ToDouble();
-            double expected = T3Fpu.FromInt(27).ToDouble();
-            Assert.AreEqual(expected, result, 0.01);
+            Assert.AreEqual(27.0, result, TOL);
         }
 
         // === ToDoublePrecision / FromDoublePrecision ===

@@ -166,12 +166,12 @@ namespace T3Simulator.Common
 
         public TWord ReadWord(long address)
         {
-            if (address == Memory<TWord>.ADDR_CYCLE_LOW) return FromLong(_cycleCount & 0xFFFFFFFF);
-            if (address == Memory<TWord>.ADDR_CYCLE_HIGH) return FromLong(_cycleCount >> 32);
-            if (address == Memory<TWord>.ADDR_INST_COUNT) return FromLong(_instructionCount);
-            if (address == Memory<TWord>.ADDR_STALL_COUNT) return FromLong(_stallCount);
-            if (address == Memory<TWord>.ADDR_TIMER_CTRL) return FromLong(0);
-            if (address == Memory<TWord>.ADDR_TIMER_CMP) return FromLong(0);
+            if (address == Memory.AddrCycleLow) return FromLong(_cycleCount & 0xFFFFFFFF);
+            if (address == Memory.AddrCycleHigh) return FromLong(_cycleCount >> 32);
+            if (address == Memory.AddrInstCount) return FromLong(_instructionCount);
+            if (address == Memory.AddrStallCount) return FromLong(_stallCount);
+            if (address == Memory.AddrTimerCtrl) return FromLong(0);
+            if (address == Memory.AddrTimerCmp) return FromLong(0);
 
             return Memory.Read(address);
         }
@@ -179,7 +179,7 @@ namespace T3Simulator.Common
         protected void WriteWord(long address, TWord value)
         {
             // Writing to CYCLE_LOW resets all counters (per spec)
-            if (address == Memory<TWord>.ADDR_CYCLE_LOW)
+            if (address == Memory.AddrCycleLow)
             {
                 _cycleCount = 0;
                 _instructionCount = 0;
@@ -187,7 +187,7 @@ namespace T3Simulator.Common
                 return;
             }
             // All other MMIO addresses: ignore writes
-            if (Memory<TWord>.IsMmioAddress(address)) return;
+            if (Memory.IsMmioAddress(address)) return;
             Memory.Write(address, value);
         }
 

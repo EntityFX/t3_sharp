@@ -8,6 +8,8 @@
     <Project Path="src/T3Simulator.Common/T3Simulator.Common.csproj" />
     <Project Path="src/T3Simulator.GUI/T3Simulator.GUI.csproj" />
     <Project Path="src/T3Simulator.InOrder/T3Simulator.InOrder.csproj" />
+    <Project Path="src/T3Converter.GUI/T3Converter.GUI.csproj" />
+    <Project Path="src/T3Calculator.GUI/T3Calculator.GUI.csproj" />
     <Project Path="src/TritTypes/TritTypes.csproj" />
   </Folder>
   <Folder Name="/tests/">

@@ -153,18 +153,30 @@ namespace T3Compiler.CodeGen
                 int a=GenExpr(bo.Left);int b=GenExpr(bo.Right);
                 EmitCode($"    CMP {RegName(a)},{RegName(b)}");
                 JumpCond(bo.Operator,lt);
+                // Binary comparisons produce +1/-1 only; MaybeBody is unreachable
                 if(s.ElseBody!=null)GenStmt(s.ElseBody);
                 Jmp(le);
                 EmitCode($"{lt}:");GenStmt(s.ThenBody);
                 EmitCode($"{le}:");
             }else{
+                // Ternary condition: +1 → then, 0 → maybe, -1 → else
                 int c=GenExpr(s.Condition);
                 EmitCode($"    LI R2,0");
                 EmitCode($"    CMP {RegName(c)},R2");
-                JumpReg("JNE",lt);
-                if(s.ElseBody!=null)GenStmt(s.ElseBody);
-                Jmp(le);
-                EmitCode($"{lt}:");GenStmt(s.ThenBody);
+                JumpReg("JG",lt);
+                if(s.MaybeBody!=null){
+                    string lm=Lbl("maybe");
+                    JumpReg("JE",lm);
+                    if(s.ElseBody!=null)GenStmt(s.ElseBody);
+                    Jmp(le);
+                    EmitCode($"{lm}:");GenStmt(s.MaybeBody);
+                    Jmp(le);
+                    EmitCode($"{lt}:");GenStmt(s.ThenBody);
+                }else{
+                    if(s.ElseBody!=null)GenStmt(s.ElseBody);
+                    Jmp(le);
+                    EmitCode($"{lt}:");GenStmt(s.ThenBody);
+                }
                 EmitCode($"{le}:");
             }
         }

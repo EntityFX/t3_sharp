@@ -33,3 +33,6 @@ jobs:
 
     - name: Test T3Simulator.InOrder
       run: dotnet test tests/T3Simulator.InOrder.Tests/T3Simulator.InOrder.Tests.csproj --configuration Release --no-build --logger "console;verbosity=normal"
+
+    - name: Test T3Interpreter
+      run: dotnet test tests/T3Interpreter.Tests/T3Interpreter.Tests.csproj --configuration Release --no-build --logger "console;verbosity=normal"
