@@ -1,9 +1,14 @@
 using System;using System.Collections.Generic;using System.Globalization;using TritTypes;using T3Simulator.Common;
 namespace T3Assembler
 {
-    /// <summary>9 regs (trit values): RW(-4) RX(-3) RY(-2) RZ(-1) R0(0) R1(1) R2(2) R3(3) R4(4). Phys = trit+4.</summary>
+    /// <summary>Register trit values: RW=-4, RX=-3, RY=-2, RZ=-1, R0=0, R1=1, R2=2, R3=3, R4=4. Physical index = trit+4.</summary>
     public abstract class T3AssemblerBase
     {
+        protected const string RW = "RW", RX = "RX", RY = "RY", RZ = "RZ";
+        protected const string R0 = "R0", R1 = "R1", R2 = "R2", R3 = "R3", R4 = "R4";
+        protected const string FW = "FW", FX = "FX", FY = "FY", FZ = "FZ";
+        protected const string F0 = "F0", F1 = "F1", F2 = "F2", F3 = "F3", F4 = "F4";
+
         protected readonly T3Config _config;
         protected readonly Dictionary<string,int> _labels=new();
         protected readonly Dictionary<string, Int128> _constants=new();
