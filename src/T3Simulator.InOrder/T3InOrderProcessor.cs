@@ -331,7 +331,7 @@ namespace T3Simulator.InOrder
                     // Robust CALL implementation for recursion and deep nesting.
                     // We ensure SP is decremented and the return address is saved.
                     SP -= 1;
-                    if (SP < 0) throw new StackOverflowException("T3 Processor Stack Underflow: SP became negative.");
+                    if (SP < 64) { LastError = "Stack overflow: SP < 64 at CALL"; IsHalted = true; return false; }
                     
                     WriteWord(SP, FromLong(PC + 1));
                     

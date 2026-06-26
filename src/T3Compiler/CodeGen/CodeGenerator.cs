@@ -585,6 +585,7 @@ namespace T3Compiler.CodeGen
             T3Float tf = T3Float.FromDouble(d);
             Word18 w = tf.ToWord18();
             _floatsToEmit.Add((lbl, w));
+            _fpuLive = true;
             int r = AllocR();
             EmitCode($"    LIMM {RegName(r)},{lbl}");
             EmitCode($"    FLW {RegName(r)},{RegName(r)}");
