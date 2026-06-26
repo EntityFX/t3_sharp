@@ -120,7 +120,7 @@ Status categories:
 | `T3Simulator.Common.Tests` | **Supported** | In CI; FPU tests use independent expected values (2026-06-26). |
 | `T3Simulator.InOrder.Tests` | **Supported** | In CI. |
 | `T3Interpreter.Tests` | **Experimental** | In CI (2026-06-26); coverage being expanded. |
-| Equivalence tests (interpreter vs compiler+simulator) | **Planned** | Not yet implemented. |
+| Equivalence tests (interpreter vs compiler+simulator) | **Experimental** | 24 tests covering expressions, loops, if/maybe/else, functions, recursion, preprocessor; 1 known divergence (nested function calls, compiler call ABI). |
 
 ---
 
