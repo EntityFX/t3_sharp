@@ -25,7 +25,7 @@ namespace T3Compiler.Parser
             while (Peek().Type != TokenType.EndOfFile)
             {
                 if (Peek().Type is TokenType.KwStruct or TokenType.KwUnion) { ParseStructDef(p); continue; }
-                if (Peek().Type == TokenType.KwTypedef) { Next(); var ts=ParseType(); string tn=Expect(TokenType.Identifier).Value; Expect(TokenType.Semicolon); p.Typedefs.Add(new TypedefDef{Type=ts,Name=tn}); continue; }
+                if (Peek().Type == TokenType.KwTypedef) { Next(); var ts=ParseType(); string tn=Expect(TokenType.Identifier).Value; Expect(TokenType.Semicolon); p.Typedefs.Add(new TypedefDef{Type=ts,Name=tn}); _typeNames.Add(tn); continue; }
                 if (Peek().Type == TokenType.KwEnum) { ParseEnumDef(p); continue; }
                 if (IsType(Peek().Type))
                 {

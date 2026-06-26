@@ -101,5 +101,51 @@ namespace T3Interpreter.Tests
             long compiled = C(source);
             Assert.AreEqual(interpreted, compiled, $"Divergence on: {source[..Math.Min(source.Length, 60)]}");
         }
+
+        // === 🟡 ROADMAP tests: typedef, constant folding, source-level errors ===
+
+        [TestMethod] public void Compile_Typedef_TIntAlias() => Assert.AreEqual(42, C("typedef tint myint; myint main(){return 42;}"));
+        [TestMethod] public void Compile_Typedef_WithFunction() => Assert.AreEqual(15, C("typedef tint i32; i32 add(i32 a,i32 b){return a+b;}i32 main(){return add(5,10);}"));
+
+        static long C_asm(string source)
+        {
+            var preprocessed = new T3Preprocessor().Process(source);
+            var tokens = new Tokenizer(preprocessed).Tokenize();
+            var ast = new Parser(tokens).ParseProgram();
+            var asmCode = new CodeGenerator(ast).Generate();
+            return asmCode.Split('\n').Length; // count lines as sanity
+        }
+
+        [TestMethod] public void Compile_ConstantFolding_Add() { var s="tint main(){return 2+3;}"; Assert.IsTrue(C(s)==5); }
+        [TestMethod] public void Compile_ConstantFolding_Mul() { var s="tint main(){return 4*5;}"; Assert.IsTrue(C(s)==20); }
+        [TestMethod] public void Compile_ConstantFolding_Complex() { var s="tint main(){return (2+3)*4;}"; Assert.IsTrue(C(s)==20); }
+        [TestMethod] public void Compile_ConstantFolding_WithVar() { var s="tint main(){tint x=10;return x*2+3*4;}"; Assert.IsTrue(C(s)==32); }
+
+        [TestMethod] public void SourceError_MissingSemicolon()
+        {
+            var tokens = new Tokenizer("tint main(){return 42}").Tokenize();
+            try
+            {
+                new Parser(tokens).ParseProgram();
+                Assert.Fail("Expected parse exception");
+            }
+            catch (Exception ex)
+            {
+                Assert.IsTrue(ex.Message.Contains("error: expected"), $"Got: {ex.Message}");
+            }
+        }
+
+        [TestMethod] public void SourceError_UnexpectedToken()
+        {
+            try
+            {
+                new Tokenizer("@bad").Tokenize();
+                Assert.Fail("Expected tokenizer exception");
+            }
+            catch (Exception ex)
+            {
+                Assert.IsTrue(ex.Message.Contains("Unexpected character"), $"Got: {ex.Message}");
+            }
+        }
     }
 }
