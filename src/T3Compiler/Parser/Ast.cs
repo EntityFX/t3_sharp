@@ -90,11 +90,15 @@ public class EnumDef
     public class FunctionDef
     { public TypeSpec ReturnType; public string Name; public List<VarDeclaration> Parameters = new(); public CompoundStmt Body; }
 
-public class AstProgram
-{
-    public List<FunctionDef> Functions = new();
-    public List<VarDeclaration> Globals = new();
-    public List<StructDef> Structs = new();  // user-defined struct/union types
-    public List<EnumDef> Enums = new();
-}
+    public class TypedefDef
+    { public TypeSpec Type; public string Name; }
+
+    public class AstProgram
+    {
+        public List<FunctionDef> Functions = new();
+        public List<VarDeclaration> Globals = new();
+        public List<StructDef> Structs = new();  // user-defined struct/union types
+        public List<EnumDef> Enums = new();
+        public List<TypedefDef> Typedefs = new();
+    }
 }

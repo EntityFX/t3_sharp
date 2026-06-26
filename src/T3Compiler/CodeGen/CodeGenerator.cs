@@ -393,6 +393,21 @@ namespace T3Compiler.CodeGen
         
         int GenBin(BinaryOp bo)
         {
+            // Constant folding: if both operands are integer literals, compute at compile time
+            if (!IsCmp(bo.Operator) && bo.Left is IntegerLiteral il && bo.Right is IntegerLiteral ir)
+            {
+                long lv = ParseInt(il.Value), rv = ParseInt(ir.Value);
+                long result = bo.Operator switch
+                {
+                    "+" => lv + rv, "-" => lv - rv, "*" => lv * rv,
+                    "/" => lv / rv, "%" => lv % rv,
+                    "&" => lv & rv, "|" => lv | rv, "^" => lv ^ rv,
+                    "<<" => lv << (int)rv, ">>" => lv >> (int)rv,
+                    _ => throw new NotImplementedException(bo.Operator)
+                };
+                return Imm(result);
+            }
+
             int l1 = GenExpr(bo.Left);
             EmitCode($"    PUSH {RegName(l1)}");
             int r1 = GenExpr(bo.Right);
