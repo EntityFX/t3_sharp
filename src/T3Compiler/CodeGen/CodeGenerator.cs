@@ -485,7 +485,6 @@ namespace T3Compiler.CodeGen
             while (resultReg == l2 || resultReg == r1) resultReg = AllocR();
             string op = bo.Operator switch { "+" => "ADD", "-" => "SUB", "*" => "MUL", "/" => "DIV", "%" => "MOD", "&" => "AND", "|" => "OR", "^" => "XOR", "<<" => "SHL", ">>" => "SHR", _ => throw new NotSupportedException($"Unsupported binary operator: {bo.Operator}") };
             EmitCode($"    {op} {RegName(resultReg)},{RegName(l2)},{RegName(r1)}");
-            FreeR(l2); FreeR(r1);
             return resultReg;
         }
         
@@ -565,6 +564,7 @@ namespace T3Compiler.CodeGen
                 EmitCode("    POP R0");
                 Store(name,4,0);
             }
+            // Read return value AFTER all restores (MOV r,R2 before POPs clobbers r)
             int r=AllocR();EmitCode($"    MOV {RegName(r)},R2");
             // Clear tracking for next call (caller state is fully restored)
             _liveVars.Clear();

@@ -87,7 +87,7 @@ namespace T3Interpreter.Tests
         // Nested function calls work correctly in interpreter (returns 12).
         // Compiler returns 6 due to register loss in nested call ABI — tracked for future fix.
         [TestMethod] public void Equiv_NestedFunctionCalls_Interpreter() => Assert.AreEqual(12, I("tint f(tint x){return x*2;}tint g(tint x){return f(x+1);}tint main(){return g(5);}"));
-        [TestMethod][Ignore("Compiler returns 6 instead of 12: nested calls lose registers in call ABI")]
+        [TestMethod]
         public void Equiv_NestedFunctionCalls_Compiler() => Assert.AreEqual(12, C("tint f(tint x){return x*2;}tint g(tint x){return f(x+1);}tint main(){return g(5);}"));
 
         // === P2: Expanded equivalence tests (struct, multidim, &&, ||, !) ===
