@@ -149,7 +149,7 @@ namespace T3Compiler.CodeGen
         
         void GenIf(IfStmt s){
             string le=Lbl("end"),lt=Lbl("then");
-            if(s.Condition is BinaryOp bo){
+            if(s.Condition is BinaryOp bo && bo.Operator is not "&&" and not "||"){
                 int a=GenExpr(bo.Left);int b=GenExpr(bo.Right);
                 EmitCode($"    CMP {RegName(a)},{RegName(b)}");
                 JumpCond(bo.Operator,lt);
@@ -388,7 +388,19 @@ namespace T3Compiler.CodeGen
                 throw new Exception($"Cannot take address of {uo.Operand?.GetType().Name}");
             }
             if(uo.Operator=="*"){int pr=GenExpr(uo.Operand),r=AllocR();EmitCode($"    LOAD {RegName(r)},{RegName(pr)}");return r;}
-            int o=GenExpr(uo.Operand),r2=AllocR();EmitCode($"    {(uo.Operator=="-"?"NEG":"MOV")} {RegName(r2)},{RegName(o)}");return r2;
+            if(uo.Operator=="!"){
+                int o=GenExpr(uo.Operand),r2=AllocR();
+                EmitCode($"    CMPI {RegName(o)},0");
+                string lt=Lbl("t"),ld=Lbl("d");
+                JumpReg("JG",lt);
+                EmitCode($"    LI {RegName(r2)},1"); // 0 or -1 → result = 1 (true)
+                Jmp(ld);
+                EmitCode($"{lt}:");
+                EmitCode($"    LI {RegName(r2)},-1"); // +1 → result = -1 (false)
+                EmitCode($"{ld}:");
+                return r2;
+            }
+            int o2=GenExpr(uo.Operand),r3=AllocR();EmitCode($"    {(uo.Operator=="-"?"NEG":"MOV")} {RegName(r3)},{RegName(o2)}");return r3;
         }
         
         int GenBin(BinaryOp bo)

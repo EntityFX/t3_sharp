@@ -82,9 +82,26 @@ namespace T3Interpreter.Tests
         [TestMethod] public void Equiv_IfElseFalse() => EE("tint main(){tint x=3;if(x>5){return 1;}else{return -1;}}");
         [TestMethod] public void Equiv_FunctionCall() => EE("tint add5(tint x){return x+5;}tint main(){return add5(10);}");
         [TestMethod] public void Equiv_SimpleReturn() => EE("tint main(){return 99;}");
-        // Known divergence: nested function calls (g(5)→f(x+1)) lose registers in compiler.
-        // Interpreter returns 12; compiler returns 6. To be fixed in compiler call ABI.
         [TestMethod] public void Equiv_FunctionWithParam() => EE("tint add5(tint x){return x+5;}tint main(){return add5(5);}");
+
+        // Nested function calls work correctly in interpreter (returns 12).
+        // Compiler returns 6 due to register loss in nested call ABI — tracked for future fix.
+        [TestMethod] public void Equiv_NestedFunctionCalls_Interpreter() => Assert.AreEqual(12, I("tint f(tint x){return x*2;}tint g(tint x){return f(x+1);}tint main(){return g(5);}"));
+        [TestMethod][Ignore("Compiler returns 6 instead of 12: nested calls lose registers in call ABI")]
+        public void Equiv_NestedFunctionCalls_Compiler() => Assert.AreEqual(12, C("tint f(tint x){return x*2;}tint g(tint x){return f(x+1);}tint main(){return g(5);}"));
+
+        // === P2: Expanded equivalence tests (struct, multidim, &&, ||, !) ===
+
+        [TestMethod] public void Equiv_LogicalAnd_True() => EE("tint main(){if(1>0&&2>0){return 1;}return -1;}");
+        [TestMethod] public void Equiv_LogicalAnd_False() => EE("tint main(){if(1>0&&2<0){return 1;}return -1;}");
+        [TestMethod] public void Equiv_LogicalOr_True() => EE("tint main(){if(1>0||2<0){return 1;}return -1;}");
+        [TestMethod] public void Equiv_LogicalOr_False() => EE("tint main(){if(1<0||2<0){return 1;}return -1;}");
+        [TestMethod] public void Equiv_UnaryNot_True() => EE("tint main(){if(!(1<0)){return 1;}return -1;}");
+        [TestMethod] public void Equiv_UnaryNot_False() => EE("tint main(){if(!(1>0)){return 1;}return -1;}");
+        [TestMethod] public void Equiv_StructWrite() => EE("struct Point{tint x;tint y;};tint main(){struct Point p;p.x=5;return p.x;}");
+        [TestMethod] public void Equiv_StructWrite_Sum() => EE("struct Point{tint x;tint y;};tint main(){struct Point p;p.x=10;p.y=20;return p.x+p.y;}");
+        [TestMethod] public void Equiv_MultidimArray_2x3() => EE("tint main(){tint a[2][3];a[0][0]=0;a[0][1]=1;a[0][2]=2;a[1][0]=10;a[1][1]=11;a[1][2]=12;return a[0][0]+a[0][1]+a[0][2]+a[1][0]+a[1][1]+a[1][2];}");
+        [TestMethod] public void Equiv_GlobalVar() => EE("tint g;tint main(){g=7;return g;}");
         [TestMethod] public void Equiv_IfMaybeTrue() => EE("tint main(){tint x=1;if(x>0){return 10;}maybe{return 0;}else{return -10;}}");
         [TestMethod] public void Equiv_IfMaybeNeutral() => EE("tint main(){tint x=0;if(x>0){return 10;}maybe{return 0;}else{return -10;}}");
         [TestMethod] public void Equiv_IfMaybeFalse() => EE("tint main(){tint x=-1;if(x>0){return 10;}maybe{return 0;}else{return -10;}}");
@@ -99,6 +116,8 @@ namespace T3Interpreter.Tests
         {
             long interpreted = I(source);
             long compiled = C(source);
+            Console.WriteLine($"Interpreted: {interpreted}");
+            Console.WriteLine($"Compiled: {compiled}");
             Assert.AreEqual(interpreted, compiled, $"Divergence on: {source[..Math.Min(source.Length, 60)]}");
         }
 
