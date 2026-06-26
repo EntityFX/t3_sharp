@@ -63,7 +63,7 @@ namespace T3Simulator.Common
         JNE = 64,
         JL = 65,
         JG = 66,
-        JM = 67,
+        JM = 67,   // Jump Maybe: conditional jump when Cond == 0 (ternary maybe/unstable state)
         JLE = 68,
         JGE = 69,
         CALL = 70,
