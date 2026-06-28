@@ -109,18 +109,18 @@ namespace T3Compiler.CodeGen
             
             Emit("\n; --- StdLib ---");
             Emit("strlen:");
-            Emit("    POP R1");
-            Emit("    POP R0");
-            Emit("    PUSH R1");
-            Emit("    LI R2, 0");
+            Emit("    PUSH RZ");Emit("    MOV RZ, SP");
+            Emit("    PUSH R3");Emit("    PUSH R4");
+            Emit("    LI R2, 0");          // counter = 0
             Emit("strlen_loop:");
-            Emit("    LOAD R1, R0");
+            Emit("    LOAD R1, RW");       // load char from *arg0 (RW = string ptr)
             Emit("    CMPI R1, 0");
             Emit("    JE strlen_end");
-            Emit("    ADDI R2, 1");
-            Emit("    ADDI R0, 1");
+            Emit("    ADDI R2, 1");        // counter++
+            Emit("    ADDI RW, 1");        // ptr++
             Emit("    JMP strlen_loop");
             Emit("strlen_end:");
+            Emit("    POP R4");Emit("    POP R3");Emit("    POP RZ");
             Emit("    RET");
             
             return _output.ToString();}
@@ -136,23 +136,38 @@ namespace T3Compiler.CodeGen
 
             EmitCode($"{f.Name}:");
 
-            // === ABI v4 Prologue (backward-compat stack layout) ===
-            // Read args FIRST (same as ABI v3), then set up FP and save callee-saved.
-            // Stack on entry: [...caller_saved(8)][argN-1...arg0][ret_addr] ← SP
-            EmitCode("    POP R2");   // ret_addr → R2
-            for (int i = 0; i < f.Parameters.Count; i++) {
-                EmitCode("    POP R0");  // arg value into R0 (phys=4)
-                Store(f.Parameters[i].Name, 4, 0);  // store R0 to variable slot
-            }
-            EmitCode("    PUSH R2");   // ret_addr back on stack
-            
-            // Save Frame Pointer and callee-saved registers
+            // === ABI v4 Prologue ===
+            // Save Frame Pointer
             EmitCode("    PUSH RZ");           // save old Frame Pointer
             EmitCode("    MOV RZ, SP");        // FP = SP (points at saved_RZ)
 
             // Save callee-saved GP (always conservative)
             EmitCode("    PUSH R3"); _useR3 = true;
             EmitCode("    PUSH R4"); _useR4 = true;
+
+            // ABI v4: args 0..3 come in RW,RX,RY,R0; args 4+ are on stack above ret_addr.
+            // Callee stack: [saved_R4][saved_R3][saved_RZ] ← SP
+            //               [ret_addr]                    ← SP+3
+            //               [arg4] (if any)              ← SP+4
+            //               [arg5] (if any)              ← SP+5
+            int[] argRegs = {0, 1, 2, 4}; // RW, RX, RY, R0
+            int nParams = f.Parameters.Count;
+            // Save args 0..3 from registers to slots
+            for(int i=0;i<4 && i<nParams;i++){
+                Store(f.Parameters[i].Name, argRegs[i], 0);
+            }
+            // Read args 4+ from stack
+            if(nParams > 4){
+                // Pop callee-saved to reach ret_addr and stack args
+                EmitCode("    POP R4");EmitCode("    POP R3");EmitCode("    POP RZ");
+                EmitCode("    POP R2");   // ret_addr
+                for(int i=4;i<nParams;i++){
+                    EmitCode("    POP R0");
+                    Store(f.Parameters[i].Name, 4, 0);
+                }
+                EmitCode("    PUSH R2");   // ret_addr back
+                EmitCode("    PUSH RZ");EmitCode("    PUSH R3");EmitCode("    PUSH R4");
+            }
 
             // Reserve stack space for local variables (if any on stack)
             if(_localFrameSize > 0)
@@ -541,16 +556,16 @@ namespace T3Compiler.CodeGen
         }
         
         int EmitCall(FunctionCall fc){
-            // ABI v3: Spill live locals to stack before CALL
-            // Spill locals (reverse order — pushed last = restored first)
+            // ABI v4: Register args for first 4, stack for rest.
+            // Spill live locals to stack before CALL
             var liveSlots = new List<(string name, int slot)>();
             foreach(var kv in _varSlots)if(_liveVars.Contains(kv.Key))liveSlots.Add((kv.Key,kv.Value));
-            liveSlots.Reverse(); // spill in reverse so first spilled = last restored
+            liveSlots.Reverse();
             foreach(var (name,_) in liveSlots){
                 int vr=LoadV(name,0);
                 EmitCode($"    PUSH {RegName(vr)}");
             }
-            // Spill FPU registers (FTOI + PUSH for all 9 F-regs if any float used)
+            // Spill FPU registers
             if(_fpuLive){
                 EmitCode("    FTOI R0, F4, 0");EmitCode("    PUSH R0");
                 EmitCode("    FTOI R0, F3, 0");EmitCode("    PUSH R0");
@@ -562,17 +577,44 @@ namespace T3Compiler.CodeGen
                 EmitCode("    FTOI R0, FX, 0");EmitCode("    PUSH R0");
                 EmitCode("    FTOI R0, FW, 0");EmitCode("    PUSH R0");
             }
-            // Save caller-saved GP registers
-            EmitCode("    PUSH RW");EmitCode("    PUSH RX");EmitCode("    PUSH RY");EmitCode("    PUSH RZ");
-            EmitCode("    PUSH R0");EmitCode("    PUSH R3");EmitCode("    PUSH R1");EmitCode("    PUSH R4");
-            // Push arguments in reverse order
-            for(int i=fc.Arguments.Count-1;i>=0;i--)
-                EmitCode($"    PUSH {RegName(GenExpr(fc.Arguments[i]))}");
-            EmitCode($"    LI R1,{fc.FunctionName}");
+            // Save caller-saved GP (RZ=R3 is FP/callee-saved, skip it)
+            EmitCode("    PUSH RW");EmitCode("    PUSH RX");EmitCode("    PUSH RY");
+            EmitCode("    PUSH R0");EmitCode("    PUSH R1");
+            // ABI v4: args 0..3 in registers, args 4+ on stack (reverse order)
+            int nArgs = fc.Arguments.Count;
+            int[] argRegs = {0, 1, 2, 4}; // RW, RX, RY, R0
+            // Evaluate all args first, save in a list
+            var argRegList = new List<int>();
+            for(int i=0;i<nArgs;i++) argRegList.Add(GenExpr(fc.Arguments[i]));
+            // Push stack args (args 4+) in reverse order
+            for(int i=nArgs-1;i>=4;i--)
+                EmitCode($"    PUSH {RegName(argRegList[i])}");
+            // Move args 0..3 to arg registers. Handle overlapping registers:
+            // If a destination (argRegs[i]) is also a source for a later move (argRegList[j]),
+            // save that later source to a temp first.
+            var savedTemps = new Stack<int>();
+            for(int i=0;i<4 && i<nArgs;i++){
+                if(argRegList[i] == argRegs[i]) continue;
+                for(int j=i+1;j<4 && j<nArgs;j++){
+                    if(argRegList[j] == argRegs[i]){
+                        int t = AllocR(); while(t==argRegList[j]||t==argRegs[i]) t=AllocR();
+                        EmitCode($"    MOV {RegName(t)},{RegName(argRegList[j])}");
+                        savedTemps.Push(t);
+                        argRegList[j] = t;
+                    }
+                }
+            }
+            // Now do all moves
+            for(int i=0;i<4 && i<nArgs;i++){
+                if(argRegList[i] != argRegs[i])
+                    EmitCode($"    MOV {RegName(argRegs[i])},{RegName(argRegList[i])}");
+            }
+            while(savedTemps.Count>0) FreeR(savedTemps.Pop());
+            EmitCode($"    LIMM R1,{fc.FunctionName}");
             EmitCode("    CALL R1");
-            // Restore caller-saved GP registers
-            EmitCode("    POP R4");EmitCode("    POP R1");EmitCode("    POP R3");EmitCode("    POP R0");
-            EmitCode("    POP RZ");EmitCode("    POP RY");EmitCode("    POP RX");EmitCode("    POP RW");
+            // Restore caller-saved GP
+            EmitCode("    POP R1");EmitCode("    POP R0");
+            EmitCode("    POP RY");EmitCode("    POP RX");EmitCode("    POP RW");
             // Restore FPU registers
             if(_fpuLive){
                 EmitCode("    POP R0");EmitCode("    ITOF FW, R0");
@@ -585,13 +627,12 @@ namespace T3Compiler.CodeGen
                 EmitCode("    POP R0");EmitCode("    ITOF F3, R0");
                 EmitCode("    POP R0");EmitCode("    ITOF F4, R0");
             }
-            // Restore live locals (pop and store back to absolute addresses)
+            // Restore live locals
             foreach(var (name,_) in liveSlots){
                 EmitCode("    POP R0");
                 Store(name,4,0);
             }
             int r=AllocR();EmitCode($"    MOV {RegName(r)},R2");
-            // Clear tracking for next call (caller state is fully restored)
             _liveVars.Clear();
             _fpuLive = false;
             return r;
@@ -689,14 +730,14 @@ namespace T3Compiler.CodeGen
         int _nextReg=0;
         readonly Stack<int> _freeRegs = new();
 
-        /// <summary>Allocate a temporary register.</summary>
+        /// <summary>Allocate a temporary register (ABI v4: skips FP, CALLREG, RETREG, ADDRREG, R3).</summary>
         int AllocR(){
             while(_freeRegs.Count>0){
                 int fr=_freeRegs.Pop();
-                if(fr!=5&&fr!=6&&fr!=8)return fr;
+                if(fr!=FP&&fr!=CALLREG&&fr!=RETREG&&fr!=ADDRREG&&fr!=7)return fr;
             }
             while(true){
-                if(_nextReg!=5&&_nextReg!=6&&_nextReg!=8)break;
+                if(_nextReg!=FP&&_nextReg!=CALLREG&&_nextReg!=RETREG&&_nextReg!=ADDRREG&&_nextReg!=7)break;
                 _nextReg=(_nextReg+1)%9;
             }
             int r=_nextReg;
@@ -704,9 +745,9 @@ namespace T3Compiler.CodeGen
             return r;
         }
 
-        /// <summary>Release a temporary register for reuse.</summary>
+        /// <summary>Release a temporary register for reuse (ABI v4).</summary>
         void FreeR(int r){
-            if(r>=0&&r<9&&r!=5&&r!=6&&r!=8)_freeRegs.Push(r);
+            if(r>=0&&r<9&&r!=FP&&r!=CALLREG&&r!=RETREG&&r!=ADDRREG&&r!=7)_freeRegs.Push(r);
         }
         int Imm(long v){int r=AllocR();if(v>=-364&&v<=364)EmitCode($"    LI {RegName(r)},{v}");else{EmitCode($"    LIMM {RegName(r)},{v}");}return r;}
         string Lbl(string pfx)=>$"{pfx}_{_labelCounter++}";
