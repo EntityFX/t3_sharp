@@ -382,6 +382,11 @@ namespace T3Simulator.InOrder
                     IncrementCycles(2);
                     return false;
 
+                case Opcode.GETSP:
+                    SetRegisterValue(instr.PhysOp1, FromLong(SP));
+                    IncrementCycles(1);
+                    return false;
+
                 case Opcode.IN:
                     long portIn = ToLong(GetRegisterValue(instr.PhysOp2));
                     SetRegisterValue(instr.PhysOp1, DeviceManager.Read(portIn));

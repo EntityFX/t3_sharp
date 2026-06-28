@@ -96,6 +96,9 @@ namespace T3Simulator.Common
 
         // Stack immediate
         PUSHI = 117,
-        POPI = 118
+        POPI = 118,
+
+        // SP access
+        GETSP = 119
     }
 }

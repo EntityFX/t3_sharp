@@ -70,6 +70,8 @@ namespace T3Simulator.Common
             else if (mnemonic is "LOAD" or "STORE") sb.Append($" {GetRegName(instr.PhysOp1)}, {GetRegName(instr.PhysOp2)}");
             else if (mnemonic is "JMP" or "JE" or "JNE" or "JL" or "JG" or "JM" or "JLE" or "JGE" or "CALL")
                 sb.Append(instr.Immediate == 0 ? $" {GetRegName(instr.PhysOp1)}" : $" {instr.Immediate}");
+            else if (mnemonic is "GETSP")
+                sb.Append($" {GetRegName(instr.PhysOp1)}");
             else if (mnemonic is "PUSH" or "POP") sb.Append($" {GetRegName(instr.PhysOp1)}");
             else if (mnemonic is "IN" or "OUT") sb.Append($" {GetRegName(instr.PhysOp1)}, {GetRegName(instr.PhysOp2)}");
             else if (mnemonic is "INI" or "OUTI" or "PUSHI" or "POPI") sb.Append($" {GetRegName(instr.PhysOp1)}, {instr.Immediate}");
@@ -98,6 +100,7 @@ namespace T3Simulator.Common
             Opcode.FLW => "FLW", Opcode.FSW => "FSW", Opcode.FMOV => "FMOV",
             Opcode.FCLASS => "FCLASS", Opcode.FSWAP => "FSWAP", Opcode.FZERO => "FZERO",
             Opcode.PUSHI => "PUSHI", Opcode.POPI => "POPI",
+            Opcode.GETSP => "GETSP",
             _ => "UNKNOWN"
         };
     }

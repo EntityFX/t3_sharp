@@ -1,0 +1,1185 @@
+  Determining projects to restore...
+  Restored c:\projects\t3_sharp\src\T3Simulator.CLI\T3Simulator.CLI.csproj (in 257 ms).
+  Restored c:\projects\t3_sharp\src\T3Simulator.InOrder\T3Simulator.InOrder.csproj (in 258 ms).
+  Restored c:\projects\t3_sharp\src\T3Assembler\T3Assembler.csproj (in 258 ms).
+  Restored c:\projects\t3_sharp\src\T3Simulator.Common\T3Simulator.Common.csproj (in 258 ms).
+  Restored c:\projects\t3_sharp\tests\TritTypes.Tests\TritTypes.Tests.csproj (in 574 ms).
+  Restored c:\projects\t3_sharp\tests\T3Simulator.Common.Tests\T3Simulator.Common.Tests.csproj (in 567 ms).
+  Restored c:\projects\t3_sharp\tests\T3Simulator.InOrder.Tests\T3Simulator.InOrder.Tests.csproj (in 567 ms).
+  1 of 8 projects are up-to-date for restore.
+  TritTypes -> c:\projects\t3_sharp\src\TritTypes\bin\Debug\net8.0\TritTypes.dll
+c:\projects\t3_sharp\tests\TritTypes.Tests\TritEncodingTests.cs(32,13): warning MSTEST0037: Use 'Assert.HasCount' instead of 'Assert.AreEqual' (https://learn.microsoft.com/dotnet/core/testing/mstest-analyzers/mstest0037) [c:\projects\t3_sharp\tests\TritTypes.Tests\TritTypes.Tests.csproj]
+  T3Simulator.Common -> c:\projects\t3_sharp\src\T3Simulator.Common\bin\Debug\net8.0\T3Simulator.Common.dll
+  TritTypes.Tests -> c:\projects\t3_sharp\tests\TritTypes.Tests\bin\Debug\net8.0\TritTypes.Tests.dll
+Test run for c:\projects\t3_sharp\tests\TritTypes.Tests\bin\Debug\net8.0\TritTypes.Tests.dll (.NETCoreApp,Version=v8.0)
+Microsoft (R) Test Execution Command Line Tool Version 17.10.0 (x64)
+Copyright (c) Microsoft Corporation.  All rights reserved.
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+c:\projects\t3_sharp\tests\TritTypes.Tests\bin\Debug\net8.0\TritTypes.Tests.dll
+  T3Simulator.InOrder -> c:\projects\t3_sharp\src\T3Simulator.InOrder\bin\Debug\net8.0\T3Simulator.InOrder.dll
+Test Parallelization enabled for c:\projects\t3_sharp\tests\TritTypes.Tests\bin\Debug\net8.0\TritTypes.Tests.dll (Workers: 4, Scope: MethodLevel)
+  Passed ToTernaryString_Zero_Returns0 [15 ms]
+  Passed ToTernaryString_MinusOne_ReturnsMinus [15 ms]
+  Passed ToTernaryString_One_ReturnsPlus [15 ms]
+  Passed ToTernaryString_Three_ReturnsPlus0 [< 1 ms]
+  Passed ToTernaryString_Two_ReturnsPlusMinus [< 1 ms]
+  Passed ToTernaryString_MinDigits_Pads [< 1 ms]
+  Passed ParseToLong_RoundTrip [2 ms]
+  Passed ToTernaryString_Four_ReturnsPlusPlus [< 1 ms]
+  Passed ParseToInt128_RoundTrip [6 ms]
+  Passed ParseToLong_InvalidChar_Throws [< 1 ms]
+  Passed ToTernaryString_Int128_Works [< 1 ms]
+  Passed KnownValues_AreCorrect [1 ms]
+  Passed And_ReturnsMinimum [4 ms]
+  Passed Xor_ReturnsSumMod3 [< 1 ms]
+  Passed And_DifferentLengths_Throws [< 1 ms]
+  Passed Or_ReturnsMaximum [4 ms]
+  Passed ShiftLeft_InsertsZeros [< 1 ms]
+  Passed ShiftRight_SignExtends [< 1 ms]
+  Passed ShiftLeft_ByZero_ReturnsClone [< 1 ms]
+  Passed ShiftRight_PositiveSign_ExtendsZero [< 1 ms]
+  Passed ToString_ReturnsCorrect [< 1 ms]
+  Passed FromString_ParsesCorrectly [< 1 ms]
+  Passed RoundTrip_StringConversion [2 ms]
+  Passed Binary_RoundTrip_Success [1 ms]
+  Passed SimpleText_RoundTrip_Success [4 ms]
+  Passed Ninary_RoundTrip_Success [14 ms]
+  Passed Ninary_InvalidChar_Ignored [10 ms]
+  Passed Tryx_InvalidChar_Ignored [< 1 ms]
+  Passed Tryx_RoundTrip_Success [13 ms]
+  Passed Constructor_ValidValues_Succeeds [< 1 ms]
+  Passed Constructor_InvalidValue_Throws [< 1 ms]
+  Passed FromChar_ValidChars_Succeeds [< 1 ms]
+  Passed Constructor_InvalidNegative_Throws [15 ms]
+  Passed FromChar_InvalidChar_Throws [15 ms]
+  Passed Equality_IdenticalValues_AreEqual [< 1 ms]
+  Passed ToString_ReturnsCorrectString [1 ms]
+  Passed Inequality_DifferentValues_AreNotEqual [< 1 ms]
+  Passed ToChar_ReturnsCorrectChar [17 ms]
+  Passed Addition_Wrapping_Works [< 1 ms]
+  Passed Multiplication_Works [< 1 ms]
+  Passed TritAnd_ReturnsMinimum [< 1 ms]
+  Passed Negation_Works [< 1 ms]
+  Passed TritXor_ReturnsSumMod3 [< 1 ms]
+  Passed TritOr_ReturnsMaximum [< 1 ms]
+  Passed ImplicitConversion_FromInt_Works [< 1 ms]
+  Passed ImplicitConversion_FromInvalidInt_Throws [< 1 ms]
+  Passed ExplicitConversion_ToInt_Works [< 1 ms]
+  Passed CompareTo_OrdersCorrectly [< 1 ms]
+  Passed Constructor_TooLarge_Throws [< 1 ms]
+  Passed Constructor_ValidValues_Succeeds [< 1 ms]
+  Passed Constructor_TooSmall_Throws [< 1 ms]
+  Passed ToString_Positive_ReturnsCorrect [< 1 ms]
+  Passed ToString_Zero_ReturnsCorrect [< 1 ms]
+  Passed ToString_Negative_ReturnsCorrect [< 1 ms]
+  Passed Parse_ValidString_Works [< 1 ms]
+  Passed Parse_InvalidChar_Throws [< 1 ms]
+  Passed Parse_WrongLength_Throws [< 1 ms]
+  Passed ToString_MaxValue_ReturnsCorrect [1 ms]
+  Passed Addition_Works [< 1 ms]
+  Passed Subtraction_Works [< 1 ms]
+  Passed Multiplication_Works [< 1 ms]
+  Passed Negation_Works [< 1 ms]
+  Passed ImplicitConversion_FromInt_Works [< 1 ms]
+  Passed ExplicitConversion_ToInt_Works [< 1 ms]
+  Passed Equality_Works [< 1 ms]
+  Passed RoundTrip_StringConversion [< 1 ms]
+  Passed FromChar_Cyrillic_ReturnsCorrectValue [1 ms]
+  Passed FromChar_ASCII_ReturnsCorrectValue [2 ms]
+  Passed ToChar_CorrectValue_ReturnsCorrectChar [< 1 ms]
+  Passed RoundTrip_PreservesCharacter [< 1 ms]
+  Passed FromChar_SpecialChars_ReturnsValues [< 1 ms]
+  Passed Constructor_Zero_Works [< 1 ms]
+  Passed Constructor_MaxValue_Works [< 1 ms]
+  Passed Constructor_MinValue_Works [< 1 ms]
+  Passed Constructor_TooLarge_Throws [2 ms]
+  Passed Addition_Works [< 1 ms]
+  Passed Subtraction_Works [< 1 ms]
+  Passed Multiplication_Works [< 1 ms]
+  Passed VerifyAndPrintTSciiTable [7 ms]
+  Standard Output Messages:
+ TScii Table Verification:
+     V |  Ternary |     0n |     0y | Char
+ ---------------------------------------------
+  -364 | 0t------ |  0nWWW |   0yNN | Α
+  -363 | 0t-----0 |  0nWWX |   0yNO | Β
+  -362 | 0t-----+ |  0nWWY |   0yNP | Γ
+  -361 | 0t----0- |  0nWWZ |   0yNQ | Δ
+  -360 | 0t----00 |  0nWW0 |   0yNR | Ε
+  -359 | 0t----0+ |  0nWW1 |   0yNS | Ζ
+  -358 | 0t----+- |  0nWW2 |   0yNT | Η
+  -357 | 0t----+0 |  0nWW3 |   0yNU | Θ
+  -356 | 0t----++ |  0nWW4 |   0yNV | Ι
+  -355 | 0t---0-- |  0nWXW |   0yNW | Κ
+  -354 | 0t---0-0 |  0nWXX |   0yNX | Λ
+  -353 | 0t---0-+ |  0nWXY |   0yNY | Μ
+  -352 | 0t---00- |  0nWXZ |   0yNZ | Ν
+  -351 | 0t---000 |  0nWX0 |   0yN0 | Ξ
+  -350 | 0t---00+ |  0nWX1 |   0yN1 | Ο
+  -349 | 0t---0+- |  0nWX2 |   0yN2 | Π
+  -348 | 0t---0+0 |  0nWX3 |   0yN3 | Ρ
+  -347 | 0t---0++ |  0nWX4 |   0yN4 | Σ
+  -346 | 0t---+-- |  0nWYW |   0yN5 | Τ
+  -345 | 0t---+-0 |  0nWYX |   0yN6 | Υ
+  -344 | 0t---+-+ |  0nWYY |   0yN7 | Φ
+  -343 | 0t---+0- |  0nWYZ |   0yN8 | Χ
+  -342 | 0t---+00 |  0nWY0 |   0yN9 | Ψ
+  -341 | 0t---+0+ |  0nWY1 |   0yNA | Ω
+  -340 | 0t---++- |  0nWY2 |   0yNB | α
+  -339 | 0t---++0 |  0nWY3 |   0yNC | β
+  -338 | 0t---+++ |  0nWY4 |   0yND | γ
+  -337 | 0t--0--- |  0nWZW |   0yON | δ
+  -336 | 0t--0--0 |  0nWZX |   0yOO | ε
+  -335 | 0t--0--+ |  0nWZY |   0yOP | ζ
+  -334 | 0t--0-0- |  0nWZZ |   0yOQ | η
+  -333 | 0t--0-00 |  0nWZ0 |   0yOR | θ
+  -332 | 0t--0-0+ |  0nWZ1 |   0yOS | ι
+  -331 | 0t--0-+- |  0nWZ2 |   0yOT | κ
+  -330 | 0t--0-+0 |  0nWZ3 |   0yOU | λ
+  -329 | 0t--0-++ |  0nWZ4 |   0yOV | μ
+  -328 | 0t--00-- |  0nW0W |   0yOW | ν
+  -327 | 0t--00-0 |  0nW0X |   0yOX | ξ
+  -326 | 0t--00-+ |  0nW0Y |   0yOY | ο
+  -325 | 0t--000- |  0nW0Z |   0yOZ | π
+  -324 | 0t--0000 |  0nW00 |   0yO0 | ρ
+  -323 | 0t--000+ |  0nW01 |   0yO1 | ς
+  -322 | 0t--00+- |  0nW02 |   0yO2 | σ
+  -321 | 0t--00+0 |  0nW03 |   0yO3 | τ
+  -320 | 0t--00++ |  0nW04 |   0yO4 | υ
+  -319 | 0t--0+-- |  0nW1W |   0yO5 | φ
+  -318 | 0t--0+-0 |  0nW1X |   0yO6 | χ
+  -317 | 0t--0+-+ |  0nW1Y |   0yO7 | ψ
+  -316 | 0t--0+0- |  0nW1Z |   0yO8 | ω
+  -315 | 0t--0+00 |  0nW10 |   0yO9 | ϑ
+  -314 | 0t--0+0+ |  0nW11 |   0yOA | ϒ
+  -313 | 0t--0++- |  0nW12 |   0yOB | ϖ
+  -312 | 0t--0++0 |  0nW13 |   0yOC | Ϙ
+  -311 | 0t--0+++ |  0nW14 |   0yOD | Ϟ
+  -310 | 0t--+--- |  0nW2W |   0yPN | Ϡ
+  -309 | 0t--+--0 |  0nW2X |   0yPO | Ϣ
+  -308 | 0t--+--+ |  0nW2Y |   0yPP | ←
+  -307 | 0t--+-0- |  0nW2Z |   0yPQ | ↑
+  -306 | 0t--+-00 |  0nW20 |   0yPR | →
+  -305 | 0t--+-0+ |  0nW21 |   0yPS | ↓
+  -304 | 0t--+-+- |  0nW22 |   0yPT | ↔
+  -303 | 0t--+-+0 |  0nW23 |   0yPU | ↕
+  -302 | 0t--+-++ |  0nW24 |   0yPV | ↖
+  -301 | 0t--+0-- |  0nW3W |   0yPW | ↗
+  -300 | 0t--+0-0 |  0nW3X |   0yPX | ↘
+  -299 | 0t--+0-+ |  0nW3Y |   0yPY | ↙
+  -298 | 0t--+00- |  0nW3Z |   0yPZ | ↚
+  -297 | 0t--+000 |  0nW30 |   0yP0 | ↛
+  -296 | 0t--+00+ |  0nW31 |   0yP1 | ↜
+  -295 | 0t--+0+- |  0nW32 |   0yP2 | ↝
+  -294 | 0t--+0+0 |  0nW33 |   0yP3 | ↞
+  -293 | 0t--+0++ |  0nW34 |   0yP4 | ↟
+  -292 | 0t--++-- |  0nW4W |   0yP5 | ↠
+  -291 | 0t--++-0 |  0nW4X |   0yP6 | ↡
+  -290 | 0t--++-+ |  0nW4Y |   0yP7 | ↢
+  -289 | 0t--++0- |  0nW4Z |   0yP8 | ↣
+  -288 | 0t--++00 |  0nW40 |   0yP9 | ↤
+  -287 | 0t--++0+ |  0nW41 |   0yPA | ↥
+  -286 | 0t--+++- |  0nW42 |   0yPB | ↦
+  -285 | 0t--+++0 |  0nW43 |   0yPC | ↧
+  -284 | 0t--++++ |  0nW44 |   0yPD | ↨
+  -283 | 0t-0---- |  0nXWW |   0yQN | ↩
+  -282 | 0t-0---0 |  0nXWX |   0yQO | ↪
+  -281 | 0t-0---+ |  0nXWY |   0yQP | ↫
+  -280 | 0t-0--0- |  0nXWZ |   0yQQ | ↬
+  -279 | 0t-0--00 |  0nXW0 |   0yQR | ↭
+  -278 | 0t-0--0+ |  0nXW1 |   0yQS | ↮
+  -277 | 0t-0--+- |  0nXW2 |   0yQT | ↯
+  -276 | 0t-0--+0 |  0nXW3 |   0yQU | ↰
+  -275 | 0t-0--++ |  0nXW4 |   0yQV | ↱
+  -274 | 0t-0-0-- |  0nXXW |   0yQW | ↲
+  -273 | 0t-0-0-0 |  0nXXX |   0yQX | ↳
+  -272 | 0t-0-0-+ |  0nXXY |   0yQY | ↴
+  -271 | 0t-0-00- |  0nXXZ |   0yQZ | ↵
+  -270 | 0t-0-000 |  0nXX0 |   0yQ0 | ↶
+  -269 | 0t-0-00+ |  0nXX1 |   0yQ1 | ↷
+  -268 | 0t-0-0+- |  0nXX2 |   0yQ2 | ↸
+  -267 | 0t-0-0+0 |  0nXX3 |   0yQ3 | ↹
+  -266 | 0t-0-0++ |  0nXX4 |   0yQ4 | ↺
+  -265 | 0t-0-+-- |  0nXYW |   0yQ5 | ↻
+  -264 | 0t-0-+-0 |  0nXYX |   0yQ6 | ↼
+  -263 | 0t-0-+-+ |  0nXYY |   0yQ7 | ↽
+  -262 | 0t-0-+0- |  0nXYZ |   0yQ8 | ↾
+  -261 | 0t-0-+00 |  0nXY0 |   0yQ9 | ↿
+  -260 | 0t-0-+0+ |  0nXY1 |   0yQA | ⇀
+  -259 | 0t-0-++- |  0nXY2 |   0yQB | ⇁
+  -258 | 0t-0-++0 |  0nXY3 |   0yQC | ⇂
+  -257 | 0t-0-+++ |  0nXY4 |   0yQD | ⇃
+  -256 | 0t-00--- |  0nXZW |   0yRN | ⇄
+  -255 | 0t-00--0 |  0nXZX |   0yRO | ⇅
+  -254 | 0t-00--+ |  0nXZY |   0yRP | ⇆
+  -253 | 0t-00-0- |  0nXZZ |   0yRQ | ⇇
+  -252 | 0t-00-00 |  0nXZ0 |   0yRR | ⇈
+  -251 | 0t-00-0+ |  0nXZ1 |   0yRS | ⇉
+  -250 | 0t-00-+- |  0nXZ2 |   0yRT | ⇊
+  -249 | 0t-00-+0 |  0nXZ3 |   0yRU | ⇋
+  -248 | 0t-00-++ |  0nXZ4 |   0yRV | ⇌
+  -247 | 0t-000-- |  0nX0W |   0yRW | ⇍
+  -246 | 0t-000-0 |  0nX0X |   0yRX | ⇎
+  -245 | 0t-000-+ |  0nX0Y |   0yRY | ⇏
+  -244 | 0t-0000- |  0nX0Z |   0yRZ | ⇐
+  -243 | 0t-00000 |  0nX00 |   0yR0 | ⇑
+  -242 | 0t-0000+ |  0nX01 |   0yR1 | ⇒
+  -241 | 0t-000+- |  0nX02 |   0yR2 | ⇓
+  -240 | 0t-000+0 |  0nX03 |   0yR3 | ⇔
+  -239 | 0t-000++ |  0nX04 |   0yR4 | ⇕
+  -238 | 0t-00+-- |  0nX1W |   0yR5 | ⇖
+  -237 | 0t-00+-0 |  0nX1X |   0yR6 | ⇗
+  -236 | 0t-00+-+ |  0nX1Y |   0yR7 | ⇘
+  -235 | 0t-00+0- |  0nX1Z |   0yR8 | ⇙
+  -234 | 0t-00+00 |  0nX10 |   0yR9 | ⇚
+  -233 | 0t-00+0+ |  0nX11 |   0yRA | ⇛
+  -232 | 0t-00++- |  0nX12 |   0yRB | ⇜
+  -231 | 0t-00++0 |  0nX13 |   0yRC | ⇝
+  -230 | 0t-00+++ |  0nX14 |   0yRD | ⇞
+  -229 | 0t-0+--- |  0nX2W |   0ySN | ⇟
+  -228 | 0t-0+--0 |  0nX2X |   0ySO | ⇠
+  -227 | 0t-0+--+ |  0nX2Y |   0ySP | ⇡
+  -226 | 0t-0+-0- |  0nX2Z |   0ySQ | ⇢
+  -225 | 0t-0+-00 |  0nX20 |   0ySR | ⇣
+  -224 | 0t-0+-0+ |  0nX21 |   0ySS | ⇤
+  -223 | 0t-0+-+- |  0nX22 |   0yST | ⇥
+  -222 | 0t-0+-+0 |  0nX23 |   0ySU | ⇦
+  -221 | 0t-0+-++ |  0nX24 |   0ySV | ⇧
+  -220 | 0t-0+0-- |  0nX3W |   0ySW | ⇨
+  -219 | 0t-0+0-0 |  0nX3X |   0ySX | ⇩
+  -218 | 0t-0+0-+ |  0nX3Y |   0ySY | ⇪
+  -217 | 0t-0+00- |  0nX3Z |   0ySZ | ⇫
+  -216 | 0t-0+000 |  0nX30 |   0yS0 | ⇬
+  -215 | 0t-0+00+ |  0nX31 |   0yS1 | ⇭
+  -214 | 0t-0+0+- |  0nX32 |   0yS2 | ⇮
+  -213 | 0t-0+0+0 |  0nX33 |   0yS3 | ⇯
+  -212 | 0t-0+0++ |  0nX34 |   0yS4 | ⇰
+  -211 | 0t-0++-- |  0nX4W |   0yS5 | ⇱
+  -210 | 0t-0++-0 |  0nX4X |   0yS6 | ⇲
+  -209 | 0t-0++-+ |  0nX4Y |   0yS7 | ⇳
+  -208 | 0t-0++0- |  0nX4Z |   0yS8 | ⇴
+  -207 | 0t-0++00 |  0nX40 |   0yS9 | ⇵
+  -206 | 0t-0++0+ |  0nX41 |   0ySA | ⇶
+  -205 | 0t-0+++- |  0nX42 |   0ySB | ⇷
+  -204 | 0t-0+++0 |  0nX43 |   0ySC | ⇸
+  -203 | 0t-0++++ |  0nX44 |   0ySD | ⇹
+  -202 | 0t-+---- |  0nYWW |   0yTN | ⇺
+  -201 | 0t-+---0 |  0nYWX |   0yTO | ⇻
+  -200 | 0t-+---+ |  0nYWY |   0yTP | ⇼
+  -199 | 0t-+--0- |  0nYWZ |   0yTQ | ⇽
+  -198 | 0t-+--00 |  0nYW0 |   0yTR | ⇾
+  -197 | 0t-+--0+ |  0nYW1 |   0yTS | ⇿
+  -196 | 0t-+--+- |  0nYW2 |   0yTT | ∀
+  -195 | 0t-+--+0 |  0nYW3 |   0yTU | ∁
+  -194 | 0t-+--++ |  0nYW4 |   0yTV | ∂
+  -193 | 0t-+-0-- |  0nYXW |   0yTW | ∃
+  -192 | 0t-+-0-0 |  0nYXX |   0yTX | ∄
+  -191 | 0t-+-0-+ |  0nYXY |   0yTY | ∅
+  -190 | 0t-+-00- |  0nYXZ |   0yTZ | ∆
+  -189 | 0t-+-000 |  0nYX0 |   0yT0 | ∇
+  -188 | 0t-+-00+ |  0nYX1 |   0yT1 | ∈
+  -187 | 0t-+-0+- |  0nYX2 |   0yT2 | ∉
+  -186 | 0t-+-0+0 |  0nYX3 |   0yT3 | ∊
+  -185 | 0t-+-0++ |  0nYX4 |   0yT4 | ∋
+  -184 | 0t-+-+-- |  0nYYW |   0yT5 | ∌
+  -183 | 0t-+-+-0 |  0nYYX |   0yT6 | ∍
+  -182 | 0t-+-+-+ |  0nYYY |   0yT7 | ∎
+  -181 | 0t-+-+0- |  0nYYZ |   0yT8 | ∏
+  -180 | 0t-+-+00 |  0nYY0 |   0yT9 | ∐
+  -179 | 0t-+-+0+ |  0nYY1 |   0yTA | ∑
+  -178 | 0t-+-++- |  0nYY2 |   0yTB | −
+  -177 | 0t-+-++0 |  0nYY3 |   0yTC | ∓
+  -176 | 0t-+-+++ |  0nYY4 |   0yTD | ∔
+  -175 | 0t-+0--- |  0nYZW |   0yUN | ∕
+  -174 | 0t-+0--0 |  0nYZX |   0yUO | ∖
+  -173 | 0t-+0--+ |  0nYZY |   0yUP | ∗
+  -172 | 0t-+0-0- |  0nYZZ |   0yUQ | ∘
+  -171 | 0t-+0-00 |  0nYZ0 |   0yUR | ∙
+  -170 | 0t-+0-0+ |  0nYZ1 |   0yUS | √
+  -169 | 0t-+0-+- |  0nYZ2 |   0yUT | ∛
+  -168 | 0t-+0-+0 |  0nYZ3 |   0yUU | ∜
+  -167 | 0t-+0-++ |  0nYZ4 |   0yUV | ∝
+  -166 | 0t-+00-- |  0nY0W |   0yUW | ∞
+  -165 | 0t-+00-0 |  0nY0X |   0yUX | ∟
+  -164 | 0t-+00-+ |  0nY0Y |   0yUY | ∠
+  -163 | 0t-+000- |  0nY0Z |   0yUZ | ∡
+  -162 | 0t-+0000 |  0nY00 |   0yU0 | ∢
+  -161 | 0t-+000+ |  0nY01 |   0yU1 | ∣
+  -160 | 0t-+00+- |  0nY02 |   0yU2 | ∤
+  -159 | 0t-+00+0 |  0nY03 |   0yU3 | ∥
+  -158 | 0t-+00++ |  0nY04 |   0yU4 | ∦
+  -157 | 0t-+0+-- |  0nY1W |   0yU5 | ∧
+  -156 | 0t-+0+-0 |  0nY1X |   0yU6 | ∨
+  -155 | 0t-+0+-+ |  0nY1Y |   0yU7 | ∩
+  -154 | 0t-+0+0- |  0nY1Z |   0yU8 | ∪
+  -153 | 0t-+0+00 |  0nY10 |   0yU9 | ∫
+  -152 | 0t-+0+0+ |  0nY11 |   0yUA | ∬
+  -151 | 0t-+0++- |  0nY12 |   0yUB | ∭
+  -150 | 0t-+0++0 |  0nY13 |   0yUC | ∮
+  -149 | 0t-+0+++ |  0nY14 |   0yUD | ∯
+  -148 | 0t-++--- |  0nY2W |   0yVN | ∰
+  -147 | 0t-++--0 |  0nY2X |   0yVO | ∱
+  -146 | 0t-++--+ |  0nY2Y |   0yVP | ∲
+  -145 | 0t-++-0- |  0nY2Z |   0yVQ | ∳
+  -144 | 0t-++-00 |  0nY20 |   0yVR | ∴
+  -143 | 0t-++-0+ |  0nY21 |   0yVS | ∵
+  -142 | 0t-++-+- |  0nY22 |   0yVT | ∶
+  -141 | 0t-++-+0 |  0nY23 |   0yVU | ∷
+  -140 | 0t-++-++ |  0nY24 |   0yVV | ∸
+  -139 | 0t-++0-- |  0nY3W |   0yVW | ∹
+  -138 | 0t-++0-0 |  0nY3X |   0yVX | ∺
+  -137 | 0t-++0-+ |  0nY3Y |   0yVY | ∻
+  -136 | 0t-++00- |  0nY3Z |   0yVZ | ∼
+  -135 | 0t-++000 |  0nY30 |   0yV0 | ∽
+  -134 | 0t-++00+ |  0nY31 |   0yV1 | ∾
+  -133 | 0t-++0+- |  0nY32 |   0yV2 | ∿
+  -132 | 0t-++0+0 |  0nY33 |   0yV3 | ≀
+  -131 | 0t-++0++ |  0nY34 |   0yV4 | ≁
+  -130 | 0t-+++-- |  0nY4W |   0yV5 | ≂
+  -129 | 0t-+++-0 |  0nY4X |   0yV6 | ≃
+  -128 | 0t-+++-+ |  0nY4Y |   0yV7 | ≄
+  -127 | 0t-+++0- |  0nY4Z |   0yV8 | ≅
+  -126 | 0t-+++00 |  0nY40 |   0yV9 | ≆
+  -125 | 0t-+++0+ |  0nY41 |   0yVA | ≇
+  -124 | 0t-++++- |  0nY42 |   0yVB | ≈
+  -123 | 0t-++++0 |  0nY43 |   0yVC | ≉
+  -122 | 0t-+++++ |  0nY44 |   0yVD | ≊
+  -121 | 0t0----- |  0nZWW |   0yWN | ≋
+  -120 | 0t0----0 |  0nZWX |   0yWO | ≌
+  -119 | 0t0----+ |  0nZWY |   0yWP | ≍
+  -118 | 0t0---0- |  0nZWZ |   0yWQ | ≎
+  -117 | 0t0---00 |  0nZW0 |   0yWR | ≏
+  -116 | 0t0---0+ |  0nZW1 |   0yWS | ≐
+  -115 | 0t0---+- |  0nZW2 |   0yWT | ≑
+  -114 | 0t0---+0 |  0nZW3 |   0yWU | ≒
+  -113 | 0t0---++ |  0nZW4 |   0yWV | ≓
+  -112 | 0t0--0-- |  0nZXW |   0yWW | ≔
+  -111 | 0t0--0-0 |  0nZXX |   0yWX | ≕
+  -110 | 0t0--0-+ |  0nZXY |   0yWY | ≖
+  -109 | 0t0--00- |  0nZXZ |   0yWZ | ≗
+  -108 | 0t0--000 |  0nZX0 |   0yW0 | ≘
+  -107 | 0t0--00+ |  0nZX1 |   0yW1 | ≙
+  -106 | 0t0--0+- |  0nZX2 |   0yW2 | ≚
+  -105 | 0t0--0+0 |  0nZX3 |   0yW3 | ≛
+  -104 | 0t0--0++ |  0nZX4 |   0yW4 | ≜
+  -103 | 0t0--+-- |  0nZYW |   0yW5 | ≝
+  -102 | 0t0--+-0 |  0nZYX |   0yW6 | ≞
+  -101 | 0t0--+-+ |  0nZYY |   0yW7 | ≟
+  -100 | 0t0--+0- |  0nZYZ |   0yW8 | ≠
+   -99 | 0t0--+00 |  0nZY0 |   0yW9 | ≡
+   -98 | 0t0--+0+ |  0nZY1 |   0yWA | ≢
+   -97 | 0t0--++- |  0nZY2 |   0yWB | ≣
+   -96 | 0t0--++0 |  0nZY3 |   0yWC | ≤
+   -95 | 0t0--+++ |  0nZY4 |   0yWD | ≥
+   -94 | 0t0-0--- |  0nZZW |   0yXN | ≦
+   -93 | 0t0-0--0 |  0nZZX |   0yXO | ≧
+   -92 | 0t0-0--+ |  0nZZY |   0yXP | ≨
+   -91 | 0t0-0-0- |  0nZZZ |   0yXQ | ≩
+   -90 | 0t0-0-00 |  0nZZ0 |   0yXR | ≪
+   -89 | 0t0-0-0+ |  0nZZ1 |   0yXS | ≫
+   -88 | 0t0-0-+- |  0nZZ2 |   0yXT | ≬
+   -87 | 0t0-0-+0 |  0nZZ3 |   0yXU | ≭
+   -86 | 0t0-0-++ |  0nZZ4 |   0yXV | ≮
+   -85 | 0t0-00-- |  0nZ0W |   0yXW | ≯
+   -84 | 0t0-00-0 |  0nZ0X |   0yXX | ≰
+   -83 | 0t0-00-+ |  0nZ0Y |   0yXY | ≱
+   -82 | 0t0-000- |  0nZ0Z |   0yXZ | ≲
+   -81 | 0t0-0000 |  0nZ00 |   0yX0 | ≳
+   -80 | 0t0-000+ |  0nZ01 |   0yX1 | ≴
+   -79 | 0t0-00+- |  0nZ02 |   0yX2 | ≵
+   -78 | 0t0-00+0 |  0nZ03 |   0yX3 | ≶
+   -77 | 0t0-00++ |  0nZ04 |   0yX4 | ≷
+   -76 | 0t0-0+-- |  0nZ1W |   0yX5 | ≸
+   -75 | 0t0-0+-0 |  0nZ1X |   0yX6 | ≹
+   -74 | 0t0-0+-+ |  0nZ1Y |   0yX7 | ≺
+   -73 | 0t0-0+0- |  0nZ1Z |   0yX8 | ≻
+   -72 | 0t0-0+00 |  0nZ10 |   0yX9 | ≼
+   -71 | 0t0-0+0+ |  0nZ11 |   0yXA | ≽
+   -70 | 0t0-0++- |  0nZ12 |   0yXB | ≾
+   -69 | 0t0-0++0 |  0nZ13 |   0yXC | ≿
+   -68 | 0t0-0+++ |  0nZ14 |   0yXD | ⊀
+   -67 | 0t0-+--- |  0nZ2W |   0yYN | ⊁
+   -66 | 0t0-+--0 |  0nZ2X |   0yYO | ⊂
+   -65 | 0t0-+--+ |  0nZ2Y |   0yYP | ⊃
+   -64 | 0t0-+-0- |  0nZ2Z |   0yYQ | ⊄
+   -63 | 0t0-+-00 |  0nZ20 |   0yYR | ⊅
+   -62 | 0t0-+-0+ |  0nZ21 |   0yYS | ⊆
+   -61 | 0t0-+-+- |  0nZ22 |   0yYT | ⊇
+   -60 | 0t0-+-+0 |  0nZ23 |   0yYU | ⊈
+   -59 | 0t0-+-++ |  0nZ24 |   0yYV | ⊉
+   -58 | 0t0-+0-- |  0nZ3W |   0yYW | ⊊
+   -57 | 0t0-+0-0 |  0nZ3X |   0yYX | ⊋
+   -56 | 0t0-+0-+ |  0nZ3Y |   0yYY | ⊌
+   -55 | 0t0-+00- |  0nZ3Z |   0yYZ | ⊍
+   -54 | 0t0-+000 |  0nZ30 |   0yY0 | ⊎
+   -53 | 0t0-+00+ |  0nZ31 |   0yY1 | ⊏
+   -52 | 0t0-+0+- |  0nZ32 |   0yY2 | ⊐
+   -51 | 0t0-+0+0 |  0nZ33 |   0yY3 | ⊑
+   -50 | 0t0-+0++ |  0nZ34 |   0yY4 | ⊒
+   -49 | 0t0-++-- |  0nZ4W |   0yY5 | ⊓
+   -48 | 0t0-++-0 |  0nZ4X |   0yY6 | ⊔
+   -47 | 0t0-++-+ |  0nZ4Y |   0yY7 | ⊕
+   -46 | 0t0-++0- |  0nZ4Z |   0yY8 | ⊖
+   -45 | 0t0-++00 |  0nZ40 |   0yY9 | ⊗
+   -44 | 0t0-++0+ |  0nZ41 |   0yYA | ⊘
+   -43 | 0t0-+++- |  0nZ42 |   0yYB | ⊙
+   -42 | 0t0-+++0 |  0nZ43 |   0yYC | ⊚
+   -41 | 0t0-++++ |  0nZ44 |   0yYD | ⊛
+   -40 | 0t00---- |  0n0WW |   0yZN | ⊜
+   -39 | 0t00---0 |  0n0WX |   0yZO | ⊝
+   -38 | 0t00---+ |  0n0WY |   0yZP | ⊞
+   -37 | 0t00--0- |  0n0WZ |   0yZQ | ⊟
+   -36 | 0t00--00 |  0n0W0 |   0yZR | ⊠
+   -35 | 0t00--0+ |  0n0W1 |   0yZS | ⊡
+   -34 | 0t00--+- |  0n0W2 |   0yZT | ⊢
+   -33 | 0t00--+0 |  0n0W3 |   0yZU | ⊣
+   -32 | 0t00--++ |  0n0W4 |   0yZV | ⊤
+   -31 | 0t00-0-- |  0n0XW |   0yZW | ⊥
+   -30 | 0t00-0-0 |  0n0XX |   0yZX | ⊦
+   -29 | 0t00-0-+ |  0n0XY |   0yZY | ⊧
+   -28 | 0t00-00- |  0n0XZ |   0yZZ | ⊨
+   -27 | 0t00-000 |  0n0X0 |   0yZ0 | ⊩
+   -26 | 0t00-00+ |  0n0X1 |   0yZ1 | ⊪
+   -25 | 0t00-0+- |  0n0X2 |   0yZ2 | ⊫
+   -24 | 0t00-0+0 |  0n0X3 |   0yZ3 | ⊬
+   -23 | 0t00-0++ |  0n0X4 |   0yZ4 | ⊭
+   -22 | 0t00-+-- |  0n0YW |   0yZ5 | ⊮
+   -21 | 0t00-+-0 |  0n0YX |   0yZ6 | ⊯
+   -20 | 0t00-+-+ |  0n0YY |   0yZ7 | ⊰
+   -19 | 0t00-+0- |  0n0YZ |   0yZ8 | ⊱
+   -18 | 0t00-+00 |  0n0Y0 |   0yZ9 | ⊲
+   -17 | 0t00-+0+ |  0n0Y1 |   0yZA | ⊳
+   -16 | 0t00-++- |  0n0Y2 |   0yZB | ⊴
+   -15 | 0t00-++0 |  0n0Y3 |   0yZC | ⊵
+   -14 | 0t00-+++ |  0n0Y4 |   0yZD | ⊶
+   -13 | 0t000--- |  0n0ZW |   0y0N | ⊷
+   -12 | 0t000--0 |  0n0ZX |   0y0O | ⊸
+   -11 | 0t000--+ |  0n0ZY |   0y0P | ⊹
+   -10 | 0t000-0- |  0n0ZZ |   0y0Q | ⊺
+    -9 | 0t000-00 |  0n0Z0 |   0y0R | ⊻
+    -8 | 0t000-0+ |  0n0Z1 |   0y0S | ⊼
+    -7 | 0t000-+- |  0n0Z2 |   0y0T | ⊽
+    -6 | 0t000-+0 |  0n0Z3 |   0y0U | ⊾
+    -5 | 0t000-++ |  0n0Z4 |   0y0V | ⊿
+    -4 | 0t0000-- |  0n00W |   0y0W | ⋀
+    -3 | 0t0000-0 |  0n00X |   0y0X | ⋁
+    -2 | 0t0000-+ |  0n00Y |   0y0Y | ⋂
+    -1 | 0t00000- |  0n00Z |   0y0Z | ⋃
+     0 | 0t000000 |  0n000 |   0y00 |  
+     1 | 0t00000+ |  0n001 |   0y01 | 
+     2 | 0t0000+- |  0n002 |   0y02 | 
+     3 | 0t0000+0 |  0n003 |   0y03 | 
+     4 | 0t0000++ |  0n004 |   0y04 | 
+     5 | 0t000+-- |  0n01W |   0y05 | 
+     6 | 0t000+-0 |  0n01X |   0y06 | 
+     7 | 0t000+-+ |  0n01Y |   0y07 | 
+     8 | 0t000+0- |  0n01Z |   0y08 | 
+     9 | 0t000+00 |  0n010 |   0y09 | 	
+    10 | 0t000+0+ |  0n011 |   0y0A | 
+
+    11 | 0t000++- |  0n012 |   0y0B | 
+    12 | 0t000++0 |  0n013 |   0y0C | 
+    13 | 0t000+++ |  0n014 |   0y0D | 
+    14 | 0t00+--- |  0n02W |   0y1N | 
+    15 | 0t00+--0 |  0n02X |   0y1O | 
+    16 | 0t00+--+ |  0n02Y |   0y1P | 
+    17 | 0t00+-0- |  0n02Z |   0y1Q | 
+    18 | 0t00+-00 |  0n020 |   0y1R | 
+    19 | 0t00+-0+ |  0n021 |   0y1S | 
+    20 | 0t00+-+- |  0n022 |   0y1T | 
+    21 | 0t00+-+0 |  0n023 |   0y1U | 
+    22 | 0t00+-++ |  0n024 |   0y1V | 
+    23 | 0t00+0-- |  0n03W |   0y1W | 
+    24 | 0t00+0-0 |  0n03X |   0y1X | 
+    25 | 0t00+0-+ |  0n03Y |   0y1Y | 
+    26 | 0t00+00- |  0n03Z |   0y1Z | 
+    27 | 0t00+000 |  0n030 |   0y10 | 
+    28 | 0t00+00+ |  0n031 |   0y11 | 
+    29 | 0t00+0+- |  0n032 |   0y12 | 
+    30 | 0t00+0+0 |  0n033 |   0y13 | 
+    31 | 0t00+0++ |  0n034 |   0y14 | 
+    32 | 0t00++-- |  0n04W |   0y15 |  
+    33 | 0t00++-0 |  0n04X |   0y16 | !
+    34 | 0t00++-+ |  0n04Y |   0y17 | "
+    35 | 0t00++0- |  0n04Z |   0y18 | #
+    36 | 0t00++00 |  0n040 |   0y19 | $
+    37 | 0t00++0+ |  0n041 |   0y1A | %
+    38 | 0t00+++- |  0n042 |   0y1B | &
+    39 | 0t00+++0 |  0n043 |   0y1C | '
+    40 | 0t00++++ |  0n044 |   0y1D | (
+    41 | 0t0+---- |  0n1WW |   0y2N | )
+    42 | 0t0+---0 |  0n1WX |   0y2O | *
+    43 | 0t0+---+ |  0n1WY |   0y2P | +
+    44 | 0t0+--0- |  0n1WZ |   0y2Q | ,
+    45 | 0t0+--00 |  0n1W0 |   0y2R | -
+    46 | 0t0+--0+ |  0n1W1 |   0y2S | .
+    47 | 0t0+--+- |  0n1W2 |   0y2T | /
+    48 | 0t0+--+0 |  0n1W3 |   0y2U | 0
+    49 | 0t0+--++ |  0n1W4 |   0y2V | 1
+    50 | 0t0+-0-- |  0n1XW |   0y2W | 2
+    51 | 0t0+-0-0 |  0n1XX |   0y2X | 3
+    52 | 0t0+-0-+ |  0n1XY |   0y2Y | 4
+    53 | 0t0+-00- |  0n1XZ |   0y2Z | 5
+    54 | 0t0+-000 |  0n1X0 |   0y20 | 6
+    55 | 0t0+-00+ |  0n1X1 |   0y21 | 7
+    56 | 0t0+-0+- |  0n1X2 |   0y22 | 8
+    57 | 0t0+-0+0 |  0n1X3 |   0y23 | 9
+    58 | 0t0+-0++ |  0n1X4 |   0y24 | :
+    59 | 0t0+-+-- |  0n1YW |   0y25 | ;
+    60 | 0t0+-+-0 |  0n1YX |   0y26 | <
+    61 | 0t0+-+-+ |  0n1YY |   0y27 | =
+    62 | 0t0+-+0- |  0n1YZ |   0y28 | >
+    63 | 0t0+-+00 |  0n1Y0 |   0y29 | ?
+    64 | 0t0+-+0+ |  0n1Y1 |   0y2A | @
+    65 | 0t0+-++- |  0n1Y2 |   0y2B | A
+    66 | 0t0+-++0 |  0n1Y3 |   0y2C | B
+    67 | 0t0+-+++ |  0n1Y4 |   0y2D | C
+    68 | 0t0+0--- |  0n1ZW |   0y3N | D
+    69 | 0t0+0--0 |  0n1ZX |   0y3O | E
+    70 | 0t0+0--+ |  0n1ZY |   0y3P | F
+    71 | 0t0+0-0- |  0n1ZZ |   0y3Q | G
+    72 | 0t0+0-00 |  0n1Z0 |   0y3R | H
+    73 | 0t0+0-0+ |  0n1Z1 |   0y3S | I
+    74 | 0t0+0-+- |  0n1Z2 |   0y3T | J
+    75 | 0t0+0-+0 |  0n1Z3 |   0y3U | K
+    76 | 0t0+0-++ |  0n1Z4 |   0y3V | L
+    77 | 0t0+00-- |  0n10W |   0y3W | M
+    78 | 0t0+00-0 |  0n10X |   0y3X | N
+    79 | 0t0+00-+ |  0n10Y |   0y3Y | O
+    80 | 0t0+000- |  0n10Z |   0y3Z | P
+    81 | 0t0+0000 |  0n100 |   0y30 | Q
+    82 | 0t0+000+ |  0n101 |   0y31 | R
+    83 | 0t0+00+- |  0n102 |   0y32 | S
+    84 | 0t0+00+0 |  0n103 |   0y33 | T
+    85 | 0t0+00++ |  0n104 |   0y34 | U
+    86 | 0t0+0+-- |  0n11W |   0y35 | V
+    87 | 0t0+0+-0 |  0n11X |   0y36 | W
+    88 | 0t0+0+-+ |  0n11Y |   0y37 | X
+    89 | 0t0+0+0- |  0n11Z |   0y38 | Y
+    90 | 0t0+0+00 |  0n110 |   0y39 | Z
+    91 | 0t0+0+0+ |  0n111 |   0y3A | [
+    92 | 0t0+0++- |  0n112 |   0y3B | \
+    93 | 0t0+0++0 |  0n113 |   0y3C | ]
+    94 | 0t0+0+++ |  0n114 |   0y3D | ^
+    95 | 0t0++--- |  0n12W |   0y4N | _
+    96 | 0t0++--0 |  0n12X |   0y4O | `
+    97 | 0t0++--+ |  0n12Y |   0y4P | a
+    98 | 0t0++-0- |  0n12Z |   0y4Q | b
+    99 | 0t0++-00 |  0n120 |   0y4R | c
+   100 | 0t0++-0+ |  0n121 |   0y4S | d
+   101 | 0t0++-+- |  0n122 |   0y4T | e
+   102 | 0t0++-+0 |  0n123 |   0y4U | f
+   103 | 0t0++-++ |  0n124 |   0y4V | g
+   104 | 0t0++0-- |  0n13W |   0y4W | h
+   105 | 0t0++0-0 |  0n13X |   0y4X | i
+   106 | 0t0++0-+ |  0n13Y |   0y4Y | j
+   107 | 0t0++00- |  0n13Z |   0y4Z | k
+   108 | 0t0++000 |  0n130 |   0y40 | l
+   109 | 0t0++00+ |  0n131 |   0y41 | m
+   110 | 0t0++0+- |  0n132 |   0y42 | n
+   111 | 0t0++0+0 |  0n133 |   0y43 | o
+   112 | 0t0++0++ |  0n134 |   0y44 | p
+   113 | 0t0+++-- |  0n14W |   0y45 | q
+   114 | 0t0+++-0 |  0n14X |   0y46 | r
+   115 | 0t0+++-+ |  0n14Y |   0y47 | s
+   116 | 0t0+++0- |  0n14Z |   0y48 | t
+   117 | 0t0+++00 |  0n140 |   0y49 | u
+   118 | 0t0+++0+ |  0n141 |   0y4A | v
+   119 | 0t0++++- |  0n142 |   0y4B | w
+   120 | 0t0++++0 |  0n143 |   0y4C | x
+   121 | 0t0+++++ |  0n144 |   0y4D | y
+   122 | 0t+----- |  0n2WW |   0y5N | z
+   123 | 0t+----0 |  0n2WX |   0y5O | {
+   124 | 0t+----+ |  0n2WY |   0y5P | |
+   125 | 0t+---0- |  0n2WZ |   0y5Q | }
+   126 | 0t+---00 |  0n2W0 |   0y5R | ~
+   127 | 0t+---0+ |  0n2W1 |   0y5S | 
+   128 | 0t+---+- |  0n2W2 |   0y5T | Ђ
+   129 | 0t+---+0 |  0n2W3 |   0y5U | Ѓ
+   130 | 0t+---++ |  0n2W4 |   0y5V | ‚
+   131 | 0t+--0-- |  0n2XW |   0y5W | ѓ
+   132 | 0t+--0-0 |  0n2XX |   0y5X | „
+   133 | 0t+--0-+ |  0n2XY |   0y5Y | …
+   134 | 0t+--00- |  0n2XZ |   0y5Z | †
+   135 | 0t+--000 |  0n2X0 |   0y50 | ‡
+   136 | 0t+--00+ |  0n2X1 |   0y51 | €
+   137 | 0t+--0+- |  0n2X2 |   0y52 | ‰
+   138 | 0t+--0+0 |  0n2X3 |   0y53 | Љ
+   139 | 0t+--0++ |  0n2X4 |   0y54 | ‹
+   140 | 0t+--+-- |  0n2YW |   0y55 | Њ
+   141 | 0t+--+-0 |  0n2YX |   0y56 | Ќ
+   142 | 0t+--+-+ |  0n2YY |   0y57 | Ћ
+   143 | 0t+--+0- |  0n2YZ |   0y58 | Џ
+   144 | 0t+--+00 |  0n2Y0 |   0y59 | ђ
+   145 | 0t+--+0+ |  0n2Y1 |   0y5A | ‘
+   146 | 0t+--++- |  0n2Y2 |   0y5B | ’
+   147 | 0t+--++0 |  0n2Y3 |   0y5C | “
+   148 | 0t+--+++ |  0n2Y4 |   0y5D | ”
+   149 | 0t+-0--- |  0n2ZW |   0y6N | •
+   150 | 0t+-0--0 |  0n2ZX |   0y6O | –
+   151 | 0t+-0--+ |  0n2ZY |   0y6P | —
+   152 | 0t+-0-0- |  0n2ZZ |   0y6Q | ˜
+   153 | 0t+-0-00 |  0n2Z0 |   0y6R | ™
+   154 | 0t+-0-0+ |  0n2Z1 |   0y6S | љ
+   155 | 0t+-0-+- |  0n2Z2 |   0y6T | ›
+   156 | 0t+-0-+0 |  0n2Z3 |   0y6U | њ
+   157 | 0t+-0-++ |  0n2Z4 |   0y6V | ќ
+   158 | 0t+-00-- |  0n20W |   0y6W | ћ
+   159 | 0t+-00-0 |  0n20X |   0y6X | џ
+   160 | 0t+-00-+ |  0n20Y |   0y6Y |  
+   161 | 0t+-000- |  0n20Z |   0y6Z | Ў
+   162 | 0t+-0000 |  0n200 |   0y60 | ў
+   163 | 0t+-000+ |  0n201 |   0y61 | Ј
+   164 | 0t+-00+- |  0n202 |   0y62 | ¤
+   165 | 0t+-00+0 |  0n203 |   0y63 | Ґ
+   166 | 0t+-00++ |  0n204 |   0y64 | ¦
+   167 | 0t+-0+-- |  0n21W |   0y65 | §
+   168 | 0t+-0+-0 |  0n21X |   0y66 | Ё
+   169 | 0t+-0+-+ |  0n21Y |   0y67 | ©
+   170 | 0t+-0+0- |  0n21Z |   0y68 | Є
+   171 | 0t+-0+00 |  0n210 |   0y69 | «
+   172 | 0t+-0+0+ |  0n211 |   0y6A | ¬
+   173 | 0t+-0++- |  0n212 |   0y6B | ­
+   174 | 0t+-0++0 |  0n213 |   0y6C | ®
+   175 | 0t+-0+++ |  0n214 |   0y6D | Ї
+   176 | 0t+-+--- |  0n22W |   0y7N | °
+   177 | 0t+-+--0 |  0n22X |   0y7O | ±
+   178 | 0t+-+--+ |  0n22Y |   0y7P | І
+   179 | 0t+-+-0- |  0n22Z |   0y7Q | і
+   180 | 0t+-+-00 |  0n220 |   0y7R | ґ
+   181 | 0t+-+-0+ |  0n221 |   0y7S | µ
+   182 | 0t+-+-+- |  0n222 |   0y7T | ¶
+   183 | 0t+-+-+0 |  0n223 |   0y7U | ·
+   184 | 0t+-+-++ |  0n224 |   0y7V | ё
+   185 | 0t+-+0-- |  0n23W |   0y7W | №
+   186 | 0t+-+0-0 |  0n23X |   0y7X | є
+   187 | 0t+-+0-+ |  0n23Y |   0y7Y | »
+   188 | 0t+-+00- |  0n23Z |   0y7Z | ј
+   189 | 0t+-+000 |  0n230 |   0y70 | Ѕ
+   190 | 0t+-+00+ |  0n231 |   0y71 | ѕ
+   191 | 0t+-+0+- |  0n232 |   0y72 | ї
+   192 | 0t+-+0+0 |  0n233 |   0y73 | А
+   193 | 0t+-+0++ |  0n234 |   0y74 | Б
+   194 | 0t+-++-- |  0n24W |   0y75 | В
+   195 | 0t+-++-0 |  0n24X |   0y76 | Г
+   196 | 0t+-++-+ |  0n24Y |   0y77 | Д
+   197 | 0t+-++0- |  0n24Z |   0y78 | Е
+   198 | 0t+-++00 |  0n240 |   0y79 | Ж
+   199 | 0t+-++0+ |  0n241 |   0y7A | З
+   200 | 0t+-+++- |  0n242 |   0y7B | И
+   201 | 0t+-+++0 |  0n243 |   0y7C | Й
+   202 | 0t+-++++ |  0n244 |   0y7D | К
+   203 | 0t+0---- |  0n3WW |   0y8N | Л
+   204 | 0t+0---0 |  0n3WX |   0y8O | М
+   205 | 0t+0---+ |  0n3WY |   0y8P | Н
+   206 | 0t+0--0- |  0n3WZ |   0y8Q | О
+   207 | 0t+0--00 |  0n3W0 |   0y8R | П
+   208 | 0t+0--0+ |  0n3W1 |   0y8S | Р
+   209 | 0t+0--+- |  0n3W2 |   0y8T | С
+   210 | 0t+0--+0 |  0n3W3 |   0y8U | Т
+   211 | 0t+0--++ |  0n3W4 |   0y8V | У
+   212 | 0t+0-0-- |  0n3XW |   0y8W | Ф
+   213 | 0t+0-0-0 |  0n3XX |   0y8X | Х
+   214 | 0t+0-0-+ |  0n3XY |   0y8Y | Ц
+   215 | 0t+0-00- |  0n3XZ |   0y8Z | Ч
+   216 | 0t+0-000 |  0n3X0 |   0y80 | Ш
+   217 | 0t+0-00+ |  0n3X1 |   0y81 | Щ
+   218 | 0t+0-0+- |  0n3X2 |   0y82 | Ъ
+   219 | 0t+0-0+0 |  0n3X3 |   0y83 | Ы
+   220 | 0t+0-0++ |  0n3X4 |   0y84 | Ь
+   221 | 0t+0-+-- |  0n3YW |   0y85 | Э
+   222 | 0t+0-+-0 |  0n3YX |   0y86 | Ю
+   223 | 0t+0-+-+ |  0n3YY |   0y87 | Я
+   224 | 0t+0-+0- |  0n3YZ |   0y88 | а
+   225 | 0t+0-+00 |  0n3Y0 |   0y89 | б
+   226 | 0t+0-+0+ |  0n3Y1 |   0y8A | в
+   227 | 0t+0-++- |  0n3Y2 |   0y8B | г
+   228 | 0t+0-++0 |  0n3Y3 |   0y8C | д
+   229 | 0t+0-+++ |  0n3Y4 |   0y8D | е
+   230 | 0t+00--- |  0n3ZW |   0y9N | ж
+   231 | 0t+00--0 |  0n3ZX |   0y9O | з
+   232 | 0t+00--+ |  0n3ZY |   0y9P | и
+   233 | 0t+00-0- |  0n3ZZ |   0y9Q | й
+   234 | 0t+00-00 |  0n3Z0 |   0y9R | к
+   235 | 0t+00-0+ |  0n3Z1 |   0y9S | л
+   236 | 0t+00-+- |  0n3Z2 |   0y9T | м
+   237 | 0t+00-+0 |  0n3Z3 |   0y9U | н
+   238 | 0t+00-++ |  0n3Z4 |   0y9V | о
+   239 | 0t+000-- |  0n30W |   0y9W | п
+   240 | 0t+000-0 |  0n30X |   0y9X | р
+   241 | 0t+000-+ |  0n30Y |   0y9Y | с
+   242 | 0t+0000- |  0n30Z |   0y9Z | т
+   243 | 0t+00000 |  0n300 |   0y90 | у
+   244 | 0t+0000+ |  0n301 |   0y91 | ф
+   245 | 0t+000+- |  0n302 |   0y92 | х
+   246 | 0t+000+0 |  0n303 |   0y93 | ц
+   247 | 0t+000++ |  0n304 |   0y94 | ч
+   248 | 0t+00+-- |  0n31W |   0y95 | ш
+   249 | 0t+00+-0 |  0n31X |   0y96 | щ
+   250 | 0t+00+-+ |  0n31Y |   0y97 | ъ
+   251 | 0t+00+0- |  0n31Z |   0y98 | ы
+   252 | 0t+00+00 |  0n310 |   0y99 | ь
+   253 | 0t+00+0+ |  0n311 |   0y9A | э
+   254 | 0t+00++- |  0n312 |   0y9B | ю
+   255 | 0t+00++0 |  0n313 |   0y9C | я
+   256 | 0t+00+++ |  0n314 |   0y9D | ░
+   257 | 0t+0+--- |  0n32W |   0yAN | ▒
+   258 | 0t+0+--0 |  0n32X |   0yAO | ▓
+   259 | 0t+0+--+ |  0n32Y |   0yAP | █
+   260 | 0t+0+-0- |  0n32Z |   0yAQ | ▀
+   261 | 0t+0+-00 |  0n320 |   0yAR | ▄
+   262 | 0t+0+-0+ |  0n321 |   0yAS | ▌
+   263 | 0t+0+-+- |  0n322 |   0yAT | ▐
+   264 | 0t+0+-+0 |  0n323 |   0yAU | ░
+   265 | 0t+0+-++ |  0n324 |   0yAV | ▒
+   266 | 0t+0+0-- |  0n33W |   0yAW | ▓
+   267 | 0t+0+0-0 |  0n33X |   0yAX | █
+   268 | 0t+0+0-+ |  0n33Y |   0yAY | ▀
+   269 | 0t+0+00- |  0n33Z |   0yAZ | ▄
+   270 | 0t+0+000 |  0n330 |   0yA0 | ▌
+   271 | 0t+0+00+ |  0n331 |   0yA1 | ▐
+   272 | 0t+0+0+- |  0n332 |   0yA2 | ░
+   273 | 0t+0+0+0 |  0n333 |   0yA3 | ▒
+   274 | 0t+0+0++ |  0n334 |   0yA4 | ▓
+   275 | 0t+0++-- |  0n34W |   0yA5 | █
+   276 | 0t+0++-0 |  0n34X |   0yA6 | ␀
+   277 | 0t+0++-+ |  0n34Y |   0yA7 | ■
+   278 | 0t+0++0- |  0n34Z |   0yA8 | □
+   279 | 0t+0++00 |  0n340 |   0yA9 | ▪
+   280 | 0t+0++0+ |  0n341 |   0yAA | ▫
+   281 | 0t+0+++- |  0n342 |   0yAB | ▬
+   282 | 0t+0+++0 |  0n343 |   0yAC | ▭
+   283 | 0t+0++++ |  0n344 |   0yAD | ▮
+   284 | 0t++---- |  0n4WW |   0yBN | ▯
+   285 | 0t++---0 |  0n4WX |   0yBO | ▰
+   286 | 0t++---+ |  0n4WY |   0yBP | ▱
+   287 | 0t++--0- |  0n4WZ |   0yBQ | ▲
+   288 | 0t++--00 |  0n4W0 |   0yBR | △
+   289 | 0t++--0+ |  0n4W1 |   0yBS | ▴
+   290 | 0t++--+- |  0n4W2 |   0yBT | ▵
+   291 | 0t++--+0 |  0n4W3 |   0yBU | ▶
+   292 | 0t++--++ |  0n4W4 |   0yBV | ▷
+   293 | 0t++-0-- |  0n4XW |   0yBW | ▸
+   294 | 0t++-0-0 |  0n4XX |   0yBX | ▹
+   295 | 0t++-0-+ |  0n4XY |   0yBY | ►
+   296 | 0t++-00- |  0n4XZ |   0yBZ | ▻
+   297 | 0t++-000 |  0n4X0 |   0yB0 | ▼
+   298 | 0t++-00+ |  0n4X1 |   0yB1 | ▽
+   299 | 0t++-0+- |  0n4X2 |   0yB2 | ▾
+   300 | 0t++-0+0 |  0n4X3 |   0yB3 | ▿
+   301 | 0t++-0++ |  0n4X4 |   0yB4 | ◀
+   302 | 0t++-+-- |  0n4YW |   0yB5 | ◁
+   303 | 0t++-+-0 |  0n4YX |   0yB6 | ◂
+   304 | 0t++-+-+ |  0n4YY |   0yB7 | ◃
+   305 | 0t++-+0- |  0n4YZ |   0yB8 | ◄
+   306 | 0t++-+00 |  0n4Y0 |   0yB9 | ◅
+   307 | 0t++-+0+ |  0n4Y1 |   0yBA | ◆
+   308 | 0t++-++- |  0n4Y2 |   0yBB | ◇
+   309 | 0t++-++0 |  0n4Y3 |   0yBC | ◈
+   310 | 0t++-+++ |  0n4Y4 |   0yBD | ◉
+   311 | 0t++0--- |  0n4ZW |   0yCN | ◊
+   312 | 0t++0--0 |  0n4ZX |   0yCO | ○
+   313 | 0t++0--+ |  0n4ZY |   0yCP | ◌
+   314 | 0t++0-0- |  0n4ZZ |   0yCQ | ◎
+   315 | 0t++0-00 |  0n4Z0 |   0yCR | ●
+   316 | 0t++0-0+ |  0n4Z1 |   0yCS | ◐
+   317 | 0t++0-+- |  0n4Z2 |   0yCT | ◑
+   318 | 0t++0-+0 |  0n4Z3 |   0yCU | ◒
+   319 | 0t++0-++ |  0n4Z4 |   0yCV | ◓
+   320 | 0t++00-- |  0n40W |   0yCW | ◔
+   321 | 0t++00-0 |  0n40X |   0yCX | ◕
+   322 | 0t++00-+ |  0n40Y |   0yCY | ◖
+   323 | 0t++000- |  0n40Z |   0yCZ | ◗
+   324 | 0t++0000 |  0n400 |   0yC0 | ◘
+   325 | 0t++000+ |  0n401 |   0yC1 | ◙
+   326 | 0t++00+- |  0n402 |   0yC2 | ◚
+   327 | 0t++00+0 |  0n403 |   0yC3 | ◛
+   328 | 0t++00++ |  0n404 |   0yC4 | ◜
+   329 | 0t++0+-- |  0n41W |   0yC5 | ◝
+   330 | 0t++0+-0 |  0n41X |   0yC6 | ◞
+   331 | 0t++0+-+ |  0n41Y |   0yC7 | ◟
+   332 | 0t++0+0- |  0n41Z |   0yC8 | ◠
+   333 | 0t++0+00 |  0n410 |   0yC9 | ◡
+   334 | 0t++0+0+ |  0n411 |   0yCA | ◢
+   335 | 0t++0++- |  0n412 |   0yCB | ◣
+   336 | 0t++0++0 |  0n413 |   0yCC | ◤
+   337 | 0t++0+++ |  0n414 |   0yCD | ◥
+   338 | 0t+++--- |  0n42W |   0yDN | ◦
+   339 | 0t+++--0 |  0n42X |   0yDO | ◧
+   340 | 0t+++--+ |  0n42Y |   0yDP | ◨
+   341 | 0t+++-0- |  0n42Z |   0yDQ | ◩
+   342 | 0t+++-00 |  0n420 |   0yDR | ◪
+   343 | 0t+++-0+ |  0n421 |   0yDS | ◫
+   344 | 0t+++-+- |  0n422 |   0yDT | ◬
+   345 | 0t+++-+0 |  0n423 |   0yDU | ◭
+   346 | 0t+++-++ |  0n424 |   0yDV | ◮
+   347 | 0t+++0-- |  0n43W |   0yDW | ◯
+   348 | 0t+++0-0 |  0n43X |   0yDX | ◰
+   349 | 0t+++0-+ |  0n43Y |   0yDY | ◱
+   350 | 0t+++00- |  0n43Z |   0yDZ | ◲
+   351 | 0t+++000 |  0n430 |   0yD0 | ◳
+   352 | 0t+++00+ |  0n431 |   0yD1 | ◴
+   353 | 0t+++0+- |  0n432 |   0yD2 | ◵
+   354 | 0t+++0+0 |  0n433 |   0yD3 | ◶
+   355 | 0t+++0++ |  0n434 |   0yD4 | ◷
+   356 | 0t++++-- |  0n44W |   0yD5 | ◸
+   357 | 0t++++-0 |  0n44X |   0yD6 | ◹
+   358 | 0t++++-+ |  0n44Y |   0yD7 | ◺
+   359 | 0t++++0- |  0n44Z |   0yD8 | ◻
+   360 | 0t++++00 |  0n440 |   0yD9 | ◼
+   361 | 0t++++0+ |  0n441 |   0yDA | ◽
+   362 | 0t+++++- |  0n442 |   0yDB | ◾
+   363 | 0t+++++0 |  0n443 |   0yDC | ◿
+   364 | 0t++++++ |  0n444 |   0yDD |  
+
+
+  Passed Division_Floor_Works [< 1 ms]
+  Passed Modulus_Works [< 1 ms]
+  Passed Negation_Works [< 1 ms]
+  Passed Division_ByZero_Throws [< 1 ms]
+  Passed ShiftLeft_MultiplyBy3 [< 1 ms]
+  Passed ShiftRight_DivideBy3 [< 1 ms]
+  Passed TritOr_Works [< 1 ms]
+  Passed TritAnd_Works [< 1 ms]
+  Passed Subtraction_Wrapping_Works [41 ms]
+  Passed TritXor_Works [< 1 ms]
+  Passed ToTritString_One_ReturnsCorrect [< 1 ms]
+  Passed ToTritString_Zero_Returns18Zeros [1 ms]
+  Passed ImplicitConversion_FromLong_Works [< 1 ms]
+  Passed Comparison_Works [1 ms]
+  Passed ExplicitConversion_ToLong_Works [< 1 ms]
+  Passed Parse_RoundTrip_Works [1 ms]
+  Passed Constructor_MaxValue_Works [8 ms]
+  Passed Constructor_Zero_Works [10 ms]
+  Passed Constructor_MinValue_Works [8 ms]
+  Passed Addition_Works [< 1 ms]
+  Passed Subtraction_Works [< 1 ms]
+  Passed Multiplication_Works [< 1 ms]
+  Passed Division_Floor_Works [2 ms]
+  Passed Division_ByZero_Throws [< 1 ms]
+  Passed Modulus_Works [< 1 ms]
+  Passed Negation_Works [< 1 ms]
+  Passed ShiftLeft_MultiplyBy3 [< 1 ms]
+  Passed ShiftRight_DivideBy3 [< 1 ms]
+  Passed TritOr_Works [< 1 ms]
+  Passed TritAnd_Works [1 ms]
+  Passed TritXor_Works [1 ms]
+  Passed Comparison_Works [< 1 ms]
+  Passed ToTritString_Zero_Returns54Zeros [1 ms]
+  Passed ImplicitConversion_FromLong_Works [< 1 ms]
+  Passed ExplicitConversion_ToInt128_Works [< 1 ms]
+  Passed Parse_RoundTrip_Works [2 ms]
+  Passed Constructor_TooLarge_Throws [13 ms]
+
+Test Run Successful.
+Total tests: 116
+     Passed: 116
+ Total time: 3,6531 Seconds
+  T3Assembler -> c:\projects\t3_sharp\src\T3Assembler\bin\Debug\net8.0\T3Assembler.dll
+  T3Simulator.Common.Tests -> c:\projects\t3_sharp\tests\T3Simulator.Common.Tests\bin\Debug\net8.0\T3Simulator.Common.Tests.dll
+Test run for c:\projects\t3_sharp\tests\T3Simulator.Common.Tests\bin\Debug\net8.0\T3Simulator.Common.Tests.dll (.NETCoreApp,Version=v8.0)
+Microsoft (R) Test Execution Command Line Tool Version 17.10.0 (x64)
+Copyright (c) Microsoft Corporation.  All rights reserved.
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+c:\projects\t3_sharp\tests\T3Simulator.Common.Tests\bin\Debug\net8.0\T3Simulator.Common.Tests.dll
+  Passed TestRoundTrip_AssembleThenDisassemble ("LI R1, 10") [96 ms]
+  Passed TestRoundTrip_AssembleThenDisassemble ("LI R2, -5") [1 ms]
+  Failed TestRoundTrip_AssembleThenDisassemble ("MOV R1, R2") [37 ms]
+  Error Message:
+   Assert.AreEqual failed. Expected:<MOV R1, R2>. Actual:<MOV R1, R2, R0>. 
+  Stack Trace:
+     at T3Simulator.Common.Tests.AssemblerDisassemblerTests.TestRoundTrip_AssembleThenDisassemble(String sourceCode) in c:\projects\t3_sharp\tests\T3Simulator.Common.Tests\AssemblerDisassemblerTests.cs:line 70
+   at InvokeStub_AssemblerDisassemblerTests.TestRoundTrip_AssembleThenDisassemble(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+
+  Passed TestRoundTrip_AssembleThenDisassemble ("ADD R1, R2") [< 1 ms]
+  Passed TestRoundTrip_AssembleThenDisassemble ("SUB R1, R2") [< 1 ms]
+  Passed TestRoundTrip_AssembleThenDisassemble ("MUL R1, R2") [< 1 ms]
+  Passed TestRoundTrip_AssembleThenDisassemble ("DIV R1, R2") [< 1 ms]
+  Passed TestRoundTrip_AssembleThenDisassemble ("MOD R1, R2") [< 1 ms]
+  Passed TestRoundTrip_AssembleThenDisassemble ("NEG R1") [< 1 ms]
+  Passed TestRoundTrip_AssembleThenDisassemble ("AND R1, R2") [< 1 ms]
+  Passed TestRoundTrip_AssembleThenDisassemble ("OR R1, R2") [4 ms]
+  Passed TestRoundTrip_AssembleThenDisassemble ("XOR R1, R2") [< 1 ms]
+  Passed TestRoundTrip_AssembleThenDisassemble ("SHL R1, R2") [< 1 ms]
+  Passed TestRoundTrip_AssembleThenDisassemble ("SHR R1, R2") [< 1 ms]
+  Failed TestRoundTrip_AssembleThenDisassemble ("CMP R1, R2") [< 1 ms]
+  Error Message:
+   Assert.AreEqual failed. Expected:<CMP R1, R2>. Actual:<CMP R1, R2, R0>. 
+  Stack Trace:
+     at T3Simulator.Common.Tests.AssemblerDisassemblerTests.TestRoundTrip_AssembleThenDisassemble(String sourceCode) in c:\projects\t3_sharp\tests\T3Simulator.Common.Tests\AssemblerDisassemblerTests.cs:line 70
+   at InvokeStub_AssemblerDisassemblerTests.TestRoundTrip_AssembleThenDisassemble(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+
+  Passed TestRoundTrip_AssembleThenDisassemble ("LOAD R1, R2") [< 1 ms]
+  Passed TestRoundTrip_AssembleThenDisassemble ("STORE R1, R2") [< 1 ms]
+  Passed TestRoundTrip_AssembleThenDisassemble ("JMP R1") [< 1 ms]
+  Passed TestRoundTrip_AssembleThenDisassemble ("JE R1") [< 1 ms]
+  Passed TestRoundTrip_AssembleThenDisassemble ("JNE R1") [2 ms]
+  Passed TestRoundTrip_AssembleThenDisassemble ("JL R1") [< 1 ms]
+  Passed TestRoundTrip_AssembleThenDisassemble ("JG R1") [< 1 ms]
+  Passed TestRoundTrip_AssembleThenDisassemble ("JM R1") [< 1 ms]
+  Passed TestRoundTrip_AssembleThenDisassemble ("CALL R1") [< 1 ms]
+  Passed TestRoundTrip_AssembleThenDisassemble ("RET") [< 1 ms]
+  Passed TestRoundTrip_AssembleThenDisassemble ("PUSH R1") [< 1 ms]
+  Passed TestRoundTrip_AssembleThenDisassemble ("POP R1") [< 1 ms]
+  Passed TestRoundTrip_AssembleThenDisassemble ("IN R1, R2") [< 1 ms]
+  Passed TestRoundTrip_AssembleThenDisassemble ("OUT R1, R2") [< 1 ms]
+  Passed TestRoundTrip_AssembleThenDisassemble ("INI R1, 5") [< 1 ms]
+  Passed TestRoundTrip_AssembleThenDisassemble ("OUTI R1, 10") [< 1 ms]
+  Passed TestRoundTrip_AssembleThenDisassemble ("LIMM R1, 12345") [2 ms]
+  Failed TestRoundTrip_ComplexSequence [5 ms]
+  Error Message:
+   CollectionAssert.AreEqual failed. (Different number of elements.)
+  Stack Trace:
+     at T3Simulator.Common.Tests.AssemblerDisassemblerTests.TestRoundTrip_ComplexSequence() in c:\projects\t3_sharp\tests\T3Simulator.Common.Tests\AssemblerDisassemblerTests.cs:line 106
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+  Passed TestRoundTrip_DisassembleThenAssemble [1 ms]
+  Passed InstructionDecoder_Decode18_ValidInstruction [2 ms]
+  Passed RegisterWindow_GetPhysicalIndex_CorrectMapping [1 ms]
+  Passed RegisterWindow_CalculateNextWp_CorrectShift [< 1 ms]
+  Passed Memory_ReadWrite_CorrectValue [< 1 ms]
+  Passed Add_TwoPositiveNumbers_ReturnsSum [1 ms]
+  Passed Add_NegativeAndPositive_ReturnsCorrectSum [3 ms]
+  Passed Sub_TwoNumbers_ReturnsDifference [< 1 ms]
+  Passed Sub_ResultNegative_ReturnsNegative [< 1 ms]
+  Passed Mul_TwoNumbers_ReturnsProduct [< 1 ms]
+  Passed Mul_ByZero_ReturnsZero [< 1 ms]
+  Passed Div_TwoNumbers_ReturnsQuotient [< 1 ms]
+  Passed Div_ByZero_ThrowsException [1 ms]
+  Passed Sqrt_PositiveNumber_ReturnsRoot [< 1 ms]
+  Passed Sqrt_NegativeNumber_ThrowsException [< 1 ms]
+  Passed Sqrt_Zero_ReturnsZero [< 1 ms]
+  Passed Abs_Negative_ReturnsPositive [< 1 ms]
+  Passed Abs_Positive_ReturnsSame [< 1 ms]
+  Passed Abs_Zero_ReturnsZero [< 1 ms]
+  Passed Neg_Positive_ReturnsNegative [< 1 ms]
+  Passed Neg_Negative_ReturnsPositive [< 1 ms]
+  Passed Compare_Greater_ReturnsPositive [< 1 ms]
+  Passed Compare_Less_ReturnsNegative [< 1 ms]
+  Passed Compare_Equal_ReturnsZero [< 1 ms]
+  Passed ToInt_FromInt_RoundTrip [< 1 ms]
+  Passed ToInt_TruncatesTowardZero [< 1 ms]
+  Passed ToInt_Negative_TruncatesTowardZero [< 1 ms]
+  Passed FromInt_Zero_ReturnsZero [< 1 ms]
+  Passed FromInt_ReturnsCorrectValue [< 1 ms]
+  Passed ToDoublePrecision_RoundTrip_ReturnsEquivalent [1 ms]
+  Passed Classify_Zero_ReturnsZero [< 1 ms]
+  Passed Classify_Normal_Returns4 [< 1 ms]
+  Passed Zero_ReturnsZero [< 1 ms]
+  Passed TestRoundTrip_StandardRegisters ("LI R1, 10") [5 ms]
+  Passed TestRoundTrip_StandardRegisters ("LI R10, -100") [< 1 ms]
+  Failed TestRoundTrip_StandardRegisters ("MOV R5, R10") [1 ms]
+  Error Message:
+   Test method T3Simulator.Common.Tests.T3RoundTripTests.TestRoundTrip_StandardRegisters threw exception: 
+System.Exception: Mismatch at line 1.
+Expected (normalized): MOV R5, R5, R10
+Actual (normalized):   MOV R5, R10, R0
+Original Expected: MOV R5, R10
+Original Actual:   MOV R5, R10, R0
+  Stack Trace:
+      at T3Simulator.Common.Tests.T3RoundTripTests.VerifyRoundTrip(String sourceCode) in c:\projects\t3_sharp\tests\T3Simulator.Common.Tests\T3RoundTripTests.cs:line 159
+   at T3Simulator.Common.Tests.T3RoundTripTests.TestRoundTrip_StandardRegisters(String sourceCode) in c:\projects\t3_sharp\tests\T3Simulator.Common.Tests\T3RoundTripTests.cs:line 58
+   at InvokeStub_T3RoundTripTests.TestRoundTrip_StandardRegisters(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+
+  Passed TestRoundTrip_StandardRegisters ("ADD R1, R2, R3") [< 1 ms]
+  Passed TestRoundTrip_StandardRegisters ("SUB R1, R1, R2") [< 1 ms]
+  Passed TestRoundTrip_StandardRegisters ("MUL R1, R2, R3") [< 1 ms]
+  Passed TestRoundTrip_StandardRegisters ("DIV R1, R2, R3") [< 1 ms]
+  Passed TestRoundTrip_StandardRegisters ("MOD R1, R2, R3") [< 1 ms]
+  Passed TestRoundTrip_StandardRegisters ("NEG R1") [< 1 ms]
+  Passed TestRoundTrip_StandardRegisters ("AND R1, R2, R3") [< 1 ms]
+  Passed TestRoundTrip_StandardRegisters ("OR R1, R2, R3") [< 1 ms]
+  Passed TestRoundTrip_StandardRegisters ("XOR R1, R2, R3") [< 1 ms]
+  Passed TestRoundTrip_StandardRegisters ("SHL R1, R2, R3") [< 1 ms]
+  Passed TestRoundTrip_StandardRegisters ("SHR R1, R2, R3") [< 1 ms]
+  Failed TestRoundTrip_StandardRegisters ("CMP R1, R2") [< 1 ms]
+  Error Message:
+   Test method T3Simulator.Common.Tests.T3RoundTripTests.TestRoundTrip_StandardRegisters threw exception: 
+System.Exception: Mismatch at line 1.
+Expected (normalized): CMP R1, R1, R2
+Actual (normalized):   CMP R1, R2, R0
+Original Expected: CMP R1, R2
+Original Actual:   CMP R1, R2, R0
+  Stack Trace:
+      at T3Simulator.Common.Tests.T3RoundTripTests.VerifyRoundTrip(String sourceCode) in c:\projects\t3_sharp\tests\T3Simulator.Common.Tests\T3RoundTripTests.cs:line 159
+   at T3Simulator.Common.Tests.T3RoundTripTests.TestRoundTrip_StandardRegisters(String sourceCode) in c:\projects\t3_sharp\tests\T3Simulator.Common.Tests\T3RoundTripTests.cs:line 58
+   at InvokeStub_T3RoundTripTests.TestRoundTrip_StandardRegisters(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+
+  Passed TestRoundTrip_StandardRegisters ("LOAD R1, R2") [< 1 ms]
+  Passed TestRoundTrip_StandardRegisters ("STORE R1, R2") [< 1 ms]
+  Passed TestRoundTrip_StandardRegisters ("JMP R1") [< 1 ms]
+  Passed TestRoundTrip_StandardRegisters ("JE R1") [< 1 ms]
+  Passed TestRoundTrip_StandardRegisters ("JNE R1") [< 1 ms]
+  Passed TestRoundTrip_StandardRegisters ("JL R1") [< 1 ms]
+  Passed TestRoundTrip_StandardRegisters ("JG R1") [< 1 ms]
+  Passed TestRoundTrip_StandardRegisters ("JM R1") [< 1 ms]
+  Passed TestRoundTrip_StandardRegisters ("CALL R1") [< 1 ms]
+  Passed TestRoundTrip_StandardRegisters ("RET") [< 1 ms]
+  Passed TestRoundTrip_StandardRegisters ("PUSH R1") [< 1 ms]
+  Passed TestRoundTrip_StandardRegisters ("POP R1") [< 1 ms]
+  Passed TestRoundTrip_StandardRegisters ("IN R1, R2") [< 1 ms]
+  Passed TestRoundTrip_StandardRegisters ("OUT R1, R2") [< 1 ms]
+  Passed TestRoundTrip_StandardRegisters ("INI R1, 5") [< 1 ms]
+  Passed TestRoundTrip_StandardRegisters ("OUTI R1, -10") [< 1 ms]
+  Passed TestRoundTrip_StandardRegisters ("LIMM R1, 12345") [< 1 ms]
+  Passed TestRoundTrip_NamedRegisters ("LI A, 10") [< 1 ms]
+  Failed TestRoundTrip_NamedRegisters ("MOV B, C") [< 1 ms]
+  Error Message:
+   Test method T3Simulator.Common.Tests.T3RoundTripTests.TestRoundTrip_NamedRegisters threw exception: 
+System.Exception: Mismatch at line 1.
+Expected (normalized): MOV R1, R1, R2
+Actual (normalized):   MOV R1, R2, R0
+Original Expected: MOV B, C
+Original Actual:   MOV R1, R2, R0
+  Stack Trace:
+      at T3Simulator.Common.Tests.T3RoundTripTests.VerifyRoundTrip(String sourceCode) in c:\projects\t3_sharp\tests\T3Simulator.Common.Tests\T3RoundTripTests.cs:line 159
+   at T3Simulator.Common.Tests.T3RoundTripTests.TestRoundTrip_NamedRegisters(String sourceCode) in c:\projects\t3_sharp\tests\T3Simulator.Common.Tests\T3RoundTripTests.cs:line 97
+   at InvokeStub_T3RoundTripTests.TestRoundTrip_NamedRegisters(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+
+  Passed TestRoundTrip_NamedRegisters ("ADD D, A, B") [< 1 ms]
+  Passed TestRoundTrip_NamedRegisters ("SUB E, D, A") [< 1 ms]
+  Passed TestRoundTrip_NamedRegisters ("MUL F, E, B") [< 1 ms]
+  Passed TestRoundTrip_NamedRegisters ("DIV G, F, C") [< 1 ms]
+  Passed TestRoundTrip_NamedRegisters ("MOD H, G, A") [< 1 ms]
+  Passed TestRoundTrip_NamedRegisters ("NEG I") [< 1 ms]
+  Passed TestRoundTrip_NamedRegisters ("AND A, B, C") [< 1 ms]
+  Passed TestRoundTrip_NamedRegisters ("OR B, C, D") [< 1 ms]
+  Passed TestRoundTrip_NamedRegisters ("XOR C, D, E") [< 1 ms]
+  Passed TestRoundTrip_NamedRegisters ("SHL D, E, F") [< 1 ms]
+  Passed TestRoundTrip_NamedRegisters ("SHR E, F, G") [< 1 ms]
+  Failed TestRoundTrip_NamedRegisters ("CMP F, G") [< 1 ms]
+  Error Message:
+   Test method T3Simulator.Common.Tests.T3RoundTripTests.TestRoundTrip_NamedRegisters threw exception: 
+System.Exception: Mismatch at line 1.
+Expected (normalized): CMP R5, R5, R6
+Actual (normalized):   CMP R5, R6, R0
+Original Expected: CMP F, G
+Original Actual:   CMP R5, R6, R0
+  Stack Trace:
+      at T3Simulator.Common.Tests.T3RoundTripTests.VerifyRoundTrip(String sourceCode) in c:\projects\t3_sharp\tests\T3Simulator.Common.Tests\T3RoundTripTests.cs:line 159
+   at T3Simulator.Common.Tests.T3RoundTripTests.TestRoundTrip_NamedRegisters(String sourceCode) in c:\projects\t3_sharp\tests\T3Simulator.Common.Tests\T3RoundTripTests.cs:line 97
+   at InvokeStub_T3RoundTripTests.TestRoundTrip_NamedRegisters(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+
+  Passed TestRoundTrip_NamedRegisters ("LOAD G, H") [< 1 ms]
+  Passed TestRoundTrip_NamedRegisters ("STORE H, I") [< 1 ms]
+  Passed TestRoundTrip_NamedRegisters ("JMP A") [< 1 ms]
+  Passed TestRoundTrip_NamedRegisters ("JE B") [< 1 ms]
+  Passed TestRoundTrip_NamedRegisters ("JNE C") [< 1 ms]
+  Passed TestRoundTrip_NamedRegisters ("JL D") [< 1 ms]
+  Passed TestRoundTrip_NamedRegisters ("JG E") [< 1 ms]
+  Passed TestRoundTrip_NamedRegisters ("JM F") [< 1 ms]
+  Passed TestRoundTrip_NamedRegisters ("CALL G") [< 1 ms]
+  Passed TestRoundTrip_NamedRegisters ("RET") [< 1 ms]
+  Passed TestRoundTrip_NamedRegisters ("PUSH H") [< 1 ms]
+  Passed TestRoundTrip_NamedRegisters ("POP I") [< 1 ms]
+  Passed TestRoundTrip_NamedRegisters ("IN A, B") [< 1 ms]
+  Passed TestRoundTrip_NamedRegisters ("OUT B, C") [< 1 ms]
+  Passed TestRoundTrip_NamedRegisters ("INI C, 5") [< 1 ms]
+  Passed TestRoundTrip_NamedRegisters ("OUTI D, -10") [< 1 ms]
+  Passed TestRoundTrip_NamedRegisters ("LIMM E, 12345") [< 1 ms]
+  Failed TestRoundTrip_ComplexProgram [< 1 ms]
+  Error Message:
+   Test method T3Simulator.Common.Tests.T3RoundTripTests.TestRoundTrip_ComplexProgram threw exception: 
+System.Exception: Mismatch at line 5.
+Expected (normalized): MOV R4, R4, R2
+Actual (normalized):   MOV R4, R2, R0
+Original Expected: MOV E, C
+Original Actual:   MOV R4, R2, R0
+  Stack Trace:
+      at T3Simulator.Common.Tests.T3RoundTripTests.VerifyRoundTrip(String sourceCode) in c:\projects\t3_sharp\tests\T3Simulator.Common.Tests\T3RoundTripTests.cs:line 159
+   at T3Simulator.Common.Tests.T3RoundTripTests.TestRoundTrip_ComplexProgram() in c:\projects\t3_sharp\tests\T3Simulator.Common.Tests\T3RoundTripTests.cs:line 115
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+
+Test Run Failed.
+Total tests: 130
+     Passed: 122
+     Failed: 8
+ Total time: 3,0615 Seconds
+  T3Simulator.InOrder.Tests -> c:\projects\t3_sharp\tests\T3Simulator.InOrder.Tests\bin\Debug\net8.0\T3Simulator.InOrder.Tests.dll
+Test run for c:\projects\t3_sharp\tests\T3Simulator.InOrder.Tests\bin\Debug\net8.0\T3Simulator.InOrder.Tests.dll (.NETCoreApp,Version=v8.0)
+Microsoft (R) Test Execution Command Line Tool Version 17.10.0 (x64)
+Copyright (c) Microsoft Corporation.  All rights reserved.
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+c:\projects\t3_sharp\tests\T3Simulator.InOrder.Tests\bin\Debug\net8.0\T3Simulator.InOrder.Tests.dll
+  Passed FADD_AddsTwoFloats [48 ms]
+  Passed FSUB_SubtractsTwoFloats [9 ms]
+  Passed FMUL_MultipliesTwoFloats [6 ms]
+  Passed FDIV_DividesTwoFloats [6 ms]
+  Passed FSQRT_ComputesSquareRoot [1 ms]
+  Passed FABS_AbsoluteValueOfNegative [7 ms]
+  Passed FABS_AbsoluteValueOfPositive [1 ms]
+  Passed FNEG_NegatesPositive [6 ms]
+  Passed FNEG_NegatesNegative [1 ms]
+  Passed FZERO_SetsToZero [4 ms]
+  Passed FCMP_Greater_SetsPositiveCond [9 ms]
+  Passed FCMP_Less_SetsNegCond [1 ms]
+  Passed FCMP_Equal_SetsZeroCond [1 ms]
+  Passed FTOI_ConvertsFloatToInt [6 ms]
+  Passed ITOF_ConvertsIntToFloat [7 ms]
+  Passed FSW_FLW_StoreLoadRoundTrip [2 ms]
+  Passed FSW_StoresFloatToMemory [2 ms]
+  Passed FMOV_FtoF_MovesBetweenFRegisters [< 1 ms]
+  Passed FMOV_RtoF_MovesFromRegToFreg [1 ms]
+  Passed FSWAP_SwapsTwoFRegisters [1 ms]
+  Passed FCLASS_ClassifiesNormal [1 ms]
+  Passed FCLASS_ClassifiesZero [< 1 ms]
+  Passed FCMP_WithBranch_JumpIfGreater [6 ms]
+  Passed Test_ADD [88 ms]
+  Passed Test_SUB [9 ms]
+  Passed Test_MUL [10 ms]
+  Passed Test_DIV [4 ms]
+  Passed Test_MOD [6 ms]
+  Passed Test_NEG [1 ms]
+  Passed Test_AND [6 ms]
+  Passed Test_OR [10 ms]
+  Passed Test_XOR [2 ms]
+  Passed Test_SHL [8 ms]
+  Passed Test_SHR [4 ms]
+  Passed Test_CMP_And_Branches [8 ms]
+  Passed Test_Loop_Sum [3 ms]
+  Passed Test_Call_Ret [1 ms]
+  Passed Test_Push_Pop [2 ms]
+  Passed Test_LIMM [10 ms]
+  Passed Test_LOAD_STORE [8 ms]
+  Passed Test_IO_Basic [2 ms]
+  Passed Test_INI_OUTI [1 ms]
+  Passed Test_JNE_JM [3 ms]
+  Passed Test_T3_54_Int128 [37 ms]
+  Passed SimpleArithmeticTest [57 ms]
+  Passed ImmediateArithmeticTest [1 ms]
+  Passed PredicationTest [1 ms]
+  Passed StackTest [< 1 ms]
+  Passed IOTest [3 ms]
+  Passed FpuDemo_Arithmetic_ProducesExpectedOutputs [8 ms]
+  Passed Quadratic_Discriminant_Integer [3 ms]
+  Passed FpuCompareAndBranch_CorrectlyJumps [10 ms]
+  Passed TaylorSin_ApproximatesSinX [5 ms]
+  Passed FpuClassifyZeroSwap_Works [2 ms]
+  Passed CLI_Quadratic_Verification [3 ms]
+  Passed MatrixMultiplication_6x6_InOrder_Test [22 ms]
+  Passed MatrixMultiplication_IntegrationTest [10 ms]
+  Passed Test_ProcedureCall_WithStack [1 ms]
+  Passed Test_NestedBranching [8 ms]
+  Passed Test_DoubleLoop [2 ms]
+  Passed Test_ArrayAddition [2 ms]
+  Passed Test_RecursiveFibonacci [8 ms]
+
+Test Run Successful.
+Total tests: 62
+     Passed: 62
+ Total time: 2,2971 Seconds

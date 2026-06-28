@@ -1,0 +1,60 @@
+  Determining projects to restore...
+  Restored c:\projects\t3_sharp\src\T3Assembler\T3Assembler.csproj (in 196 ms).
+  Restored c:\projects\t3_sharp\src\T3Simulator.Common\T3Simulator.Common.csproj (in 196 ms).
+  Restored c:\projects\t3_sharp\src\T3Simulator.InOrder\T3Simulator.InOrder.csproj (in 196 ms).
+  Restored c:\projects\t3_sharp\src\TritTypes\TritTypes.csproj (in 5 ms).
+  Restored c:\projects\t3_sharp\tests\T3Simulator.InOrder.Tests\T3Simulator.InOrder.Tests.csproj (in 640 ms).
+  TritTypes -> c:\projects\t3_sharp\src\TritTypes\bin\Debug\net8.0\TritTypes.dll
+  T3Simulator.Common -> c:\projects\t3_sharp\src\T3Simulator.Common\bin\Debug\net8.0\T3Simulator.Common.dll
+  T3Simulator.InOrder -> c:\projects\t3_sharp\src\T3Simulator.InOrder\bin\Debug\net8.0\T3Simulator.InOrder.dll
+  T3Assembler -> c:\projects\t3_sharp\src\T3Assembler\bin\Debug\net8.0\T3Assembler.dll
+c:\projects\t3_sharp\tests\T3Simulator.InOrder.Tests\BenchmarkTests.cs(31,20): warning CS0219: The variable 'asm' is assigned but its value is never used [c:\projects\t3_sharp\tests\T3Simulator.InOrder.Tests\T3Simulator.InOrder.Tests.csproj]
+  T3Simulator.InOrder.Tests -> c:\projects\t3_sharp\tests\T3Simulator.InOrder.Tests\bin\Debug\net8.0\T3Simulator.InOrder.Tests.dll
+Test run for c:\projects\t3_sharp\tests\T3Simulator.InOrder.Tests\bin\Debug\net8.0\T3Simulator.InOrder.Tests.dll (.NETCoreApp,Version=v8.0)
+Microsoft (R) Test Execution Command Line Tool Version 17.10.0 (x64)
+Copyright (c) Microsoft Corporation.  All rights reserved.
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+c:\projects\t3_sharp\tests\T3Simulator.InOrder.Tests\bin\Debug\net8.0\T3Simulator.InOrder.Tests.dll
+  Failed CounterReset_WriteCycleLow_ResetsAllCounters [564 ms]
+  Error Message:
+   Test method T3Simulator.InOrder.Tests.BenchmarkTests.CounterReset_WriteCycleLow_ResetsAllCounters threw exception: 
+System.FormatException: Invalid trit character: '1'
+  Stack Trace:
+      at TritTypes.BalancedTernary.ParseToLong(String s) in c:\projects\t3_sharp\src\TritTypes\BalancedTernary.cs:line 95
+   at T3Simulator.InOrder.Tests.BenchmarkTests.CounterReset_WriteCycleLow_ResetsAllCounters() in c:\projects\t3_sharp\tests\T3Simulator.InOrder.Tests\BenchmarkTests.cs:line 46
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+  Passed RunIterations_AccumulatesCounters [868 ms]
+  Failed Dhrystone_SingleRun_ProducesCorrectOutput [70 ms]
+  Error Message:
+   Assert.AreEqual failed. Expected:<11>. Actual:<0>. IntGlob should be (5*3+7)/2 = 11
+  Stack Trace:
+     at T3Simulator.InOrder.Tests.BenchmarkTests.Dhrystone_SingleRun_ProducesCorrectOutput() in c:\projects\t3_sharp\tests\T3Simulator.InOrder.Tests\BenchmarkTests.cs:line 204
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+  Failed Dhrystone_100Iterations_ConsistentCycleCount [7 ms]
+  Error Message:
+   Assert.IsTrue failed. Should accumulate >5000 cycles over 100 iterations, got 372
+  Stack Trace:
+     at T3Simulator.InOrder.Tests.BenchmarkTests.Dhrystone_100Iterations_ConsistentCycleCount() in c:\projects\t3_sharp\tests\T3Simulator.InOrder.Tests\BenchmarkTests.cs:line 314
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+  Failed Dhrystone_FromFile_ExecutesCorrectly [25 ms]
+  Error Message:
+   Assert.IsTrue failed. 10 Dhrystone iterations should use >500 cycles, got 282
+  Stack Trace:
+     at T3Simulator.InOrder.Tests.BenchmarkTests.Dhrystone_FromFile_ExecutesCorrectly() in c:\projects\t3_sharp\tests\T3Simulator.InOrder.Tests\BenchmarkTests.cs:line 365
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+
+Test Run Failed.
+Total tests: 5
+     Passed: 1
+     Failed: 4
+ Total time: 6,5009 Seconds

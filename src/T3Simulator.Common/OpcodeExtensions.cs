@@ -30,7 +30,7 @@ namespace T3Simulator.Common
         public static bool IsJType(this Opcode op) => op switch
         {
             Opcode.JMP or Opcode.JE or Opcode.JNE or Opcode.JL or Opcode.JG or Opcode.JM or
-            Opcode.JLE or Opcode.JGE or Opcode.CALL => true,
+            Opcode.JLE or Opcode.JGE or Opcode.CALL or Opcode.GETSP => true,
             _ => false
         };
     }

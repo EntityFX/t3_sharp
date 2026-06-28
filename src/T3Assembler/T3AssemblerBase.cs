@@ -127,7 +127,8 @@ namespace T3Assembler
             "FSQRT"=>Opcode.FSQRT,"FABS"=>Opcode.FABS,"FNEG"=>Opcode.FNEG,"FCMP"=>Opcode.FCMP,
             "FTOI"=>Opcode.FTOI,"ITOF"=>Opcode.ITOF,"FTOF"=>Opcode.FTOF,
             "FLW"=>Opcode.FLW,"FSW"=>Opcode.FSW,"FMOV"=>Opcode.FMOV,"FCLASS"=>Opcode.FCLASS,"FSWAP"=>Opcode.FSWAP,
-            "NOP"=>Opcode.NOP,"FZERO"=>Opcode.FZERO,"PUSHI"=>Opcode.PUSHI,"POPI"=>Opcode.POPI,_=>throw new Exception($"Unknown: {m}")
+            "NOP"=>Opcode.NOP,"FZERO"=>Opcode.FZERO,"PUSHI"=>Opcode.PUSHI,"POPI"=>Opcode.POPI,
+            "GETSP"=>Opcode.GETSP,_=>throw new Exception($"Unknown: {m}")
         };
     }
 }
