@@ -12,9 +12,8 @@
     <PackageReference Include="MSTest.TestFramework" Version="3.1.1" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\T3Interpreter\T3Interpreter.csproj" />
     <ProjectReference Include="..\..\src\T3Compiler\T3Compiler.csproj" />
-    <ProjectReference Include="..\..\src\T3Assembler\T3Assembler.csproj" />
+    <ProjectReference Include="..\..\src\T3Interpreter\T3Interpreter.csproj" />
     <ProjectReference Include="..\..\src\T3Simulator.InOrder\T3Simulator.InOrder.csproj" />
   </ItemGroup>
 </Project>

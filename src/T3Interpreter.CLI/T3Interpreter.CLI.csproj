@@ -6,7 +6,7 @@
     <ImplicitUsings>disable</ImplicitUsings>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\T3Interpreter\T3Interpreter.csproj" />
     <ProjectReference Include="..\T3Compiler\T3Compiler.csproj" />
+    <ProjectReference Include="..\T3Interpreter\T3Interpreter.csproj" />
   </ItemGroup>
 </Project>

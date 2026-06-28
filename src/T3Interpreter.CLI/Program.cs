@@ -54,7 +54,7 @@ class Program
         var pre = pp.Process(source);
         var tok = new Tokenizer(pre).Tokenize();
         var ast = new Parser(tok).ParseProgram();
-        var interpreter = new T3Interpreter(ast);
+        var interpreter = new global::T3Interpreter.T3Interpreter(ast);
         long result = interpreter.Run();
         Console.WriteLine(result);
     }

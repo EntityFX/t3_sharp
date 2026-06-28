@@ -22,6 +22,9 @@ namespace T3Compiler.CodeGen
         int _localSlotCounter;     // per-function slot counter
         string _currentFunc = "";  // current function name for label generation
 
+        // Struct size cache for sizeof operator
+        readonly Dictionary<string,int> _structSizes = new();
+
         // ABI v4 register assignments
         const int FP = 3;    // RZ
         const int CALLREG = 5; // R1
@@ -112,6 +115,18 @@ namespace T3Compiler.CodeGen
             Emit("strlen_end:");
             Emit("    POP R4");Emit("    POP R3");Emit("    POP RZ");
             Emit("    RET");
+            // putchar(c) — write char to port 0
+            Emit("putchar:");
+            Emit("    PUSH RZ");Emit("    PUSH R3");Emit("    PUSH R4");
+            Emit("    OUTI RW, 0");
+            Emit("    POP R4");Emit("    POP R3");Emit("    POP RZ");
+            Emit("    RET");
+            // getchar() — read char from port 0
+            Emit("getchar:");
+            Emit("    PUSH RZ");Emit("    PUSH R3");Emit("    PUSH R4");
+            Emit("    INI R2, 0");
+            Emit("    POP R4");Emit("    POP R3");Emit("    POP RZ");
+            Emit("    RET");
             
             return _output.ToString();
         }
@@ -138,7 +153,8 @@ namespace T3Compiler.CodeGen
             EmitCode($"{f.Name}:");
 
             // === ABI v4 Prologue ===
-            EmitCode("    PUSH RZ");           // save old FP (for frame chain / debug)
+            EmitCode("    PUSH RZ");           // save old FP
+            EmitCode("    GETSP RZ");           // RZ = SP, Frame Pointer
             EmitCode("    PUSH R3");            // callee-saved
             EmitCode("    PUSH R4");            // callee-saved
 
@@ -148,18 +164,16 @@ namespace T3Compiler.CodeGen
             for(int i=0;i<4 && i<nParams;i++)
                 StoreV(f.Parameters[i].Name, argRegs[i], 0);
             
-            // Handle args 4+ from caller's stack
+            // Handle args 4+ from caller's stack (FP-relative)
             if(nParams > 4){
-                // Stack at entry: ... | arg4 | arg5 | ... | ret_addr
-                // After prologue PUSHes: ... | arg4 | arg5 | ... | ret_addr | saved_FP | saved_R3 | saved_R4
-                // SP points to saved_R4
-                // ret_addr at SP+3, arg4 at SP+4, arg5 at SP+5, ...
                 for(int i=4;i<nParams;i++){
-                    int offset = 3 + 1 + (i - 4); // +3 past saved regs, +1 for ret_addr
-                    EmitCode($"    LI R0,{offset}");
-                    EmitCode($"    ADD R0,RZ,R0");
-                    EmitCode($"    LOAD R0,R0");
-                    StoreV(f.Parameters[i].Name, 4, 0); // R0 = 4 is phys index for R0
+                    int stackOff = 2 + (i - 4);
+                    int t=AllocR();
+                    if(stackOff<=364) EmitCode($"    LI {RegName(t)},{stackOff}");
+                    else EmitCode($"    LIMM {RegName(t)},{stackOff}");
+                    EmitCode($"    ADD {RegName(t)},RZ,{RegName(t)}");
+                    EmitCode($"    LOAD {RegName(t)},{RegName(t)}");
+                    StoreV(f.Parameters[i].Name, t, 0);FreeR(t);
                 }
             }
 

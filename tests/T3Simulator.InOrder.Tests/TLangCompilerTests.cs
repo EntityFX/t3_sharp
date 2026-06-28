@@ -216,15 +216,8 @@ namespace T3Simulator.InOrder.Tests
         {
             string p = Path.Combine(
                 AppDomain.CurrentDomain.BaseDirectory,
-                "..",
-                "..",
-                "..",
-                "..",
-                "..",
-                "src",
-                "T3Compiler",
-                "examples",
-                "factorial.t"
+                "..", "..", "..", "..", "..",
+                "src", "T3Compiler", "examples", "factorial.t"
             );
             if (!File.Exists(p))
             {
@@ -234,11 +227,7 @@ namespace T3Simulator.InOrder.Tests
                 if (d != null)
                     p = Path.Combine(d, "src", "T3Compiler", "examples", "factorial.t");
             }
-            if (!File.Exists(p))
-            {
-                Assert.Inconclusive("factorial.t not found");
-                return;
-            }
+            if (!File.Exists(p)) { Assert.Inconclusive("factorial.t not found"); return; }
             Assert.AreEqual(120, CompileAndRun(File.ReadAllText(p)));
         }
 
@@ -570,7 +559,7 @@ namespace T3Simulator.InOrder.Tests
             );
 
         // ============================================================
-        // ABI v3: Deep recursion with spilled locals (6 new tests)
+        // ABI legacy: Deep recursion with spilled locals
         // ============================================================
         [TestMethod]
         [Timeout(10000)]
@@ -638,19 +627,12 @@ namespace T3Simulator.InOrder.Tests
         {
             string baseDir = Path.Combine(
                 AppDomain.CurrentDomain.BaseDirectory,
-                "..",
-                "..",
-                "..",
-                "..",
-                "..",
-                "src",
-                "T3Compiler",
-                "examples"
+                "..", "..", "..", "..", "..",
+                "src", "T3Compiler", "examples"
             );
             string mathlib = File.ReadAllText(Path.Combine(baseDir, "mathlib.t"));
             string prime = File.ReadAllText(Path.Combine(baseDir, "prime.t"));
-            string main =
-                @"
+            string main = @"
 tint main() {
     tint pc = sieve(50);
     tint g = gcd(48, 180);
@@ -666,8 +648,6 @@ tint main() {
         [TestMethod][Timeout(10000)]
         public void E2E_FullPipeline_CompileAndRun()
         {
-            // Compile T-lang → ASM → binary → processor → return value
-            // This verifies the full compilation pipeline works end-to-end
             string source = "tint main(){tint x=40;tint y=2;return x+y;}";
             var pp = new T3Preprocessor();
             string pre = pp.Process(source);
@@ -682,6 +662,28 @@ tint main() {
             proc.LoadProgram(words);
             proc.Run();
             Assert.AreEqual(42, proc.Registers[6].ToLong(), "Processor should return 42");
+        }
+
+        [TestMethod]
+        [Timeout(15000)]
+        public void Compile_FromFile_Comprehensive()
+        {
+            string p = Path.Combine(
+                AppDomain.CurrentDomain.BaseDirectory,
+                "..", "..", "..", "..", "..",
+                "src", "T3Compiler", "examples", "comprehensive.t"
+            );
+            if (!File.Exists(p))
+            {
+                string? d = AppDomain.CurrentDomain.BaseDirectory;
+                while (d != null && !Directory.Exists(Path.Combine(d, "src")))
+                    d = Directory.GetParent(d)?.FullName;
+                if (d != null)
+                    p = Path.Combine(d, "src", "T3Compiler", "examples", "comprehensive.t");
+            }
+            if (!File.Exists(p)) { Assert.Inconclusive("comprehensive.t not found"); return; }
+            long result = CompileAndRun(File.ReadAllText(p));
+            Assert.IsTrue(result > 0, $"Expected positive result, got {result}");
         }
     }
 }
