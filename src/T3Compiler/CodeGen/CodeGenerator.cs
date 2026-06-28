@@ -14,14 +14,24 @@ namespace T3Compiler.CodeGen
         readonly Dictionary<string,List<int>> _arrDims=new();readonly Dictionary<string,List<FieldDef>> _structFields=new();
         readonly Stack<(string brk,string cont)> _loopStack=new();readonly Dictionary<string,List<FieldDef>> _structDefs=new();
         string? _epilogueLabel;
-        int _nextAddr = 2000;   // allocated well past any possible code
-        int _globalSlotAddr = 2000;
+        int _nextAddr = 2000;   // allocated well past any possible code (used for globals/data only)
         readonly HashSet<string> _liveVars = new();
         bool _fpuLive = false;
         readonly Dictionary<string,int> _globalSlots = new();
+        int _localFrameSize = 0;          // ABI v4: size of local vars in current function
+        int _globalSlotAddr = 2000;       // ABI v4: base address for global slots
+        bool _useR3 = false, _useR4 = false;  // ABI v4: track callee-saved usage
 
-        // Working regs: 0(RW),1(RX),2(RY),4(R0),3(RZ),7(R3)
-        // R4(8) = AddrReg, R1(5) = call temp, R2(6) = retval
+        // ABI v4 register assignments:
+        // RW(0),RX(1),RY(2),R0(4) = arg regs / scratch   [caller-saved]
+        // RZ(3) = Frame Pointer                             [callee-saved]
+        // R1(5) = call target address                      [caller-saved]
+        // R2(6) = return value                             [caller-saved]
+        // R3(7),R4(8) = callee-saved temp                  [callee-saved]
+        const int FP = 3;    // RZ
+        const int CALLREG = 5; // R1
+        const int RETREG = 6;  // R2
+        const int ADDRREG = 8; // R4 (callee-saved)
 
         public CodeGenerator(AstProgram p){
             _program=p;_output=new();_codeOutput=new();
@@ -117,31 +127,46 @@ namespace T3Compiler.CodeGen
         
         void GenFunc(FunctionDef f){
             _varSlots.Clear();_varSizes.Clear();_arrDims.Clear();_structFields.Clear();
-            _nextReg = 0;
+            _nextReg = 0;_freeRegs.Clear();
             _epilogueLabel = Lbl("epilogue");
+            _localFrameSize = 0;_useR3 = false;_useR4 = false;
 
+            // ABI v4: allocate local slots (index from 0). Parameters also get slots.
             foreach(var param in f.Parameters) Alloc(param.Name, param.Type);
 
             EmitCode($"{f.Name}:");
-            
-            // Prologue: pop params, then save callee-saved
-            EmitCode("    POP R2");   // save ret addr
+
+            // === ABI v4 Prologue (backward-compat stack layout) ===
+            // Read args FIRST (same as ABI v3), then set up FP and save callee-saved.
+            // Stack on entry: [...caller_saved(8)][argN-1...arg0][ret_addr] ← SP
+            EmitCode("    POP R2");   // ret_addr → R2
             for (int i = 0; i < f.Parameters.Count; i++) {
-                EmitCode("    POP R0");
-                Store(f.Parameters[i].Name, 4, 0);
+                EmitCode("    POP R0");  // arg value into R0 (phys=4)
+                Store(f.Parameters[i].Name, 4, 0);  // store R0 to variable slot
             }
-            EmitCode("    PUSH R2");   // restore ret addr
+            EmitCode("    PUSH R2");   // ret_addr back on stack
             
-            // Save callee-saved registers
-            EmitCode("    PUSH RW");EmitCode("    PUSH RX");EmitCode("    PUSH RY");EmitCode("    PUSH RZ");
-            EmitCode("    PUSH R0");EmitCode("    PUSH R3");EmitCode("    PUSH R1");EmitCode("    PUSH R4");
-            
+            // Save Frame Pointer and callee-saved registers
+            EmitCode("    PUSH RZ");           // save old Frame Pointer
+            EmitCode("    MOV RZ, SP");        // FP = SP (points at saved_RZ)
+
+            // Save callee-saved GP (always conservative)
+            EmitCode("    PUSH R3"); _useR3 = true;
+            EmitCode("    PUSH R4"); _useR4 = true;
+
+            // Reserve stack space for local variables (if any on stack)
+            if(_localFrameSize > 0)
+                EmitCode($"    SUBI SP, SP, {_localFrameSize}");
+
             foreach(var s in f.Body.Body)GenStmt(s);
-            
-            // Epilogue
+
+            // === ABI v4 Epilogue ===
             EmitCode($"{_epilogueLabel}:");
-            EmitCode("    POP R4");EmitCode("    POP R1");EmitCode("    POP R3");EmitCode("    POP R0");
-            EmitCode("    POP RZ");EmitCode("    POP RY");EmitCode("    POP RX");EmitCode("    POP RW");
+            if(_localFrameSize > 0)
+                EmitCode($"    ADDI SP, SP, {_localFrameSize}");
+            EmitCode("    POP R4");
+            EmitCode("    POP R3");
+            EmitCode("    POP RZ");            // restore old FP
             EmitCode("    RET");
         }
         
