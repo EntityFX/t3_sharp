@@ -192,8 +192,22 @@ namespace T3Assembler
                 return new List<Int128>{InstructionEncoder.EncodeI(pred,(int)Opcode.LI,op1,rv)};
             }
             else if(mn=="LIMM")return new List<Int128>{InstructionEncoder.EncodeI(pred,(int)Opcode.LIMM,op1,0),(Int128)ResolveOperandValue(ip[2])};
-            else if(mn=="GETSP")return new List<Int128>{InstructionEncoder.EncodeJ(pred,(int)op,op1)};
+            else if(mn=="GETSP")return new List<Int128>{InstructionEncoder.EncodeI(pred,(int)op,op1,0)};
             else if(mn=="INI"||mn=="OUTI"){if(ip.Length>2)imm=(long)ResolveOperandValue(ip[2]);return new List<Int128>{InstructionEncoder.EncodeI(pred,(int)op,op1,imm)};}
+            else if(op == Opcode.LOADI || op == Opcode.STOREI){
+                int baseReg = 0;
+                if(ip.Length > 2 && IsRegister(ip[2])){
+                    baseReg = GetRegisterTrit(ip[2]);
+                    imm = (ip.Length > 3) ? (long)ResolveOperandValue(ip[3]) : 0;
+                } else if (ip.Length > 2){
+                    baseReg = 3; // Default to RZ if second arg is not a register (it's the offset)
+                    imm = (long)ResolveOperandValue(ip[2]);
+                } else {
+                    baseReg = 3;
+                    imm = 0;
+                }
+                return new List<Int128>{InstructionEncoder.EncodeS(pred,(int)op,op1,baseReg,imm)};
+            }
             else if(IsIType(op)){if(ip.Length>2)imm=(long)ResolveOperandValue(ip[2]);return new List<Int128>{InstructionEncoder.EncodeI(pred,(int)op,op1,imm)};}
             else return new List<Int128>{InstructionEncoder.EncodeR(pred,(int)op,op1,op2,op3)};
         }

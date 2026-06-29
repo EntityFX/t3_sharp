@@ -18,6 +18,7 @@ namespace T3Simulator.InOrder
         public T3InOrderProcessor(T3Config config) : base(config)
         {
             LastError = null;
+            SP = 1024; // Initialize stack pointer to avoid negative addresses
         }
 
         public override bool Step()
@@ -113,19 +114,23 @@ namespace T3Simulator.InOrder
                     SetRegisterValue(instr.PhysOp1, ReadWord(ToLong(GetRegisterValue(instr.PhysOp2))));
                     IncrementCycles(2);
                     return false;
-                
-                case Opcode.LOADI:
-                    SetRegisterValue(instr.PhysOp1, ReadWord(ToLong(GetRegisterValue(instr.PhysOp2)) + instr.Immediate));
-                    IncrementCycles(2);
-                    return false;
-                
+
                 case Opcode.STORE:
                     WriteWord(ToLong(GetRegisterValue(instr.PhysOp2)), GetRegisterValue(instr.PhysOp1));
                     IncrementCycles(2);
                     return false;
                 
+                case Opcode.LOADI:
+                    long loadAddr = ToLong(GetRegisterValue(instr.PhysOp2)) + instr.Immediate;
+                    //Console.WriteLine($"DEBUG: LOADI R{instr.PhysOp1} Base=R{instr.PhysOp2}({GetRegisterValue(instr.PhysOp2)}) Off={instr.Immediate} Addr={loadAddr}");
+                    SetRegisterValue(instr.PhysOp1, ReadWord(loadAddr));
+                    IncrementCycles(2);
+                    return false;
+                
                 case Opcode.STOREI:
-                    WriteWord(ToLong(GetRegisterValue(instr.PhysOp2)) + instr.Immediate, GetRegisterValue(instr.PhysOp1));
+                    long storeAddr = ToLong(GetRegisterValue(instr.PhysOp2)) + instr.Immediate;
+                    //Console.WriteLine($"DEBUG: STOREI Base=R{instr.PhysOp2}({GetRegisterValue(instr.PhysOp2)}) Off={instr.Immediate} Addr={storeAddr} Val={GetRegisterValue(instr.PhysOp1)}");
+                    WriteWord(storeAddr, GetRegisterValue(instr.PhysOp1));
                     IncrementCycles(2);
                     return false;
 
@@ -383,6 +388,7 @@ namespace T3Simulator.InOrder
                     return false;
 
                 case Opcode.GETSP:
+                    //Console.WriteLine($"DEBUG: GETSP R{instr.PhysOp1} SP={SP}");
                     SetRegisterValue(instr.PhysOp1, FromLong(SP));
                     IncrementCycles(1);
                     return false;
@@ -517,11 +523,13 @@ namespace T3Simulator.InOrder
 
         private TWord GetRegisterValue(int logicalIndex)
         {
+            if (logicalIndex == 9) return FromLong(SP);
             return Registers[logicalIndex];
         }
 
         private void SetRegisterValue(int logicalIndex, TWord value)
         {
+            if (logicalIndex == 9) { SP = (int)ToLong(value); return; }
             Registers[logicalIndex] = value;
         }
     }

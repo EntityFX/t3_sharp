@@ -63,6 +63,15 @@ namespace T3Simulator.Common
             return pred * P3_15 + opcode * P3_9 + args;
         }
 
+        /// <summary>S-type: [Pred(3)][Opcode(6)][Op1(3)][Op2(3)][Imm(3)]</summary>
+        public static long EncodeS(int pred, int opcode, int op1, int op2, long imm)
+        {
+            long args = ToUnsignedField(op1, RANGE_3, OFFSET_3) * P3_6
+                      + ToUnsignedField(op2, RANGE_3, OFFSET_3) * P3_3
+                      + ToUnsignedField(imm, RANGE_3, OFFSET_3);
+            return pred * P3_15 + opcode * P3_9 + args;
+        }
+
         // Word18 wrappers
         public static Word18 EncodeR18(int pred, int opcode, int op1, int op2, int op3) =>
             Word18.FromLong(EncodeR(pred, opcode, op1, op2, op3));

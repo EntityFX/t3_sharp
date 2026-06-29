@@ -1,0 +1,120 @@
+; T→T3
+__entry:
+    LI RW,main
+    CALL RW
+    HALT
+fact:
+    POP R2
+    POP R3
+    LI R4,300
+    STORE R3,R4
+    PUSH R2
+    PUSH RW
+    PUSH RX
+    PUSH RY
+    PUSH RZ
+    PUSH R0
+    PUSH R1
+    PUSH R3
+    PUSH R4
+    LI R4,300
+    LOAD RZ,R4
+    LI R0,1
+    CMP RZ,R0
+    LIMM R3,then_2
+    JLE R3
+    LIMM RW,end_1
+    JMP RW
+then_2:
+    LI RX,1
+    MOV R2,RX
+    LIMM RY,epilogue_0
+    JMP RY
+end_1:
+    LI R4,300
+    LOAD RZ,R4
+    PUSH RZ
+    LI R4,300
+    LOAD R0,R4
+    PUSH R0
+    LI R3,1
+    POP RW
+    SUB RX,RW,R3
+    PUSH RX
+    PUSH RW
+    PUSH RX
+    PUSH RY
+    PUSH RZ
+    PUSH R0
+    PUSH R1
+    PUSH R3
+    PUSH R4
+    LI R1,fact
+    CALL R1
+    POP R4
+    POP R3
+    POP R1
+    POP R0
+    POP RZ
+    POP RY
+    POP RX
+    POP RW
+    MOV RY,R2
+    POP RZ
+    MUL R0,RZ,RY
+    MOV R2,R0
+    LIMM R3,epilogue_0
+    JMP R3
+epilogue_0:
+    POP R4
+    POP R3
+    POP R1
+    POP R0
+    POP RZ
+    POP RY
+    POP RX
+    POP RW
+    RET
+main:
+    PUSH RW
+    PUSH RX
+    PUSH RY
+    PUSH RZ
+    PUSH R0
+    PUSH R1
+    PUSH R3
+    PUSH R4
+    LI RZ,7
+    PUSH RZ
+    PUSH RW
+    PUSH RX
+    PUSH RY
+    PUSH RZ
+    PUSH R0
+    PUSH R1
+    PUSH R3
+    PUSH R4
+    LI R1,fact
+    CALL R1
+    POP R4
+    POP R3
+    POP R1
+    POP R0
+    POP RZ
+    POP RY
+    POP RX
+    POP RW
+    MOV R0,R2
+    MOV R2,R0
+    LIMM R3,epilogue_3
+    JMP R3
+epilogue_3:
+    POP R4
+    POP R3
+    POP R1
+    POP R0
+    POP RZ
+    POP RY
+    POP RX
+    POP RW
+    RET

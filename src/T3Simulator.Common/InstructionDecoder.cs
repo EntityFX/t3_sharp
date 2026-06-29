@@ -41,6 +41,12 @@ namespace T3Simulator.Common
                 op2 = (int)(TritTypes.TernaryMath.ExtractRawField(rawArgs, 3, 3) - OFFSET_3);
                 op3 = (int)(TritTypes.TernaryMath.ExtractRawField(rawArgs, 0, 3) - OFFSET_3);
             }
+            else if (op == Opcode.LOADI || op == Opcode.STOREI)
+            {
+                op1 = (int)(TritTypes.TernaryMath.ExtractRawField(rawArgs, 6, 3) - OFFSET_3);
+                op2 = (int)(TritTypes.TernaryMath.ExtractRawField(rawArgs, 3, 3) - OFFSET_3);
+                imm = (long)(TritTypes.TernaryMath.ExtractRawField(rawArgs, 0, 3) - OFFSET_3);
+            }
             else if (op.IsIType())
             {
                 op1 = (int)(TritTypes.TernaryMath.ExtractRawField(rawArgs, 6, 3) - OFFSET_3);

@@ -93,7 +93,7 @@ namespace T3Assembler
 
         protected bool IsRegister(string t){
             string u=t.ToUpper();
-            return u is"RW"or"RX"or"RY"or"RZ"or"FW"or"FX"or"FY"or"FZ"
+            return u is"RW"or"RX"or"RY"or"RZ"or"FW"or"FX"or"FY"or"FZ"or"SP"
                 ||(u.StartsWith('R')&&int.TryParse(u[1..],out int i)&&i>=0&&i<=4)
                 ||(u.StartsWith('F')&&int.TryParse(u[1..],out int j)&&j>=0&&j<=4)
                 ||(u.Length==1&&u[0]>='A'&&u[0]<='I');
@@ -102,6 +102,7 @@ namespace T3Assembler
         /// <summary>Returns TRIT value (-4..+4). Phys index = trit + 4.</summary>
         protected int GetRegisterTrit(string t){
             string u=t.ToUpper();
+            if(u=="SP")return 5;
             if(u.StartsWith('R')&&int.TryParse(u[1..],out int i)&&i>=0&&i<=4)return i;
             if(u.StartsWith('F')&&int.TryParse(u[1..],out int j)&&j>=0&&j<=4)return j;
             if(u.Length==1&&u[0]>='A'&&u[0]<='I')return (""+u[0])switch{"A"=>-4,"B"=>-3,"C"=>-2,"D"=>-1,"E"=>0,"F"=>1,"G"=>2,"H"=>3,"I"=>4,_=>0};
