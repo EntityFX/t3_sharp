@@ -15,9 +15,17 @@ namespace T3Simulator.InOrder
         /// <summary>Last processor error message (set on exception; read by CLI/UI).</summary>
         public string? LastError { get; private set; }
 
+        /// <summary>Enable instruction-level trace output.</summary>
+        public bool TraceEnabled { get; set; }
+
+        /// <summary>Target for trace messages (defaults to Console.Out).</summary>
+        public System.IO.TextWriter? TraceOutput { get; set; }
+
         public T3InOrderProcessor(T3Config config) : base(config)
         {
             LastError = null;
+            TraceEnabled = false;
+            TraceOutput = Console.Out;
         }
 
         public override bool Step()
@@ -54,6 +62,18 @@ namespace T3Simulator.InOrder
             }
 
             IncrementInstructions();
+
+            if (TraceEnabled && TraceOutput != null)
+            {
+                var sb = new System.Text.StringBuilder();
+                sb.Append($"[PC={PC:D4}] {instr.Opcode}");
+                if (instr.Opcode == Opcode.LIMM) sb.Append($" imm={instr.Immediate}");
+                sb.Append(" |");
+                for (int i = 0; i < Registers.Length; i++)
+                    sb.Append($" R{i}={ToLong(Registers[i])}");
+                sb.Append($" SP={SP} Cond={Cond}");
+                TraceOutput.WriteLine(sb.ToString());
+            }
 
             if (!jumped)
             {

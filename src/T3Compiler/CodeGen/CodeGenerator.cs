@@ -117,6 +117,7 @@ namespace T3Compiler.CodeGen
         
         void GenFunc(FunctionDef f){
             _varSlots.Clear();_varSizes.Clear();_arrDims.Clear();_structFields.Clear();
+            _freeRegs.Clear();
             _nextReg = 0;
             _epilogueLabel = Lbl("epilogue");
 

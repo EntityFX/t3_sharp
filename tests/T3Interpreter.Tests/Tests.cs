@@ -52,16 +52,18 @@ namespace T3Interpreter.Tests
         /// Compiles T-lang source to assembly, assembles to binary, runs on processor,
         /// and returns the result value (R2 register after main returns).
         /// </summary>
-        static long C(string source)
+        static long C(string source, bool dumpAsm = false)
         {
             var preprocessed = new T3Preprocessor().Process(source);
             var tokens = new Tokenizer(preprocessed).Tokenize();
             var ast = new Parser(tokens).ParseProgram();
             var asmCode = new CodeGenerator(ast).Generate();
+            if (dumpAsm) Console.WriteLine("=== ASM ===\n" + asmCode + "\n=== END ===");
             var config = T3Config.T3_18;
             var assembler = new T3InOrderAssembler(config);
             var machineCode = assembler.Assemble(asmCode);
             var processor = new T3InOrderProcessor<Word18>(config);
+            if (dumpAsm) { processor.TraceEnabled = true; processor.TraceOutput = Console.Out; }
             processor.LoadProgram(machineCode.ConvertAll(w => Word18.FromInt128(w)));
             processor.Run();
             return processor.Registers[6].ToLong();
@@ -88,7 +90,7 @@ namespace T3Interpreter.Tests
         // Compiler returns 6 due to register loss in nested call ABI — tracked for future fix.
         [TestMethod] public void Equiv_NestedFunctionCalls_Interpreter() => Assert.AreEqual(12, I("tint f(tint x){return x*2;}tint g(tint x){return f(x+1);}tint main(){return g(5);}"));
         [TestMethod]
-        public void Equiv_NestedFunctionCalls_Compiler() => Assert.AreEqual(12, C("tint f(tint x){return x*2;}tint g(tint x){return f(x+1);}tint main(){return g(5);}"));
+        public void Equiv_NestedFunctionCalls_Compiler() => Assert.AreEqual(12, C("tint f(tint x){return x*2;}tint g(tint x){return f(x+1);}tint main(){return g(5);}", true));
 
         // === P2: Expanded equivalence tests (struct, multidim, &&, ||, !) ===
 

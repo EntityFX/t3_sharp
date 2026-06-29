@@ -46,10 +46,10 @@ namespace T3Assembler
             return sb.ToString();
         }
         protected Int128 ResolveOperandValue(string t){
-            if(IsRegister(t))return GetRegisterTrit(t);
             if(_constants.TryGetValue(t,out var cv))return cv;
-            if(long.TryParse(t,out long v))return v;
             if(_labels.TryGetValue(t,out int a))return a;
+            if(IsRegister(t))return GetRegisterTrit(t);
+            if(long.TryParse(t,out long v))return v;
             if(t.StartsWith("t",StringComparison.OrdinalIgnoreCase))return BalancedTernary.ParseToInt128(t[1..]);
             if(t.StartsWith("0n",StringComparison.OrdinalIgnoreCase))return P9(t[2..]);
             if(t.StartsWith("0y",StringComparison.OrdinalIgnoreCase))return P27(t[2..]);
@@ -80,9 +80,9 @@ namespace T3Assembler
             return ResolveSimple(expr);
         }
         Int128 ResolveSimple(string t){
-            if(long.TryParse(t,out long v))return v;
             if(_constants.TryGetValue(t,out var cv))return cv;
             if(_labels.TryGetValue(t,out int a))return a;
+            if(long.TryParse(t,out long v))return v;
             if(t.StartsWith("0t",StringComparison.OrdinalIgnoreCase))return BalancedTernary.ParseToInt128(t[2..]);
             if(t.StartsWith("0n",StringComparison.OrdinalIgnoreCase))return P9(t[2..]);
             if(t.StartsWith("0y",StringComparison.OrdinalIgnoreCase))return P27(t[2..]);
