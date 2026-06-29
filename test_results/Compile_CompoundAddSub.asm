@@ -5,43 +5,43 @@ __entry:
     HALT
 main:
     PUSH RZ
-    GETSP RZ
     PUSH R3
     PUSH R4
+    MOV RZ, SP
     SUBI SP, SP, 1
     LI RW,10
-    STOREI RW, RZ, -3
-    LOADI RX, RZ, -3
+    STOREI RZ, -1, RW
+    LOADI RX, RZ, -1
     PUSH RX
     LI RY,5
     POP R0
     ADD R3,R0,RY
-    STOREI R3, RZ, -3
-    LOADI RY, RZ, -3
+    STOREI RZ, -1, R3
+    LOADI RY, RZ, -1
     PUSH RY
     LI R0,3
     POP RW
     SUB RX,RW,R0
-    STOREI RX, RZ, -3
-    LOADI R0, RZ, -3
+    STOREI RZ, -1, RX
+    LOADI R0, RZ, -1
     PUSH R0
     LI RW,2
     POP RY
     MUL R0,RY,RW
-    STOREI R0, RZ, -3
-    LOADI RW, RZ, -3
+    STOREI RZ, -1, R0
+    LOADI RW, RZ, -1
     PUSH RW
     LI RY,4
     POP R3
     DIV RW,R3,RY
-    STOREI RW, RZ, -3
-    LOADI RY, RZ, -3
+    STOREI RZ, -1, RW
+    LOADI RY, RZ, -1
     PUSH RY
     LI R3,4
     POP RX
     ADD RY,RX,R3
-    STOREI RY, RZ, -3
-    LOADI R3, RZ, -3
+    STOREI RZ, -1, RY
+    LOADI R3, RZ, -1
     MOV R2,R3
     LIMM RX,epilogue_0
     JMP RX

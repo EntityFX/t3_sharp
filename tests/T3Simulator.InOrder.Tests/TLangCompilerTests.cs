@@ -18,25 +18,39 @@ namespace T3Simulator.InOrder.Tests
     [TestClass]
     public class TLangCompilerTests
     {
-        private long CompileAndRun(string source, string testName = "unknown")
-        {
-            var pp = new T3Preprocessor();
-            string pre = pp.Process(source);
-            var ast = new Parser(new Tokenizer(pre).Tokenize()).ParseProgram();
-            string asm = new CodeGenerator(ast).Generate();
-            
-            // Dump ASM for debugging
-            string dumpDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "..", "test_results");
-            if (!Directory.Exists(dumpDir)) Directory.CreateDirectory(dumpDir);
-            File.WriteAllText(Path.Combine(dumpDir, $"{testName}.asm"), asm);
+    private long CompileAndRun(string source, string testName = "unknown")
+    {
+        var pp = new T3Preprocessor();
+        string pre = pp.Process(source);
+        var ast = new Parser(new Tokenizer(pre).Tokenize()).ParseProgram();
+        string asm = new CodeGenerator(ast).Generate();
+        
+        // Dump ASM for debugging
+        string dumpDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "..", "test_results");
+        if (!Directory.Exists(dumpDir)) Directory.CreateDirectory(dumpDir);
+        File.WriteAllText(Path.Combine(dumpDir, $"{testName}.asm"), asm);
 
-            var bin = new T3InOrderAssembler(T3Config.T3_18).Assemble(asm);
-            var words = bin.Select(x => Word18.FromInt128(x)).ToList();
-            var proc = new T3InOrderProcessor<Word18>(T3Config.T3_18);
-            proc.LoadProgram(words);
+        var bin = new T3InOrderAssembler(T3Config.T3_18).Assemble(asm);
+        var words = bin.Select(x => Word18.FromInt128(x)).ToList();
+        var proc = new T3InOrderProcessor<Word18>(T3Config.T3_18);
+        proc.LoadProgram(words);
+        
+        try 
+        {
             proc.Run();
-            return proc.Registers[6].ToLong(); // R2→phys6
         }
+        catch (Exception ex)
+        {
+            File.WriteAllText(Path.Combine(dumpDir, $"{testName}.crash.state.txt"), 
+                $"Exception: {ex.Message}\n{ex.StackTrace}\n\n{proc.DumpState()}");
+            throw;
+        }
+        
+        // Save final state for analysis of incorrect results
+        File.WriteAllText(Path.Combine(dumpDir, $"{testName}.final.state.txt"), proc.DumpState());
+        
+        return proc.Registers[6].ToLong(); // R2→phys6
+    }
 
         [TestMethod]
         [Timeout(5000)]

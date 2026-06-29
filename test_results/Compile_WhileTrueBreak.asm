@@ -5,12 +5,12 @@ __entry:
     HALT
 main:
     PUSH RZ
-    GETSP RZ
     PUSH R3
     PUSH R4
+    MOV RZ, SP
     SUBI SP, SP, 1
     LI RW,0
-    STOREI RW, RZ, -3
+    STOREI RZ, -1, RW
 loop_1:
     LI RX,1
     LI R2,0
@@ -20,13 +20,13 @@ loop_1:
     LIMM R0,wend_3
     JMP R0
 body_2:
-    LOADI R3, RZ, -3
+    LOADI R3, RZ, -1
     PUSH R3
     LI RW,1
     POP RX
     ADD RY,RX,RW
-    STOREI RY, RZ, -3
-    LOADI RW, RZ, -3
+    STOREI RZ, -1, RY
+    LOADI RW, RZ, -1
     LI RX,10
     CMP RW,RX
     LIMM R0,then_5
@@ -40,7 +40,7 @@ end_4:
     LIMM RX,loop_1
     JMP RX
 wend_3:
-    LOADI RY, RZ, -3
+    LOADI RY, RZ, -1
     MOV R2,RY
     LIMM R0,epilogue_0
     JMP R0

@@ -5,12 +5,12 @@ __entry:
     HALT
 get_val:
     PUSH RZ
-    GETSP RZ
     PUSH R3
     PUSH R4
+    MOV RZ, SP
     SUBI SP, SP, 1
-    STOREI RW, RZ, -3
-    LOADI RW, RZ, -3
+    STOREI RZ, -1, RW
+    LOADI RW, RZ, -1
     MOV R2,RW
     LIMM RX,epilogue_0
     JMP RX
@@ -22,9 +22,9 @@ epilogue_0:
     RET
 main:
     PUSH RZ
-    GETSP RZ
     PUSH R3
     PUSH R4
+    MOV RZ, SP
     LI RW,1
     PUSH RW
     PUSH RX

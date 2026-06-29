@@ -5,42 +5,42 @@ __entry:
     HALT
 main:
     PUSH RZ
-    GETSP RZ
     PUSH R3
     PUSH R4
+    MOV RZ, SP
     SUBI SP, SP, 6
     LI RW,1
-    PUSH RW
     LI RX,0
-    LI R4, -3
-    ADD R4, RZ, R4
+    LI R4, 1
+    SUB R4, RZ, R4
     ADD R4,R4,RX
+    PUSH RW
     POP RY
-    STOREI RY,R4, 0
-    LI R0,2
-    PUSH R0
-    LI R3,1
-    LI R4, -3
-    ADD R4, RZ, R4
-    ADD R4,R4,R3
-    POP RW
-    STOREI RW,R4, 0
-    LI RX,0
-    LI RY, -3
-    ADD RY, RZ, RY
-    ADD RY,RY,RX
-    STOREI RY, RZ, -8
-    LOADI R0, RZ, -8
-    PUSH R0
-    LI R3,1
-    POP RW
-    ADD RX,RW,R3
-    STOREI RX, RZ, -8
-    LOADI R3, RZ, -8
-    LOADI RW,R3, 0
-    MOV R2,RW
-    LIMM RY,epilogue_0
-    JMP RY
+    STOREI R4, 0, RY
+    LI RY,2
+    LI RX,1
+    LI R4, 1
+    SUB R4, RZ, R4
+    ADD R4,R4,RX
+    PUSH RY
+    POP R0
+    STOREI R4, 0, R0
+    LI R0,0
+    LI RX, 1
+    SUB RX, RZ, RX
+    ADD RX,RX,R0
+    STOREI RZ, -6, RX
+    LOADI R3, RZ, -6
+    PUSH R3
+    LI RW,1
+    POP RX
+    ADD RY,RX,RW
+    STOREI RZ, -6, RY
+    LOADI RW, RZ, -6
+    LOADI RX,RW, 0
+    MOV R2,RX
+    LIMM R0,epilogue_0
+    JMP R0
 epilogue_0:
     ADDI SP, SP, 6
     POP R4

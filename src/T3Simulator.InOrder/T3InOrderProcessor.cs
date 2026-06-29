@@ -15,6 +15,49 @@ namespace T3Simulator.InOrder
         /// <summary>Last processor error message (set on exception; read by CLI/UI).</summary>
         public string? LastError { get; private set; }
 
+        public string DumpState()
+        {
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine($"--- Processor State Dump ---");
+            sb.AppendLine($"PC: {PC}");
+            sb.AppendLine($"SP: {SP}");
+            sb.AppendLine($"Cond: {Cond}");
+            sb.AppendLine($"Cycles: {CycleCount}, Instructions: {InstructionCount}");
+            
+            sb.AppendLine("GP Registers:");
+            for (int i = 0; i < 9; i++)
+            {
+                sb.AppendLine($"  R{i}: {GetRegisterValue(i).ToLong()}");
+            }
+            
+            sb.AppendLine("FPU Registers:");
+            for (int i = 0; i < 9; i++)
+            {
+                // Using T3Fpu.ToDoublePrecision for readable output
+                var val = T3Fpu.ToDoublePrecision(FRegisters[i]);
+                sb.AppendLine($"  F{i}: {val}");
+            }
+
+            sb.AppendLine("Predicate Registers (PR):");
+            for (int i = 0; i < 18; i++)
+            {
+                sb.Append($"{PR.GetTrit(i)}");
+            }
+            sb.AppendLine();
+
+            sb.AppendLine("Memory (around SP):");
+            for (long i = SP - 16; i <= SP + 16; i++)
+            {
+                try {
+                    sb.AppendLine($"  [{i:D4}]: {ReadWord(i).ToLong()}");
+                } catch {
+                    sb.AppendLine($"  [{i:D4}]: <error>");
+                }
+            }
+            
+            return sb.ToString();
+        }
+
         public T3InOrderProcessor(T3Config config) : base(config)
         {
             LastError = null;

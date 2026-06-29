@@ -1,0 +1,61 @@
+--- Processor State Dump ---
+PC: 9
+SP: 1006
+Cond: 0
+Cycles: 34, Instructions: 19
+GP Registers:
+  R0: 7
+  R1: 0
+  R2: 0
+  R3: 1011
+  R4: 0
+  R5: 4
+  R6: 0
+  R7: 0
+  R8: 0
+FPU Registers:
+  F0: TritTypes.T3Double
+  F1: TritTypes.T3Double
+  F2: TritTypes.T3Double
+  F3: TritTypes.T3Double
+  F4: TritTypes.T3Double
+  F5: TritTypes.T3Double
+  F6: TritTypes.T3Double
+  F7: TritTypes.T3Double
+  F8: TritTypes.T3Double
+Predicate Registers (PR):
+000000000000000000
+Memory (around SP):
+  [0990]: 0
+  [0991]: 0
+  [0992]: 0
+  [0993]: 0
+  [0994]: 0
+  [0995]: 0
+  [0996]: 0
+  [0997]: 0
+  [0998]: 0
+  [0999]: 0
+  [1000]: 0
+  [1001]: 0
+  [1002]: 0
+  [1003]: 0
+  [1004]: 0
+  [1005]: 0
+  [1006]: 0
+  [1007]: 0
+  [1008]: 0
+  [1009]: 0
+  [1010]: 0
+  [1011]: 0
+  [1012]: 0
+  [1013]: 1020
+  [1014]: 69
+  [1015]: 56
+  [1016]: 0
+  [1017]: 0
+  [1018]: 0
+  [1019]: 7
+  [1020]: 0
+  [1021]: 0
+  [1022]: 0

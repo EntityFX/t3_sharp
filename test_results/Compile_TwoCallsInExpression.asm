@@ -5,15 +5,15 @@ __entry:
     HALT
 add:
     PUSH RZ
-    GETSP RZ
     PUSH R3
     PUSH R4
+    MOV RZ, SP
     SUBI SP, SP, 2
-    STOREI RW, RZ, -3
-    STOREI RX, RZ, -4
-    LOADI RW, RZ, -3
+    STOREI RZ, -1, RW
+    STOREI RZ, -2, RX
+    LOADI RW, RZ, -1
     PUSH RW
-    LOADI RX, RZ, -4
+    LOADI RX, RZ, -2
     POP RY
     ADD R0,RY,RX
     MOV R2,R0
@@ -27,9 +27,9 @@ epilogue_0:
     RET
 main:
     PUSH RZ
-    GETSP RZ
     PUSH R3
     PUSH R4
+    MOV RZ, SP
     LI RW,3
     LI RX,4
     PUSH RW

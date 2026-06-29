@@ -5,9 +5,9 @@ __entry:
     HALT
 main:
     PUSH RZ
-    GETSP RZ
     PUSH R3
     PUSH R4
+    MOV RZ, SP
     SUBI SP, SP, 2
     LIMM RW,str_1
     PUSH RW
@@ -23,7 +23,7 @@ main:
     POP RX
     POP RW
     MOV RX,R2
-    STOREI RX, RZ, -3
+    STOREI RZ, -1, RX
     LIMM RY,str_2
     PUSH RW
     PUSH RX
@@ -39,10 +39,10 @@ main:
     POP RX
     POP RW
     MOV R0,R2
-    STOREI R0, RZ, -4
-    LOADI R3, RZ, -3
+    STOREI RZ, -2, R0
+    LOADI R3, RZ, -1
     PUSH R3
-    LOADI RW, RZ, -4
+    LOADI RW, RZ, -2
     POP RX
     ADD RY,RX,RW
     MOV R2,RY

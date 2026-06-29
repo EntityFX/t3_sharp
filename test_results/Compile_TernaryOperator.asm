@@ -5,13 +5,13 @@ __entry:
     HALT
 main:
     PUSH RZ
-    GETSP RZ
     PUSH R3
     PUSH R4
+    MOV RZ, SP
     SUBI SP, SP, 2
     LI RW,5
-    STOREI RW, RZ, -3
-    LOADI RX, RZ, -3
+    STOREI RZ, -1, RW
+    LOADI RX, RZ, -1
     PUSH RX
     LI RY,0
     POP R0
@@ -44,8 +44,8 @@ t_3:
     LI RW,3
     MOV RY,RW
 d_5:
-    STOREI RY, RZ, -4
-    LOADI RX, RZ, -4
+    STOREI RZ, -2, RY
+    LOADI RX, RZ, -2
     MOV R2,RX
     LIMM RY,epilogue_0
     JMP RY

@@ -5,35 +5,35 @@ __entry:
     HALT
 main:
     PUSH RZ
-    GETSP RZ
     PUSH R3
     PUSH R4
+    MOV RZ, SP
     SUBI SP, SP, 2
     LI RW,10
     PUSH RW
     LI RX,0
-    LI R4, -3
-    ADD R4, RZ, R4
+    LI R4, 1
+    SUB R4, RZ, R4
     ADD R4,R4,RX
     POP RY
-    STOREI RY,R4, 0
+    STOREI R4, 0, RY
     LI R0,20
     PUSH R0
     LI R3,0
-    LI R4, -4
-    ADD R4, RZ, R4
+    LI R4, 2
+    SUB R4, RZ, R4
     ADD R4,R4,R3
     POP RW
-    STOREI RW,R4, 0
+    STOREI R4, 0, RW
     LI RX,0
-    LI R4, -3
-    ADD R4, RZ, R4
+    LI R4, 1
+    SUB R4, RZ, R4
     ADD RY,R4,RX
     LOADI RY,RY, 0
     PUSH RY
     LI R0,0
-    LI R4, -4
-    ADD R4, RZ, R4
+    LI R4, 2
+    SUB R4, RZ, R4
     ADD R3,R4,R0
     LOADI R3,R3, 0
     POP RW

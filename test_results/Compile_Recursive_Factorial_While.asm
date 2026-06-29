@@ -5,15 +5,15 @@ __entry:
     HALT
 fact:
     PUSH RZ
-    GETSP RZ
     PUSH R3
     PUSH R4
+    MOV RZ, SP
     SUBI SP, SP, 2
-    STOREI RW, RZ, -4
+    STOREI RZ, -2, RW
     LI RW,1
-    STOREI RW, RZ, -3
+    STOREI RZ, -1, RW
 loop_1:
-    LOADI RX, RZ, -4
+    LOADI RX, RZ, -2
     LI RY,1
     CMP RX,RY
     LIMM R0,body_2
@@ -21,22 +21,22 @@ loop_1:
     LIMM R3,wend_3
     JMP R3
 body_2:
-    LOADI RW, RZ, -3
+    LOADI RW, RZ, -1
     PUSH RW
-    LOADI RX, RZ, -4
+    LOADI RX, RZ, -2
     POP RY
     MUL R0,RY,RX
-    STOREI R0, RZ, -3
-    LOADI RX, RZ, -4
+    STOREI RZ, -1, R0
+    LOADI RX, RZ, -2
     PUSH RX
     LI RY,1
     POP R3
     SUB RW,R3,RY
-    STOREI RW, RZ, -4
+    STOREI RZ, -2, RW
     LIMM RY,loop_1
     JMP RY
 wend_3:
-    LOADI R3, RZ, -3
+    LOADI R3, RZ, -1
     MOV R2,R3
     LIMM RX,epilogue_0
     JMP RX
@@ -48,9 +48,9 @@ epilogue_0:
     RET
 main:
     PUSH RZ
-    GETSP RZ
     PUSH R3
     PUSH R4
+    MOV RZ, SP
     LI RW,7
     PUSH RW
     PUSH RX

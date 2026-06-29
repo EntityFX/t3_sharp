@@ -5,16 +5,16 @@ __entry:
     HALT
 main:
     PUSH RZ
-    GETSP RZ
     PUSH R3
     PUSH R4
+    MOV RZ, SP
     SUBI SP, SP, 2
     LI RW,42
-    STOREI RW, RZ, -3
-    LI RX, -3
-    ADD RX, RZ, RX
-    STOREI RX, RZ, -4
-    LOADI RY, RZ, -4
+    STOREI RZ, -1, RW
+    LI RX, 1
+    SUB RX, RZ, RX
+    STOREI RZ, -2, RX
+    LOADI RY, RZ, -2
     LOADI R0,RY, 0
     MOV R2,R0
     LIMM R3,epilogue_0

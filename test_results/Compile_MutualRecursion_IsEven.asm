@@ -5,12 +5,12 @@ __entry:
     HALT
 isEven:
     PUSH RZ
-    GETSP RZ
     PUSH R3
     PUSH R4
+    MOV RZ, SP
     SUBI SP, SP, 1
-    STOREI RW, RZ, -3
-    LOADI RW, RZ, -3
+    STOREI RZ, -1, RW
+    LOADI RW, RZ, -1
     LI RX,0
     CMP RW,RX
     LIMM RY,then_2
@@ -23,7 +23,7 @@ then_2:
     LIMM RW,epilogue_0
     JMP RW
 end_1:
-    LOADI RX, RZ, -3
+    LOADI RX, RZ, -1
     PUSH RX
     LI RY,1
     POP R0
@@ -53,12 +53,12 @@ epilogue_0:
     RET
 isOdd:
     PUSH RZ
-    GETSP RZ
     PUSH R3
     PUSH R4
+    MOV RZ, SP
     SUBI SP, SP, 1
-    STOREI RW, RZ, -3
-    LOADI RW, RZ, -3
+    STOREI RZ, -1, RW
+    LOADI RW, RZ, -1
     LI RX,0
     CMP RW,RX
     LIMM RY,then_5
@@ -71,7 +71,7 @@ then_5:
     LIMM RW,epilogue_3
     JMP RW
 end_4:
-    LOADI RX, RZ, -3
+    LOADI RX, RZ, -1
     PUSH RX
     LI RY,1
     POP R0
@@ -101,9 +101,9 @@ epilogue_3:
     RET
 main:
     PUSH RZ
-    GETSP RZ
     PUSH R3
     PUSH R4
+    MOV RZ, SP
     LI RW,10
     PUSH RW
     PUSH RX

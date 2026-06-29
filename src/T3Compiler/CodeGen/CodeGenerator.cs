@@ -5,7 +5,7 @@ namespace T3Compiler.CodeGen
     {
         readonly AstProgram _program;readonly StringBuilder _output;readonly StringBuilder _codeOutput;
         int _labelCounter;
-        readonly Dictionary<string,int> _varSlots=new(),_varSizes=new();
+        readonly Dictionary<string,int> _varSlots=new(),_varSizes=new(),_varElemSizes=new();
         readonly Dictionary<string,string> _globalLabels=new();
         readonly Dictionary<string,int> _enumConstants=new();
         readonly List<(string label, string value)> _stringsToEmit=new();
@@ -19,6 +19,7 @@ namespace T3Compiler.CodeGen
         readonly Dictionary<string,int> _globalSlots = new();
         // Label-based local variable allocation (dynamic, no hardcoded addresses)
         int _localSlotCounter;     // per-function slot counter
+        int _currentLocalSize;     // size of current function's local frame
         string _currentFunc = "";  // current function name
 
         // Struct size cache for sizeof operator
@@ -167,14 +168,14 @@ namespace T3Compiler.CodeGen
 
             // === ABI v4 Prologue ===
             EmitCode("    PUSH RZ");           // save old FP
-            EmitCode("    GETSP RZ");           // RZ = FP, points to Saved RZ
-
             EmitCode("    PUSH R3");            // callee-saved
             EmitCode("    PUSH R4");            // callee-saved
+            EmitCode("    MOV RZ, SP");         // RZ = FP, points to Saved R4
 
             // Allocate frame for locals
             int localSize = 0;
             foreach(var sz in _varSizes.Values) localSize += sz;
+            _currentLocalSize = localSize;
             if(localSize > 0){
                 if(localSize <= 364) EmitCode($"    SUBI SP, SP, {localSize}");
                 else {
@@ -401,16 +402,16 @@ namespace T3Compiler.CodeGen
             if(ma.Object is UnaryOp uo&&uo.Operator=="*"&&uo.Operand is Identifier ptrId){
                 foreach(var kv in _structDefs){
                     int off=kv.Value.FindIndex(f=>f.Name==ma.MemberName);
-                    if(off>=0){
-                        int ptrR=GenExpr(uo.Operand);
-                        int offR=AllocR();
-                        EmitCode($"    LI {RegName(offR)},{off}");
-                        int r=AllocR();
-                        EmitCode($"    SUB {RegName(r)},{RegName(ptrR)},{RegName(offR)}");
-                        EmitCode($"    LOADI {RegName(r)},{RegName(r)}, 0");
-                        FreeR(offR);
-                        return r;
-                    }
+                if(off>=0){
+                    int ptrR=GenExpr(uo.Operand);
+                    int offR=AllocR();
+                    EmitCode($"    LI {RegName(offR)},{off}");
+                    int r=AllocR();
+                    EmitCode($"    ADD {RegName(r)},{RegName(ptrR)},{RegName(offR)}");
+                    EmitCode($"    LOADI {RegName(r)},{RegName(r)}, 0");
+                    FreeR(offR);
+                    return r;
+                }
                 }
                 throw new Exception($"Cannot find struct definition for field '{ma.MemberName}'");
             }
@@ -422,7 +423,7 @@ namespace T3Compiler.CodeGen
                 int off=fl.FindIndex(f=>f.Name==ma.MemberName);
                 if(off>=0){
                     LabelAddr(ADDRREG, ba + off);
-                    EmitCode($"    STOREI {RegName(v)},{RegName(ADDRREG)}, 0");
+                    EmitCode($"    STOREI {RegName(ADDRREG)}, 0, {RegName(v)}");
                 }
             }
             if(ma.Object is ArrayAccess aa&&_structFields.TryGetValue(aa.ArrayName,out var fl2)){
@@ -435,23 +436,23 @@ namespace T3Compiler.CodeGen
                     EmitCode($"    ADD {RegName(ADDRREG)},{RegName(ADDRREG)},{RegName(idx)}");
                     int v_pop=AllocR();
                     EmitCode($"    POP {RegName(v_pop)}");
-                EmitCode($"    STOREI {RegName(v_pop)},{RegName(ADDRREG)}, 0");
+                EmitCode($"    STOREI {RegName(ADDRREG)}, 0, {RegName(v_pop)}");
                 }
             }
             if(ma.Object is UnaryOp uo&&uo.Operator=="*"&&uo.Operand is Identifier ptrId){
                 foreach(var kv in _structDefs){
                     int off=kv.Value.FindIndex(f=>f.Name==ma.MemberName);
-                    if(off>=0){
-                        int ptrR=GenExpr(uo.Operand);
-                        int offR=AllocR();
-                        EmitCode($"    LI {RegName(offR)},{off}");
-                        int addrR=AllocR();
-                        EmitCode($"    SUB {RegName(addrR)},{RegName(ptrR)},{RegName(offR)}");
-                        EmitCode($"    STOREI {RegName(v)},{RegName(addrR)}, 0");
-                        FreeR(offR);
-                        FreeR(addrR);
-                        return;
-                    }
+                if(off>=0){
+                    int ptrR=GenExpr(uo.Operand);
+                    int offR=AllocR();
+                    EmitCode($"    LI {RegName(offR)},{off}");
+                    int addrR=AllocR();
+                    EmitCode($"    ADD {RegName(addrR)},{RegName(ptrR)},{RegName(offR)}");
+                    EmitCode($"    STOREI {RegName(addrR)}, 0, {RegName(v)}");
+                    FreeR(offR);
+                    FreeR(addrR);
+                    return;
+                }
                 }
             }
         }
@@ -490,35 +491,57 @@ namespace T3Compiler.CodeGen
         
         int GenBin(BinaryOp bo)
         {
-            if (bo.Operator is "&&" or "||")
+            if (bo.Operator == "||")
             {
-                int scReg = AllocR();
+                int resReg = AllocR();
                 int leftR = GenExpr(bo.Left);
-                EmitCode($"    MOV {RegName(scReg)},{RegName(leftR)}");
-                string skipLbl = Lbl("sc");
-                if (bo.Operator == "&&")
-                {
-                    EmitCode($"    CMPI {RegName(leftR)},0");
-                    JumpReg("JL", skipLbl);
-                    int rightR = GenExpr(bo.Right);
-                    EmitCode($"    CMPI {RegName(rightR)},0");
-                    string falseLbl = Lbl("f");
-                    JumpReg("JL", falseLbl);
-                    EmitCode($"    LI {RegName(scReg)},1");Jmp(skipLbl);
-                    EmitCode($"{falseLbl}:");EmitCode($"    LI {RegName(scReg)},-1");
-                }
-                else
-                {
-                    EmitCode($"    CMPI {RegName(leftR)},0");
-                    JumpReg("JG", skipLbl);
-                    int rightR = GenExpr(bo.Right);
-                    EmitCode($"    CMPI {RegName(rightR)},0");
-                    string trueLbl = Lbl("t");
-                    JumpReg("JG", trueLbl);
-                    EmitCode($"    LI {RegName(scReg)},-1");Jmp(skipLbl);
-                    EmitCode($"{trueLbl}:");EmitCode($"    LI {RegName(scReg)},1");
-                }
-                EmitCode($"{skipLbl}:");return scReg;
+                int zeroR = Imm(0);
+                EmitCode($"    CMP {RegName(leftR)},{RegName(zeroR)}");
+                string leftTrue = Lbl("or_t"), endOr = Lbl("or_e");
+                JumpReg("JG", leftTrue);
+                FreeR(zeroR);
+                int rightR = GenExpr(bo.Right);
+                int zeroR2 = Imm(0);
+                EmitCode($"    CMP {RegName(rightR)},{RegName(zeroR2)}");
+                string rightTrue = Lbl("or_rt");
+                JumpReg("JG", rightTrue);
+                FreeR(zeroR2);
+                EmitCode($"    LI {RegName(resReg)}, -1");
+                Jmp(endOr);
+                EmitCode($"{rightTrue}:");
+                EmitCode($"    LI {RegName(resReg)}, 1");
+                Jmp(endOr);
+                EmitCode($"{leftTrue}:");
+                EmitCode($"    LI {RegName(resReg)}, 1");
+                EmitCode($"{endOr}:");
+                FreeR(leftR); FreeR(rightR);
+                return resReg;
+            }
+            if (bo.Operator == "&&")
+            {
+                int resReg = AllocR();
+                int leftR = GenExpr(bo.Left);
+                int zeroR = Imm(0);
+                EmitCode($"    CMP {RegName(leftR)},{RegName(zeroR)}");
+                string leftFalse = Lbl("and_f"), endAnd = Lbl("and_e");
+                JumpReg("JLE", leftFalse);
+                FreeR(zeroR);
+                int rightR = GenExpr(bo.Right);
+                int zeroR2 = Imm(0);
+                EmitCode($"    CMP {RegName(rightR)},{RegName(zeroR2)}");
+                string rightTrue = Lbl("and_rt");
+                JumpReg("JG", rightTrue);
+                FreeR(zeroR2);
+                EmitCode($"    LI {RegName(resReg)}, -1");
+                Jmp(endAnd);
+                EmitCode($"{rightTrue}:");
+                EmitCode($"    LI {RegName(resReg)}, 1");
+                Jmp(endAnd);
+                EmitCode($"{leftFalse}:");
+                EmitCode($"    LI {RegName(resReg)}, -1");
+                EmitCode($"{endAnd}:");
+                FreeR(leftR); FreeR(rightR);
+                return resReg;
             }
             if (!IsCmp(bo.Operator) && bo.Left is IntegerLiteral il && bo.Right is IntegerLiteral ir)
             {
@@ -668,35 +691,76 @@ namespace T3Compiler.CodeGen
         }
         
         int EmitArrAccess(ArrayAccess aa){
-            int ba=_varSlots.TryGetValue(aa.ArrayName,out int b)?b:_localSlotCounter;
-            int off=FlatIdx(aa),r=AllocR();
-            LabelAddr(ADDRREG, ba);
-            EmitCode($"    ADD {RegName(ADDRREG)},{RegName(ADDRREG)},{RegName(off)}");
-            EmitCode($"    LOADI {RegName(r)},{RegName(ADDRREG)}, 0");return r;
+            int r = AllocR();
+            int idxR = FlatIdx(aa);
+            int es = _varElemSizes.TryGetValue(aa.ArrayName, out int s) ? s : 1;
+            if(es > 1){
+                int esR = Imm(es);
+                int scaledIdx = AllocR();
+                EmitCode($"    MUL {RegName(scaledIdx)},{RegName(idxR)},{RegName(esR)}");
+                idxR = scaledIdx;
+                FreeR(esR);
+            }
+            if(_varSlots.TryGetValue(aa.ArrayName, out int slot)){
+                LabelAddr(ADDRREG, slot);
+                EmitCode($"    ADD {RegName(ADDRREG)},{RegName(ADDRREG)},{RegName(idxR)}");
+            } else if(_globalSlots.TryGetValue(aa.ArrayName, out int absAddr)){
+                EmitAbsAddr(ADDRREG, absAddr);
+                EmitCode($"    ADD {RegName(ADDRREG)},{RegName(ADDRREG)},{RegName(idxR)}");
+            } else throw new Exception($"Undefined array: {aa.ArrayName}");
+            EmitCode($"    LOADI {RegName(r)},{RegName(ADDRREG)}, 0");
+            FreeR(idxR);
+            return r;
         }
         void EmitArrStore(ArrayAccess aa,int v){
-            int ba = _varSlots.TryGetValue(aa.ArrayName, out int b) ? b : _localSlotCounter;
+            int idxR = FlatIdx(aa);
+            int es = _varElemSizes.TryGetValue(aa.ArrayName, out int s) ? s : 1;
+            if(es > 1){
+                int esR = Imm(es);
+                int scaledIdx = AllocR();
+                EmitCode($"    MUL {RegName(scaledIdx)},{RegName(idxR)},{RegName(esR)}");
+                idxR = scaledIdx;
+                FreeR(esR);
+            }
+            if(_varSlots.TryGetValue(aa.ArrayName, out int slot)){
+                LabelAddr(ADDRREG, slot);
+                EmitCode($"    ADD {RegName(ADDRREG)},{RegName(ADDRREG)},{RegName(idxR)}");
+            } else if(_globalSlots.TryGetValue(aa.ArrayName, out int absAddr)){
+                EmitAbsAddr(ADDRREG, absAddr);
+                EmitCode($"    ADD {RegName(ADDRREG)},{RegName(ADDRREG)},{RegName(idxR)}");
+            } else throw new Exception($"Undefined array: {aa.ArrayName}");
             EmitCode($"    PUSH {RegName(v)}");
-            int off = FlatIdx(aa);
-            LabelAddr(ADDRREG, ba);
-            EmitCode($"    ADD {RegName(ADDRREG)},{RegName(ADDRREG)},{RegName(off)}");
             int v_pop = AllocR();
             EmitCode($"    POP {RegName(v_pop)}");
-            EmitCode($"    STOREI {RegName(v_pop)},{RegName(ADDRREG)}, 0");
+            EmitCode($"    STOREI {RegName(ADDRREG)}, 0, {RegName(v_pop)}");
+            FreeR(idxR); FreeR(v_pop);
         }
         
         /// <summary>Load address of local slot into a register (RZ + offset)</summary>
         void LabelAddr(int reg, int slotIndex){
-            int offset = -(3 + slotIndex);
-            if (offset >= -364 && offset <= 364) {
-                EmitCode($"    LI {RegName(reg)}, {offset}");
+            int offset = -1 - slotIndex;
+            if (offset < 0) {
+                int absOff = -offset;
+                if (absOff <= 364) {
+                    EmitCode($"    LI {RegName(reg)}, {absOff}");
+                    EmitCode($"    SUB {RegName(reg)}, RZ, {RegName(reg)}");
+                } else {
+                    int offR = AllocR();
+                    EmitCode($"    LIMM {RegName(offR)}, {absOff}");
+                    EmitCode($"    SUB {RegName(reg)}, RZ, {RegName(offR)}");
+                    FreeR(offR);
+                }
             } else {
-                int offR = AllocR();
-                EmitCode($"    LIMM {RegName(offR)}, {offset}");
-                EmitCode($"    MOV {RegName(reg)}, {RegName(offR)}");
-                FreeR(offR);
+                if (offset <= 364) {
+                    EmitCode($"    LI {RegName(reg)}, {offset}");
+                    EmitCode($"    ADD {RegName(reg)}, RZ, {RegName(reg)}");
+                } else {
+                    int offR = AllocR();
+                    EmitCode($"    LIMM {RegName(offR)}, {offset}");
+                    EmitCode($"    ADD {RegName(reg)}, RZ, {RegName(offR)}");
+                    FreeR(offR);
+                }
             }
-            EmitCode($"    ADD {RegName(reg)}, RZ, {RegName(reg)}");
         }
         
         /// <summary>Load label address into a scratch register, return register index</summary>
@@ -709,9 +773,22 @@ namespace T3Compiler.CodeGen
         void Alloc(string name,TypeSpec ts){
             if(!_varSlots.ContainsKey(name)){
                 int sz=1;
-                if(ts.StructName!=null&&_structDefs.TryGetValue(ts.StructName,out var sf)){sz=sf.Count;_structFields[name]=sf;}
-                else if(ts.Dims.Count>0){sz=ts.Dims.Aggregate(1,(a,b)=>a*b);_arrDims[name]=ts.Dims;}
+                int elemSize=1;
+                if(ts.StructName!=null&&_structDefs.TryGetValue(ts.StructName,out var sf)){
+                    sz=sf.Count;
+                    _structFields[name]=sf;
+                    elemSize=sf.Count;
+                }
+                else if(ts.Dims.Count>0){
+                    int count=ts.Dims.Aggregate(1,(a,b)=>a*b);
+                    if(ts.StructName!=null&&_structDefs.TryGetValue(ts.StructName,out var sf2)){
+                        elemSize=sf2.Count;
+                    }
+                    sz=count*elemSize;
+                    _arrDims[name]=ts.Dims;
+                }
                 _varSizes[name]=sz;
+                _varElemSizes[name]=elemSize;
                 _varSlots[name]=_localSlotCounter;
                 _localSlotCounter+=sz;
             }
@@ -721,7 +798,7 @@ namespace T3Compiler.CodeGen
             int r=AllocR();
             if(_varSlots.TryGetValue(name,out int a)){
                 _liveVars.Add(name);
-                int offset = -(3 + a + idx);
+                int offset = -1 - a - idx;
                 if (offset >= -13 && offset <= 13) {
                     EmitCode($"    LOADI {RegName(r)}, RZ, {offset}");
                 } else {
@@ -746,25 +823,24 @@ namespace T3Compiler.CodeGen
         void StoreV(string name,int reg,int idx){
             if(_varSlots.TryGetValue(name,out int a)){
                 _liveVars.Add(name);
-                int offset = -(3 + a + idx);
+                int offset = -1 - a - idx;
                 if (offset >= -13 && offset <= 13) {
-                    EmitCode($"    STOREI {RegName(reg)}, RZ, {offset}");
+                    EmitCode($"    STOREI RZ, {offset}, {RegName(reg)}");
                 } else {
                     int offR = Imm(offset);
                     int addrR = AllocR();
                     EmitCode($"    ADD {RegName(addrR)}, RZ, {RegName(offR)}");
-                    EmitCode($"    STOREI {RegName(reg)}, {RegName(addrR)}, 0");
+                    EmitCode($"    STOREI {RegName(addrR)}, 0, {RegName(reg)}");
                     FreeR(offR); FreeR(addrR);
                 }
                 return;
             }
             if(_globalSlots.TryGetValue(name,out int gs)){
                 EmitAbsAddr(ADDRREG, (long)gs+idx);
-                EmitCode($"    STOREI {RegName(reg)},{RegName(ADDRREG)}, 0");return;
-                EmitCode($"    STOREI {RegName(reg)},{RegName(ADDRREG)}, 0");return;
+                EmitCode($"    STOREI {RegName(ADDRREG)}, 0, {RegName(reg)}");return;
             }
             if(_globalLabels.TryGetValue(name,out string glbl)){
-                EmitCode($"    LIMM {RegName(ADDRREG)},{glbl}");EmitCode($"    STOREI {RegName(reg)},{RegName(ADDRREG)}, 0");return;
+                EmitCode($"    LIMM {RegName(ADDRREG)},{glbl}");EmitCode($"    STOREI {RegName(ADDRREG)}, 0, {RegName(reg)}");return;
             }
             throw new Exception($"Undefined variable: {name}");
         }

@@ -5,12 +5,12 @@ __entry:
     HALT
 fib:
     PUSH RZ
-    GETSP RZ
     PUSH R3
     PUSH R4
+    MOV RZ, SP
     SUBI SP, SP, 1
-    STOREI RW, RZ, -3
-    LOADI RW, RZ, -3
+    STOREI RZ, -1, RW
+    LOADI RW, RZ, -1
     LI RX,1
     CMP RW,RX
     LIMM RY,then_2
@@ -18,12 +18,12 @@ fib:
     LIMM R0,end_1
     JMP R0
 then_2:
-    LOADI R3, RZ, -3
+    LOADI R3, RZ, -1
     MOV R2,R3
     LIMM RW,epilogue_0
     JMP RW
 end_1:
-    LOADI RX, RZ, -3
+    LOADI RX, RZ, -1
     PUSH RX
     LI RY,1
     POP R0
@@ -43,7 +43,7 @@ end_1:
     POP RW
     MOV RY,R2
     PUSH RY
-    LOADI R0, RZ, -3
+    LOADI R0, RZ, -1
     PUSH R0
     LI RW,2
     POP RX
@@ -75,9 +75,9 @@ epilogue_0:
     RET
 main:
     PUSH RZ
-    GETSP RZ
     PUSH R3
     PUSH R4
+    MOV RZ, SP
     LI RW,6
     PUSH RW
     PUSH RX

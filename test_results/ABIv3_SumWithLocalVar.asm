@@ -5,12 +5,12 @@ __entry:
     HALT
 sum:
     PUSH RZ
-    GETSP RZ
     PUSH R3
     PUSH R4
+    MOV RZ, SP
     SUBI SP, SP, 2
-    STOREI RW, RZ, -4
-    LOADI RW, RZ, -4
+    STOREI RZ, -2, RW
+    LOADI RW, RZ, -2
     LI RX,0
     CMP RW,RX
     LIMM RY,then_2
@@ -23,15 +23,15 @@ then_2:
     LIMM RW,epilogue_0
     JMP RW
 end_1:
-    LOADI RX, RZ, -4
+    LOADI RX, RZ, -2
     PUSH RX
     LI RY,1
     POP R0
     SUB R3,R0,RY
-    STOREI R3, RZ, -3
-    LOADI RY, RZ, -4
+    STOREI RZ, -1, R3
+    LOADI RY, RZ, -2
     PUSH RY
-    LOADI R0, RZ, -3
+    LOADI R0, RZ, -1
     PUSH RW
     PUSH RX
     PUSH RY
@@ -59,9 +59,9 @@ epilogue_0:
     RET
 main:
     PUSH RZ
-    GETSP RZ
     PUSH R3
     PUSH R4
+    MOV RZ, SP
     LI RW,10
     PUSH RW
     PUSH RX

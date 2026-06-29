@@ -5,15 +5,15 @@ __entry:
     HALT
 add:
     PUSH RZ
-    GETSP RZ
     PUSH R3
     PUSH R4
+    MOV RZ, SP
     SUBI SP, SP, 2
-    STOREI RW, RZ, -3
-    STOREI RX, RZ, -4
-    LOADI RW, RZ, -3
+    STOREI RZ, -1, RW
+    STOREI RZ, -2, RX
+    LOADI RW, RZ, -1
     PUSH RW
-    LOADI RX, RZ, -4
+    LOADI RX, RZ, -2
     POP RY
     ADD R0,RY,RX
     MOV R2,R0
@@ -27,15 +27,15 @@ epilogue_0:
     RET
 mul:
     PUSH RZ
-    GETSP RZ
     PUSH R3
     PUSH R4
+    MOV RZ, SP
     SUBI SP, SP, 2
-    STOREI RW, RZ, -3
-    STOREI RX, RZ, -4
-    LOADI RW, RZ, -3
+    STOREI RZ, -1, RW
+    STOREI RZ, -2, RX
+    LOADI RW, RZ, -1
     PUSH RW
-    LOADI RX, RZ, -4
+    LOADI RX, RZ, -2
     POP RY
     MUL R0,RY,RX
     MOV R2,R0
@@ -49,9 +49,9 @@ epilogue_1:
     RET
 main:
     PUSH RZ
-    GETSP RZ
     PUSH R3
     PUSH R4
+    MOV RZ, SP
     SUBI SP, SP, 4
     LI RW,3
     LI RX,4
@@ -68,7 +68,7 @@ main:
     POP RX
     POP RW
     MOV RY,R2
-    STOREI RY, RZ, -3
+    STOREI RZ, -1, RY
     LI R0,5
     LI R3,6
     PUSH RW
@@ -86,7 +86,7 @@ main:
     POP RX
     POP RW
     MOV RW,R2
-    STOREI RW, RZ, -4
+    STOREI RZ, -2, RW
     LI RX,2
     LI RY,3
     PUSH RW
@@ -104,7 +104,7 @@ main:
     POP RX
     POP RW
     MOV R0,R2
-    STOREI R0, RZ, -5
+    STOREI RZ, -3, R0
     LI R3,4
     LI RW,5
     PUSH RW
@@ -122,10 +122,10 @@ main:
     POP RX
     POP RW
     MOV RX,R2
-    STOREI RX, RZ, -6
-    LOADI RY, RZ, -3
+    STOREI RZ, -4, RX
+    LOADI RY, RZ, -1
     PUSH RY
-    LOADI R0, RZ, -4
+    LOADI R0, RZ, -2
     POP R3
     ADD RW,R3,R0
     MOV R2,RW

@@ -5,47 +5,47 @@ __entry:
     HALT
 main:
     PUSH RZ
-    GETSP RZ
     PUSH R3
     PUSH R4
+    MOV RZ, SP
     SUBI SP, SP, 5
     LI RW,10
-    STOREI RW, RZ, -3
+    STOREI RZ, -1, RW
     LI RX,0
-    STOREI RX, RZ, -4
+    STOREI RZ, -2, RX
     LI RY,1
-    STOREI RY, RZ, -5
+    STOREI RZ, -3, RY
     LI R0,0
-    STOREI R0, RZ, -6
+    STOREI RZ, -4, R0
 loop_1:
-    LOADI R3, RZ, -6
-    LOADI RW, RZ, -3
+    LOADI R3, RZ, -4
+    LOADI RW, RZ, -1
     CMP R3,RW
     LIMM RX,body_2
     JL RX
     LIMM RY,wend_3
     JMP RY
 body_2:
-    LOADI R0, RZ, -4
+    LOADI R0, RZ, -2
     PUSH R0
-    LOADI R3, RZ, -5
+    LOADI R3, RZ, -3
     POP RW
     ADD RX,RW,R3
-    STOREI RX, RZ, -7
-    LOADI R3, RZ, -5
-    STOREI R3, RZ, -4
-    LOADI RW, RZ, -7
-    STOREI RW, RZ, -5
-    LOADI RY, RZ, -6
+    STOREI RZ, -5, RX
+    LOADI R3, RZ, -3
+    STOREI RZ, -2, R3
+    LOADI RW, RZ, -5
+    STOREI RZ, -3, RW
+    LOADI RY, RZ, -4
     PUSH RY
     LI R0,1
     POP R3
     ADD RW,R3,R0
-    STOREI RW, RZ, -6
+    STOREI RZ, -4, RW
     LIMM R0,loop_1
     JMP R0
 wend_3:
-    LOADI R3, RZ, -4
+    LOADI R3, RZ, -2
     MOV R2,R3
     LIMM RX,epilogue_0
     JMP RX

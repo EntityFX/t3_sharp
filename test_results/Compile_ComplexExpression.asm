@@ -5,9 +5,9 @@ __entry:
     HALT
 main:
     PUSH RZ
-    GETSP RZ
     PUSH R3
     PUSH R4
+    MOV RZ, SP
     LI RW,5
     PUSH RW
     LI RX,4
