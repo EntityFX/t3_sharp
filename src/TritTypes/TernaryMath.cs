@@ -52,35 +52,47 @@ namespace TritTypes
         }
 
         /// <summary>
-        /// Extracts a range of trits as a balanced ternary value.
+        /// Extracts a range of trits and converts them to a balanced ternary integer.
+        /// This is the only reliable way to extract fields from a balanced ternary value.
         /// </summary>
-        /// <param name="value">The source value.</param>
-        /// <param name="startPos">The starting position (least significant trit of the field).</param>
-        /// <param name="width">The number of trits to extract.</param>
-        /// <returns>The extracted field as a balanced ternary integer.</returns>
-        public static Int128 ExtractBalancedField(Int128 value, int startPos, int width)
+        public static Int128 ExtractFieldAsBalanced(Int128 value, int startPos, int width)
         {
-            Int128 powerStart = Pow3(startPos);
-            Int128 powerWidth = Pow3(width);
-            
-            // Isolate the field: value / 3^startPos % 3^width
-            Int128 field = (value / powerStart) % powerWidth;
-            
-            // Convert from unsigned [0, 3^width-1] to balanced [-(3^width-1)/2, (3^width-1)/2]
-            // by subtracting the offset. The field is already in unsigned range after isolation.
-            Int128 offset = (powerWidth - 1) / 2;
-            return field - offset;
+            Int128 result = 0;
+            Int128 power = 1;
+            for (int i = 0; i < width; i++)
+            {
+                result += ExtractBalancedTrit(value, startPos + i) * power;
+                power *= 3;
+            }
+            return result;
         }
 
         /// <summary>
-        /// Extracts a range of trits as a raw unsigned value (no balanced ternary conversion).
-        /// Use this for fields stored as raw non-negative integers (e.g., pred, opcode).
+        /// Extracts a range of trits and converts them to an unsigned ternary integer.
+        /// Formula: sum((trit + 1) * 3^i)
         /// </summary>
+        public static Int128 ExtractFieldAsUnsigned(Int128 value, int startPos, int width)
+        {
+            Int128 result = 0;
+            Int128 power = 1;
+            for (int i = 0; i < width; i++)
+            {
+                result += (ExtractBalancedTrit(value, startPos + i) + 1) * power;
+                power *= 3;
+            }
+            return result;
+        }
+
+        [Obsolete("Use ExtractFieldAsUnsigned for raw values and ExtractFieldAsBalanced for balanced values.")]
         public static Int128 ExtractRawField(Int128 value, int startPos, int width)
         {
-            Int128 powerStart = Pow3(startPos);
-            Int128 powerWidth = Pow3(width);
-            return (value / powerStart) % powerWidth;
+            return ExtractFieldAsUnsigned(value, startPos, width);
+        }
+
+        [Obsolete("Use ExtractFieldAsBalanced.")]
+        public static Int128 ExtractBalancedField(Int128 value, int startPos, int width)
+        {
+            return ExtractFieldAsBalanced(value, startPos, width);
         }
 
         /// <summary>

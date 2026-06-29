@@ -198,8 +198,9 @@ namespace T3Compiler.CodeGen
             // RZ + 3: Arg 5 ...
             if(nParams > 4){
                 for(int i=4;i<nParams;i++){
-                    // Arg 4 is at RZ + 2, Arg 5 at +3, etc.
-                    int stackOff = (i - 4) + 2;
+                    // Arg 4 is at RZ + 4, Arg 5 at +5, etc.
+                    // Layout: RZ(0)=SavedR4, RZ+1=SavedR3, RZ+2=SavedRZ, RZ+3=RetAddr, RZ+4=Arg4
+                    int stackOff = (i - 4) + 4;
                     int t=AllocR();
                     if (stackOff >= -13 && stackOff <= 13) {
                         EmitCode($"    LOADI {RegName(t)}, RZ, {stackOff}");
@@ -738,7 +739,7 @@ namespace T3Compiler.CodeGen
         
         /// <summary>Load address of local slot into a register (RZ + offset)</summary>
         void LabelAddr(int reg, int slotIndex){
-            int offset = -1 - slotIndex;
+            int offset = slotIndex - _currentLocalSize;
             if (offset < 0) {
                 int absOff = -offset;
                 if (absOff <= 364) {
@@ -796,20 +797,20 @@ namespace T3Compiler.CodeGen
         
         int LoadV(string name,int idx){
             int r=AllocR();
-            if(_varSlots.TryGetValue(name,out int a)){
-                _liveVars.Add(name);
-                int offset = -1 - a - idx;
-                if (offset >= -13 && offset <= 13) {
-                    EmitCode($"    LOADI {RegName(r)}, RZ, {offset}");
-                } else {
-                    int offR = Imm(offset);
-                    int addrR = AllocR();
-                    EmitCode($"    ADD {RegName(addrR)}, RZ, {RegName(offR)}");
-                    EmitCode($"    LOADI {RegName(r)}, {RegName(addrR)}, 0");
-                    FreeR(offR); FreeR(addrR);
+                if(_varSlots.TryGetValue(name,out int a)){
+                    _liveVars.Add(name);
+                    int offset = a + idx - _currentLocalSize;
+                    if (offset >= -13 && offset <= 13) {
+                        EmitCode($"    LOADI {RegName(r)}, RZ, {offset}");
+                    } else {
+                        int offR = Imm(offset);
+                        int addrR = AllocR();
+                        EmitCode($"    ADD {RegName(addrR)}, RZ, {RegName(offR)}");
+                        EmitCode($"    LOADI {RegName(r)}, {RegName(addrR)}, 0");
+                        FreeR(offR); FreeR(addrR);
+                    }
+                    return r;
                 }
-                return r;
-            }
             if(_globalSlots.TryGetValue(name,out int gs)){
                 EmitAbsAddr(ADDRREG, (long)gs+idx);
                 EmitCode($"    LOADI {RegName(r)},{RegName(ADDRREG)}, 0");return r;
@@ -823,7 +824,7 @@ namespace T3Compiler.CodeGen
         void StoreV(string name,int reg,int idx){
             if(_varSlots.TryGetValue(name,out int a)){
                 _liveVars.Add(name);
-                int offset = -1 - a - idx;
+                int offset = a + idx - _currentLocalSize;
                 if (offset >= -13 && offset <= 13) {
                     EmitCode($"    STOREI RZ, {offset}, {RegName(reg)}");
                 } else {

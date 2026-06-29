@@ -24,11 +24,9 @@ namespace T3Simulator.Common
         {
             Int128 val = word.ToInt128();
             
-            // Pred and opcode are stored as raw non-negative integers (not balanced ternary)
-            int pred = (int)TritTypes.TernaryMath.ExtractRawField(val, 15, 3);
-            int opcodeVal = (int)TritTypes.TernaryMath.ExtractRawField(val, 9, 6);
-            // Extract the raw args field (unsigned balanced ternary encoding: value + offset)
-            Int128 rawArgs = TritTypes.TernaryMath.ExtractRawField(val, 0, 9);
+            // Pred and opcode are stored as raw unsigned integers
+            int pred = (int)TritTypes.TernaryMath.ExtractFieldAsUnsigned(val, 15, 3);
+            int opcodeVal = (int)TritTypes.TernaryMath.ExtractFieldAsUnsigned(val, 9, 6);
             
             var op = (Opcode)opcodeVal;
             int op1 = 0, op2 = 0, op3 = 0;
@@ -36,34 +34,31 @@ namespace T3Simulator.Common
 
             if (op.IsRType())
             {
-                // Extract sub-fields from raw args and convert to balanced by subtracting offset
-                op1 = (int)(TritTypes.TernaryMath.ExtractRawField(rawArgs, 6, 3) - OFFSET_3);
-                op2 = (int)(TritTypes.TernaryMath.ExtractRawField(rawArgs, 3, 3) - OFFSET_3);
-                op3 = (int)(TritTypes.TernaryMath.ExtractRawField(rawArgs, 0, 3) - OFFSET_3);
+                op1 = (int)TritTypes.TernaryMath.ExtractFieldAsBalanced(val, 6, 3);
+                op2 = (int)TritTypes.TernaryMath.ExtractFieldAsBalanced(val, 3, 3);
+                op3 = (int)TritTypes.TernaryMath.ExtractFieldAsBalanced(val, 0, 3);
             }
             else if (op == Opcode.LOADI || op == Opcode.STOREI)
             {
-                op1 = (int)(TritTypes.TernaryMath.ExtractRawField(rawArgs, 6, 3) - OFFSET_3);
-                op2 = (int)(TritTypes.TernaryMath.ExtractRawField(rawArgs, 3, 3) - OFFSET_3);
-                imm = (long)(TritTypes.TernaryMath.ExtractRawField(rawArgs, 0, 3) - OFFSET_3);
+                op1 = (int)TritTypes.TernaryMath.ExtractFieldAsBalanced(val, 6, 3);
+                op2 = (int)TritTypes.TernaryMath.ExtractFieldAsBalanced(val, 3, 3);
+                imm = (long)TritTypes.TernaryMath.ExtractFieldAsBalanced(val, 0, 3);
             }
             else if (op.IsIType())
             {
-                op1 = (int)(TritTypes.TernaryMath.ExtractRawField(rawArgs, 6, 3) - OFFSET_3);
-                imm = (long)(TritTypes.TernaryMath.ExtractRawField(rawArgs, 0, 6) - OFFSET_6);
+                op1 = (int)TritTypes.TernaryMath.ExtractFieldAsBalanced(val, 6, 3);
+                imm = (long)TritTypes.TernaryMath.ExtractFieldAsBalanced(val, 0, 6);
             }
             else if (op.IsJType())
             {
-                // J-type: [Pred(3)][Opcode(6)][Reg(3)][000000]
-                // The lower 6 trits are padding (all zeros), so imm is always 0.
-                op1 = (int)(TritTypes.TernaryMath.ExtractRawField(rawArgs, 6, 3) - OFFSET_3);
+                op1 = (int)TritTypes.TernaryMath.ExtractFieldAsBalanced(val, 6, 3);
                 imm = 0;
             }
             else
             {
-                op1 = (int)(TritTypes.TernaryMath.ExtractRawField(rawArgs, 6, 3) - OFFSET_3);
-                op2 = (int)(TritTypes.TernaryMath.ExtractRawField(rawArgs, 3, 3) - OFFSET_3);
-                op3 = (int)(TritTypes.TernaryMath.ExtractRawField(rawArgs, 0, 3) - OFFSET_3);
+                op1 = (int)TritTypes.TernaryMath.ExtractFieldAsBalanced(val, 6, 3);
+                op2 = (int)TritTypes.TernaryMath.ExtractFieldAsBalanced(val, 3, 3);
+                op3 = (int)TritTypes.TernaryMath.ExtractFieldAsBalanced(val, 0, 3);
             }
 
             return new DecodedInstruction(op, pred, op1, op2, op3, imm);
@@ -101,8 +96,8 @@ namespace T3Simulator.Common
             Op1 = op1; Op2 = op2; Op3 = op3; Immediate = imm;
         }
 
-        public int PhysOp1 => Op1 + 4;
-        public int PhysOp2 => Op2 + 4;
-        public int PhysOp3 => Op3 + 4;
+        public int PhysOp1 => Op1;
+        public int PhysOp2 => Op2;
+        public int PhysOp3 => Op3;
     }
 }
