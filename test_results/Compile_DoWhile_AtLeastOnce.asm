@@ -10,24 +10,24 @@ main:
     MOV RZ, SP
     SUBI SP, SP, 1
     LI RW,0
-    STOREI RZ, -1, RW
+    STOREI RW, RZ, -1
 loop_1:
     LOADI RX, RZ, -1
     PUSH RX
     LI RY,1
     POP R0
-    ADD R3,R0,RY
-    STOREI RZ, -1, R3
+    ADD RW,R0,RY
+    STOREI RW, RZ, -1
     LI RY,0
     LI R2,0
     CMP RY,R2
     LIMM R0,loop_1
     JNE R0
 wend_2:
-    LOADI RW, RZ, -1
-    MOV R2,RW
-    LIMM RX,epilogue_0
-    JMP RX
+    LOADI RX, RZ, -1
+    MOV R2,RX
+    LIMM RY,epilogue_0
+    JMP RY
 epilogue_0:
     ADDI SP, SP, 1
     POP R4

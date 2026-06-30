@@ -9,47 +9,47 @@ fib:
     PUSH R4
     MOV RZ, SP
     SUBI SP, SP, 5
-    STOREI RZ, -5, RW
+    STOREI RW, RZ, -1
     LI RW,0
-    STOREI RZ, -1, RW
+    STOREI RW, RZ, -5
     LI RX,1
-    STOREI RZ, -2, RX
+    STOREI RX, RZ, -4
     LI RY,0
-    STOREI RZ, -3, RY
+    STOREI RY, RZ, -3
     LI R0,0
-    STOREI RZ, -4, R0
+    STOREI R0, RZ, -2
 loop_1:
-    LOADI R3, RZ, -4
-    LOADI RW, RZ, -5
-    CMP R3,RW
-    LIMM RX,body_2
-    JL RX
-    LIMM RY,wend_3
-    JMP RY
-body_2:
-    LOADI R0, RZ, -1
-    PUSH R0
-    LOADI R3, RZ, -2
-    POP RW
-    ADD RX,RW,R3
-    STOREI RZ, -3, RX
-    LOADI R3, RZ, -2
-    STOREI RZ, -1, R3
-    LOADI RW, RZ, -3
-    STOREI RZ, -2, RW
-    LOADI RY, RZ, -4
-    PUSH RY
-    LI R0,1
-    POP R3
-    ADD RW,R3,R0
-    STOREI RZ, -4, RW
-    LIMM R0,loop_1
+    LOADI RW, RZ, -2
+    LOADI RX, RZ, -1
+    CMP RW,RX
+    LIMM RY,body_2
+    JL RY
+    LIMM R0,wend_3
     JMP R0
-wend_3:
-    LOADI R3, RZ, -1
-    MOV R2,R3
-    LIMM RX,epilogue_0
+body_2:
+    LOADI RW, RZ, -5
+    PUSH RW
+    LOADI RX, RZ, -4
+    POP RY
+    ADD R0,RY,RX
+    STOREI R0, RZ, -3
+    LOADI RX, RZ, -4
+    STOREI RX, RZ, -5
+    LOADI RY, RZ, -3
+    STOREI RY, RZ, -4
+    LOADI RW, RZ, -2
+    PUSH RW
+    LI RX,1
+    POP RY
+    ADD R0,RY,RX
+    STOREI R0, RZ, -2
+    LIMM RX,loop_1
     JMP RX
+wend_3:
+    LOADI RY, RZ, -5
+    MOV R2,RY
+    LIMM RW,epilogue_0
+    JMP RW
 epilogue_0:
     ADDI SP, SP, 5
     POP R4

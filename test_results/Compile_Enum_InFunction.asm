@@ -9,7 +9,7 @@ get_val:
     PUSH R4
     MOV RZ, SP
     SUBI SP, SP, 1
-    STOREI RZ, -1, RW
+    STOREI RW, RZ, -1
     LOADI RW, RZ, -1
     MOV R2,RW
     LIMM RX,epilogue_0

@@ -10,37 +10,37 @@ main:
     MOV RZ, SP
     SUBI SP, SP, 2
     LI RW,0
-    STOREI RZ, -1, RW
+    STOREI RW, RZ, -2
     LI RX,1
-    STOREI RZ, -2, RX
+    STOREI RX, RZ, -1
 floop_1:
-    LOADI RY, RZ, -2
+    LOADI RY, RZ, -1
     LI R0,10
     CMP RY,R0
-    LIMM R3,fbody_2
-    JLE R3
-    LIMM RW,fend_3
-    JMP RW
+    LIMM RW,fbody_2
+    JLE RW
+    LIMM RX,fend_3
+    JMP RX
 fbody_2:
-    LOADI RX, RZ, -1
-    PUSH RX
-    LOADI RY, RZ, -2
-    POP R0
-    ADD R3,R0,RY
-    STOREI RZ, -1, R3
     LOADI RY, RZ, -2
     PUSH RY
-    LI R0,1
+    LOADI R0, RZ, -1
     POP RW
     ADD RX,RW,R0
-    STOREI RZ, -2, RX
-    LIMM R0,floop_1
-    JMP R0
+    STOREI RX, RZ, -2
+    LOADI R0, RZ, -1
+    PUSH R0
+    LI RW,1
+    POP RY
+    ADD R0,RY,RW
+    STOREI R0, RZ, -1
+    LIMM RW,floop_1
+    JMP RW
 fend_3:
-    LOADI RW, RZ, -1
-    MOV R2,RW
-    LIMM RY,epilogue_0
-    JMP RY
+    LOADI RY, RZ, -2
+    MOV R2,RY
+    LIMM RW,epilogue_0
+    JMP RW
 epilogue_0:
     ADDI SP, SP, 2
     POP R4

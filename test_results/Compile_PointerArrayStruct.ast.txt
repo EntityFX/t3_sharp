@@ -1,0 +1,14 @@
+--- AST Dump ---
+Function: main
+  Return Type: tint
+  Body:
+    CompoundStmt:
+      VarDecl: v : struct 
+      ExprStmt: Assignment: = (MemberAccess: T3Compiler.Parser.Identifier (a) = IntegerLiteral: 7)
+      ExprStmt: Assignment: = (MemberAccess: T3Compiler.Parser.Identifier (b) = IntegerLiteral: 3)
+      VarDecl: pa : tint = UnaryOp: & (MemberAccess: T3Compiler.Parser.Identifier (a))
+      VarDecl: pb : tint = UnaryOp: & (MemberAccess: T3Compiler.Parser.Identifier (b))
+      ReturnStmt: BinaryOp: + (UnaryOp: * (Identifier: pa) UnaryOp: * (Identifier: pb))
+Struct: Vec (Struct)
+  Field: a : tint
+  Field: b : tint

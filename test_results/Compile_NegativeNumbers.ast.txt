@@ -1,0 +1,10 @@
+--- AST Dump ---
+Function: main
+  Return Type: tint
+  Body:
+    CompoundStmt:
+      VarDecl: a : tint = UnaryOp: - (IntegerLiteral: 5)
+      VarDecl: b : tint = IntegerLiteral: 3
+      VarDecl: c : tint = UnaryOp: - (IntegerLiteral: 10)
+      VarDecl: d : tint = IntegerLiteral: 2
+      ReturnStmt: BinaryOp: + (BinaryOp: * (Identifier: a Identifier: b) BinaryOp: / (Identifier: c Identifier: d))

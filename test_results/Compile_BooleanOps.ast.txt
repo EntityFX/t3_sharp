@@ -1,0 +1,13 @@
+--- AST Dump ---
+Function: main
+  Return Type: tint
+  Body:
+    CompoundStmt:
+      VarDecl: a : tril = BooleanLiteral: 1
+      VarDecl: b : tril = BooleanLiteral: -1
+      IfStmt:
+        Condition: BinaryOp: == (Identifier: a BooleanLiteral: 1)
+        Then:
+        CompoundStmt:
+          ReturnStmt: IntegerLiteral: 1
+      ReturnStmt: UnaryOp: - (IntegerLiteral: 1)

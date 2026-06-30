@@ -1,0 +1,6 @@
+--- AST Dump ---
+Function: main
+  Return Type: tint
+  Body:
+    CompoundStmt:
+      ReturnStmt: IntegerLiteral: 1

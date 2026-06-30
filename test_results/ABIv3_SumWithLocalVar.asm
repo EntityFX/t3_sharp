@@ -9,8 +9,8 @@ sum:
     PUSH R4
     MOV RZ, SP
     SUBI SP, SP, 2
-    STOREI RZ, -2, RW
-    LOADI RW, RZ, -2
+    STOREI RW, RZ, -1
+    LOADI RW, RZ, -1
     LI RX,0
     CMP RW,RX
     LIMM RY,then_2
@@ -18,26 +18,25 @@ sum:
     LIMM R0,end_1
     JMP R0
 then_2:
-    LI R3,0
-    MOV R2,R3
-    LIMM RW,epilogue_0
-    JMP RW
+    LI RW,0
+    MOV R2,RW
+    LIMM RX,epilogue_0
+    JMP RX
 end_1:
-    LOADI RX, RZ, -2
-    PUSH RX
-    LI RY,1
-    POP R0
-    SUB R3,R0,RY
-    STOREI RZ, -1, R3
-    LOADI RY, RZ, -2
+    LOADI RY, RZ, -1
     PUSH RY
+    LI R0,1
+    POP RW
+    SUB RX,RW,R0
+    STOREI RX, RZ, -2
     LOADI R0, RZ, -1
+    PUSH R0
+    LOADI RW, RZ, -2
     PUSH RW
     PUSH RX
     PUSH RY
     PUSH R0
     PUSH R1
-    MOV RW,R0
     LIMM R1,sum
     CALL R1
     POP R1
@@ -45,12 +44,12 @@ end_1:
     POP RY
     POP RX
     POP RW
-    MOV RW,R2
-    POP RX
-    ADD RY,RX,RW
-    MOV R2,RY
-    LIMM RW,epilogue_0
-    JMP RW
+    MOV RY,R2
+    POP R0
+    ADD RW,R0,RY
+    MOV R2,RW
+    LIMM RY,epilogue_0
+    JMP RY
 epilogue_0:
     ADDI SP, SP, 2
     POP R4

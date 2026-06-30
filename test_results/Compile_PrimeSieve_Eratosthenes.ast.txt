@@ -1,0 +1,43 @@
+--- AST Dump ---
+Function: main
+  Return Type: tint
+  Body:
+    CompoundStmt:
+      VarDecl: sieve : tint 
+      VarDecl: i : tint = IntegerLiteral: 2
+      WhileStmt:
+        Condition: BinaryOp: <= (Identifier: i IntegerLiteral: 30)
+        Body:
+        CompoundStmt:
+          ExprStmt: Assignment: = (ArrayAccess: sieve (Identifier: i ) = IntegerLiteral: 1)
+          ExprStmt: Assignment: = (Identifier: i = BinaryOp: + (Identifier: i IntegerLiteral: 1))
+      ExprStmt: Assignment: = (Identifier: i = IntegerLiteral: 2)
+      WhileStmt:
+        Condition: BinaryOp: <= (BinaryOp: * (Identifier: i Identifier: i) IntegerLiteral: 30)
+        Body:
+        CompoundStmt:
+          IfStmt:
+            Condition: BinaryOp: == (ArrayAccess: sieve (Identifier: i ) IntegerLiteral: 1)
+            Then:
+            CompoundStmt:
+              VarDecl: j : tint = BinaryOp: * (Identifier: i Identifier: i)
+              WhileStmt:
+                Condition: BinaryOp: <= (Identifier: j IntegerLiteral: 30)
+                Body:
+                CompoundStmt:
+                  ExprStmt: Assignment: = (ArrayAccess: sieve (Identifier: j ) = IntegerLiteral: 0)
+                  ExprStmt: Assignment: = (Identifier: j = BinaryOp: + (Identifier: j Identifier: i))
+          ExprStmt: Assignment: = (Identifier: i = BinaryOp: + (Identifier: i IntegerLiteral: 1))
+      VarDecl: count : tint = IntegerLiteral: 0
+      ExprStmt: Assignment: = (Identifier: i = IntegerLiteral: 2)
+      WhileStmt:
+        Condition: BinaryOp: <= (Identifier: i IntegerLiteral: 30)
+        Body:
+        CompoundStmt:
+          IfStmt:
+            Condition: BinaryOp: == (ArrayAccess: sieve (Identifier: i ) IntegerLiteral: 1)
+            Then:
+            CompoundStmt:
+              ExprStmt: Assignment: = (Identifier: count = BinaryOp: + (Identifier: count IntegerLiteral: 1))
+          ExprStmt: Assignment: = (Identifier: i = BinaryOp: + (Identifier: i IntegerLiteral: 1))
+      ReturnStmt: Identifier: count

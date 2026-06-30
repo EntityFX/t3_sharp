@@ -10,7 +10,7 @@ main:
     MOV RZ, SP
     SUBI SP, SP, 1
     LI RW,2
-    STOREI RZ, -1, RW
+    STOREI RW, RZ, -1
     LOADI RX, RZ, -1
     MOV R2,RX
     LIMM RY,epilogue_0

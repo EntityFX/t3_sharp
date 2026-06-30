@@ -10,27 +10,27 @@ main:
     MOV RZ, SP
     SUBI SP, SP, 2
     LI RW,1
-    STOREI RZ, -1, RW
+    STOREI RW, RZ, -2
     LI RX,-1
-    STOREI RZ, -2, RX
-    LOADI RY, RZ, -1
+    STOREI RX, RZ, -1
+    LOADI RY, RZ, -2
     LI R0,1
     CMP RY,R0
-    LIMM R3,then_2
-    JE R3
-    LIMM RW,end_1
-    JMP RW
+    LIMM RW,then_2
+    JE RW
+    LIMM RX,end_1
+    JMP RX
 then_2:
-    LI RX,1
+    LI RY,1
+    MOV R2,RY
+    LIMM R0,epilogue_0
+    JMP R0
+end_1:
+    LI RW,1
+    NEG RX,RW
     MOV R2,RX
     LIMM RY,epilogue_0
     JMP RY
-end_1:
-    LI R0,1
-    NEG R3,R0
-    MOV R2,R3
-    LIMM RW,epilogue_0
-    JMP RW
 epilogue_0:
     ADDI SP, SP, 2
     POP R4

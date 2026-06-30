@@ -9,37 +9,37 @@ fact:
     PUSH R4
     MOV RZ, SP
     SUBI SP, SP, 2
-    STOREI RZ, -2, RW
+    STOREI RW, RZ, -1
     LI RW,1
-    STOREI RZ, -1, RW
+    STOREI RW, RZ, -2
 loop_1:
-    LOADI RX, RZ, -2
+    LOADI RX, RZ, -1
     LI RY,1
     CMP RX,RY
     LIMM R0,body_2
     JG R0
-    LIMM R3,wend_3
-    JMP R3
+    LIMM RW,wend_3
+    JMP RW
 body_2:
-    LOADI RW, RZ, -1
-    PUSH RW
-    LOADI RX, RZ, -2
-    POP RY
-    MUL R0,RY,RX
-    STOREI RZ, -1, R0
     LOADI RX, RZ, -2
     PUSH RX
-    LI RY,1
-    POP R3
-    SUB RW,R3,RY
-    STOREI RZ, -2, RW
-    LIMM RY,loop_1
-    JMP RY
+    LOADI RY, RZ, -1
+    POP R0
+    MUL RW,R0,RY
+    STOREI RW, RZ, -2
+    LOADI RY, RZ, -1
+    PUSH RY
+    LI R0,1
+    POP RX
+    SUB RY,RX,R0
+    STOREI RY, RZ, -1
+    LIMM R0,loop_1
+    JMP R0
 wend_3:
-    LOADI R3, RZ, -1
-    MOV R2,R3
-    LIMM RX,epilogue_0
-    JMP RX
+    LOADI RX, RZ, -2
+    MOV R2,RX
+    LIMM R0,epilogue_0
+    JMP R0
 epilogue_0:
     ADDI SP, SP, 2
     POP R4

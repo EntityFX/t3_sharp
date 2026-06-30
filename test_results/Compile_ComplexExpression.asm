@@ -16,12 +16,12 @@ main:
     PUSH R0
     LI RX,3
     POP RY
-    SUB R3,RY,RX
-    PUSH R3
+    SUB RW,RY,RX
+    PUSH RW
     LI RX,10
     POP RY
-    ADD RW,RY,RX
-    MOV R2,RW
+    ADD R0,RY,RX
+    MOV R2,R0
     LIMM RX,epilogue_0
     JMP RX
 epilogue_0:

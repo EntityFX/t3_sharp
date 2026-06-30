@@ -10,15 +10,15 @@ main:
     MOV RZ, SP
     SUBI SP, SP, 2
     LI RW,42
-    STOREI RZ, -1, RW
-    LI RX, 1
+    STOREI RW, RZ, -2
+    LI RX, 2
     SUB RX, RZ, RX
-    STOREI RZ, -2, RX
-    LOADI RY, RZ, -2
+    STOREI RX, RZ, -1
+    LOADI RY, RZ, -1
     LOADI R0,RY, 0
     MOV R2,R0
-    LIMM R3,epilogue_0
-    JMP R3
+    LIMM RW,epilogue_0
+    JMP RW
 epilogue_0:
     ADDI SP, SP, 2
     POP R4

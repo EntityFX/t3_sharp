@@ -2,7 +2,7 @@
 
 ## Word Types
 
-- **Word18**: 18 trits, stored as `int` (32 bits). Range: ±193,710,244
+- **Word18**: 18 trits, stored as `long` (64 bits). Range: ±193,710,244
 - **Word54**: 54 trits, stored as `Int128`. Range: ±2.9×10²⁵
 - **T3Float**: 18-trit float (6 exponent + 12 mantissa). Bias = 182. Linear encoding: `value = exponent * 3^12 + mantissa`
 - **T3Double**: 36-trit float (8 exponent + 28 mantissa). Bias = 3280.
@@ -14,7 +14,7 @@
 | RW | -4 | 0 | FW | Temporary | Yes |
 | RX | -3 | 1 | FX | Temporary | Yes |
 | RY | -2 | 2 | FY | Temporary | Yes |
-| RZ | -1 | 3 | FZ | Temporary | Yes |
+| RZ | -1 | 3 | FZ | Frame pointer / Temporary | Yes |
 | R0 | 0 | 4 | F0 | Temporary | Yes |
 | R1 | +1 | 5 | F1 | Call temp | Yes |
 | R2 | +2 | 6 | F2 | Return value | No |
@@ -49,12 +49,15 @@ Registers encoded by trit value (-4..+4). Phys index = trit + 4.
 
 **J-type**: Reg in Op1 position (3 trits). Op2 and Op3 are padding (6 trits, always 0). Imm is explicitly set to 0 by the decoder.
 
+**LOADI/STOREI**: Use S-type encoding via `EncodeS(pred, opcode, op1, op2, imm3)` with 3-trit immediate field (±13 range). Decoder treats them as I-type with 3-trit imm field.
+
 ### Encoder (InstructionEncoder)
 
 ```csharp
 long EncodeR(int pred, int opcode, int op1, int op2, int op3)
 long EncodeI(int pred, int opcode, int op1, long imm)
 long EncodeJ(int pred, int opcode, int reg)
+long EncodeS(int pred, int opcode, int op1, int op2, long imm3)  // LOADI/STOREI
 ```
 
 All signed operands are converted to unsigned via `ToUnsignedField(value, range, offset)`:
@@ -75,6 +78,7 @@ Decoding process:
     - R-type: Extract Op1/Op2/Op3 from Args (3 trits each), convert to balanced: `value - 13`
     - I-type: Extract Op1 (3 trits) and Imm (6 trits) from Args, convert to balanced: Op1 -= 13, Imm -= 364
     - J-type: Extract Reg (3 trits) from Args, convert to balanced: Reg -= 13. Imm = 0
+    - LOADI/STOREI: Extract Op1 (3 trits), Op2 (3 trits), Imm (3 trits), convert to balanced
 
 ## Memory
 
@@ -171,40 +175,75 @@ Word 2: [data (18 trits)]
 
 Processor: `Register[reg] = Memory[PC]; PC++`
 
-## Compiler ABI (T-lang)
+## Compiler ABI v4 (T-lang)
+
+### Register Model
+
+| Register | Phys | Purpose |
+|----------|------|---------|
+| RW (0) | 0 | Temporary, arg 0 |
+| RX (1) | 1 | Temporary, arg 1 |
+| RY (2) | 2 | Temporary, arg 2 |
+| RZ (3) | 3 | **Frame Pointer** (FP) |
+| R0 (4) | 4 | Temporary, arg 3 |
+| R1 (5) | 5 | Call temp register |
+| R2 (6) | 6 | Return value (NOT saved/restored) |
+| R3 (7) | 7 | Callee-saved |
+| R4 (8) | 8 | Address register (callee-saved) |
+
+### Prologue
+
+```asm
+PUSH RZ          ; save old FP
+PUSH R3          ; callee-saved
+PUSH R4          ; callee-saved
+MOV RZ, SP       ; RZ = FP
+SUBI SP, SP, N   ; allocate local frame (N words)
+```
+
+### Epilogue
+
+```asm
+ADDI SP, SP, N   ; deallocate local frame
+POP R4
+POP R3
+POP RZ
+RET
+```
 
 ### Calling Convention
 
-**Caller**:
-1. PUSH caller-saved registers (RW, RX, RY, RZ, R0, R1, R3, R4)
-2. PUSH arguments in reverse order
-3. LIMM R1, function_address
-4. CALL R1
-5. POP restore caller-saved registers
-6. MOV result_reg, R2
-
-**Callee (prologue)**:
-1. Function label
-2. If arguments exist:
-   - POP return address into temporary register
-   - POP arguments and store in local memory
-   - PUSH return address back to stack
-3. PUSH R4, R3, R1, R0, RZ, RY, RX, RW (all except R2)
-
-**Callee (epilogue)**:
-1. POP RW, RX, RY, RZ, R0, R1, R3, R4
-2. RET
-
-**return statement**: Generates LIMM + JMP to epilogue label (not RET directly).
-
-**R2 (return value)**: NOT saved/restored in prologue/epilogue. Caller copies value from R2 after return.
+1. Caller pushes arguments onto stack
+2. `LIMM R1, function` + `CALL R1`
+3. Callee prologue: PUSH RZ/R3/R4, set FP, allocate locals
+4. Callee saves register args 0..3 to local slots
+5. Callee body
+6. Return value in R2
+7. Callee epilogue: deallocate locals, POP R4/R3/RZ, RET
 
 ### Register Allocation
 
-Round-robin allocator skips:
-- R1 (phys 5) — reserved for call target address
-- R2 (phys 6) — reserved for return value
-- R4 (phys 8) — reserved for address register
+Round-robin `AllocR()` / `FreeR()` allocator with reserved registers:
+- R1 (phys 5) — call target address
+- R2 (phys 6) — return value
+- R4 (phys 8) — address register
+- RZ (phys 3) — frame pointer
+
+Available temp registers: RW(0), RX(1), RY(2), R0(4), R3(7). With only 5 temp registers, complex expressions use **PUSH/POP to stack** to protect live values from register reuse.
+
+### FlatIdx — Multidimensional Array Indexing
+
+For arrays declared as `tint a[D1][D2]...[Dn]`:
+
+```
+FlatIdx(row, col, ...) = (...rows) * D2 * D3 * ... * Dn + col * D3 * ... * Dn + ...
+```
+
+Generated code uses PUSH/POP to preserve accumulator across stride multiplications.
+
+### Register Clobber Protection
+
+The `EmitArrStore`, `EmitArrAccess`, `EmitMemStore`, and `EmitMemAccess` methods use **PUSH/POP** to protect value/index registers from being overwritten by the register allocator during address computation (FlatIdx, LabelAddr, Imm calls).
 
 ### Memory Layout
 
@@ -213,9 +252,15 @@ Stack (grows downward, SP starts at MemSize-1):
 ┌─────────────────────┐ ← initial SP (1048575)
 │   ...               │
 ├─────────────────────┤
-│  return address     │ ← SP after CALL
+│  saved R4           │ ← RZ (FP points here after MOV RZ, SP)
 ├─────────────────────┤
-│  saved registers    │ ← SP after prologue PUSH
+│  saved R3           │
+├─────────────────────┤
+│  saved RZ (old FP)  │
+├─────────────────────┤
+│  return address     │
+├─────────────────────┤
+│  stack args (4+)    │
 ├─────────────────────┤
 │  local variables    │ ← SP after frame allocation
 └─────────────────────┘
@@ -223,6 +268,21 @@ Stack (grows downward, SP starts at MemSize-1):
 Data section starts at address 300.
 Code section starts at address 0.
 ```
+
+## Debug Infrastructure
+
+### Compiler Debug Config
+
+`CompilerDebugConfig.EnableDumps` (in `src/T3Compiler/CompilerDebugConfig.cs`) controls dump generation:
+
+- **AST dump** (`.ast.txt`): Serialized AST tree via `AstDumper.Dump()`
+- **ASM dump** (`.asm`): Generated assembly code
+- **Binary dump** (`.bin.txt`): Ternary binary representation (18-trit strings per word)
+- **Final state dump** (`.final.state.txt`): Register and memory state after execution
+- **Crash state dump** (`.crash.state.txt`): State on exception
+- **Trace** (`.trace.txt`): Instruction-by-instruction execution log
+
+Dumps are written to `test_results/` directory.
 
 ## Opcode Table
 
@@ -246,13 +306,21 @@ See [t3-isa-reference.md](t3-isa-reference.md) for full ISA.
 | `src/T3Simulator.InOrder/T3InOrderProcessor.cs` | In-order processor implementation |
 | `src/T3Assembler/T3InOrderAssembler.cs` | Assembler for InOrder |
 | `src/T3Compiler/CodeGen/CodeGenerator.cs` | T-lang compiler code generator |
+| `src/T3Compiler/CompilerDebugConfig.cs` | Debug dump configuration |
+| `src/T3Compiler/CodeGen/AstDumper.cs` | AST serialization for debugging |
+| `src/T3Interpreter/T3Interpreter.cs` | T-lang interpreter (reference implementation) |
 | `src/TritTypes/T3ConversionService.cs` | Number format conversion service |
 
-## Test Results (v2.0)
+## Test Results (v2.1)
 
-| Test Project | Passed | Failed |
-|---|---|---|
-| TritTypes.Tests | 123 | 0 |
-| T3Simulator.Common.Tests | 71 | 0 |
-| T3Simulator.InOrder.Tests | 105 | 0 |
-| **Total** | **299** | **0** |
+| Test Project | Passed | Failed | Skipped | Description |
+|---|---|---|---|---|
+| TritTypes.Tests | 126 | 0 | 0 | Word18/Word54, T3Float, balanced ternary, TScii |
+| T3Simulator.Common.Tests | 71 | 0 | 0 | Assembler/disassembler roundtrip, ALU, FPU, Memory |
+| T3Simulator.InOrder.Tests | 147 | 0 | 0 | ISA instructions, FPU, T-lang compiler, ABI v3/v4 |
+| T3Interpreter.Tests | 68 | 0 | 1 | Interpreter + equivalence tests |
+| **Total** | **412** | **0** | **1** | |
+
+> **Note**: `Equiv_NestedFunctionCalls_Compiler` is `[Ignore]`d — tracked for future ABI fix (nested calls lose registers).
+
+See [t3-test-coverage.md](t3-test-coverage.md) for detailed test coverage analysis.

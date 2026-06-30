@@ -10,32 +10,32 @@ main:
     MOV RZ, SP
     SUBI SP, SP, 2
     LI RW,0
-    STOREI RZ, -1, RW
+    STOREI RW, RZ, -2
     LI RX,1
-    STOREI RZ, -2, RX
+    STOREI RX, RZ, -1
 loop_1:
-    LOADI RY, RZ, -1
+    LOADI RY, RZ, -2
     PUSH RY
-    LOADI R0, RZ, -2
-    POP R3
-    ADD RW,R3,R0
-    STOREI RZ, -1, RW
-    LOADI R0, RZ, -2
+    LOADI R0, RZ, -1
+    POP RW
+    ADD RX,RW,R0
+    STOREI RX, RZ, -2
+    LOADI R0, RZ, -1
     PUSH R0
-    LI R3,1
-    POP RX
-    ADD RY,RX,R3
-    STOREI RZ, -2, RY
-    LOADI R3, RZ, -2
-    LI RX,10
-    CMP R3,RX
-    LIMM R0,loop_1
-    JLE R0
+    LI RW,1
+    POP RY
+    ADD R0,RY,RW
+    STOREI R0, RZ, -1
+    LOADI RW, RZ, -1
+    LI RY,10
+    CMP RW,RY
+    LIMM RW,loop_1
+    JLE RW
 wend_2:
-    LOADI R3, RZ, -1
-    MOV R2,R3
-    LIMM RW,epilogue_0
-    JMP RW
+    LOADI RX, RZ, -2
+    MOV R2,RX
+    LIMM RY,epilogue_0
+    JMP RY
 epilogue_0:
     ADDI SP, SP, 2
     POP R4

@@ -52,18 +52,35 @@ namespace T3Interpreter.Tests
         /// Compiles T-lang source to assembly, assembles to binary, runs on processor,
         /// and returns the result value (R2 register after main returns).
         /// </summary>
-        static long C(string source)
+        static long C(string source, string? testName = null)
         {
             var preprocessed = new T3Preprocessor().Process(source);
             var tokens = new Tokenizer(preprocessed).Tokenize();
             var ast = new Parser(tokens).ParseProgram();
             var asmCode = new CodeGenerator(ast).Generate();
+            
+            // Dump ASM for debugging (like TLangCompilerTests)
+            if (testName != null)
+            {
+                string dumpDir = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "..", "test_results");
+                if (!System.IO.Directory.Exists(dumpDir)) System.IO.Directory.CreateDirectory(dumpDir);
+                System.IO.File.WriteAllText(System.IO.Path.Combine(dumpDir, $"{testName}.asm"), asmCode);
+            }
+            
             var config = T3Config.T3_18;
             var assembler = new T3InOrderAssembler(config);
             var machineCode = assembler.Assemble(asmCode);
             var processor = new T3InOrderProcessor<Word18>(config);
             processor.LoadProgram(machineCode.ConvertAll(w => Word18.FromInt128(w)));
             processor.Run();
+            
+            // Dump final state
+            if (testName != null)
+            {
+                string dumpDir = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "..", "test_results");
+                System.IO.File.WriteAllText(System.IO.Path.Combine(dumpDir, $"{testName}.final.state.txt"), processor.DumpState());
+            }
+            
             return processor.Registers[6].ToLong();
         }
 
@@ -100,7 +117,7 @@ namespace T3Interpreter.Tests
         [TestMethod] [Timeout(5000)] public void Equiv_UnaryNot_False() => EE("tint main(){if(!(1>0)){return 1;}return -1;}");
         [TestMethod] [Timeout(5000)] public void Equiv_StructWrite() => EE("struct Point{tint x;tint y;};tint main(){struct Point p;p.x=5;return p.x;}");
         [TestMethod] [Timeout(5000)] public void Equiv_StructWrite_Sum() => EE("struct Point{tint x;tint y;};tint main(){struct Point p;p.x=10;p.y=20;return p.x+p.y;}");
-        [TestMethod] [Timeout(5000)] public void Equiv_MultidimArray_2x3() => EE("tint main(){tint a[2][3];a[0][0]=0;a[0][1]=1;a[0][2]=2;a[1][0]=10;a[1][1]=11;a[1][2]=12;return a[0][0]+a[0][1]+a[0][2]+a[1][0]+a[1][1]+a[1][2];}");
+        [TestMethod] [Timeout(5000)] public void Equiv_MultidimArray_2x3() => EE("tint main(){tint a[2][3];a[0][0]=0;a[0][1]=1;a[0][2]=2;a[1][0]=10;a[1][1]=11;a[1][2]=12;return a[0][0]+a[0][1]+a[0][2]+a[1][0]+a[1][1]+a[1][2];}", nameof(Equiv_MultidimArray_2x3));
         [TestMethod] [Timeout(5000)] public void Equiv_GlobalVar() => EE("tint g;tint main(){g=7;return g;}");
         [TestMethod] [Timeout(5000)] public void Equiv_IfMaybeTrue() => EE("tint main(){tint x=1;if(x>0){return 10;}maybe{return 0;}else{return -10;}}");
         [TestMethod] [Timeout(5000)] public void Equiv_IfMaybeNeutral() => EE("tint main(){tint x=0;if(x>0){return 10;}maybe{return 0;}else{return -10;}}");
@@ -112,10 +129,10 @@ namespace T3Interpreter.Tests
         [TestMethod] [Timeout(5000)] public void Equiv_RecursiveFact() => EE("tint fact(tint n){if(n<=1){return 1;}return n*fact(n-1);}tint main(){return fact(7);}");
         [TestMethod] [Timeout(5000)] public void Equiv_DoubleRecursion() => EE("tint fib(tint n){if(n<=1){return n;}return fib(n-1)+fib(n-2);}tint main(){return fib(6);}");
 
-        static void EE(string source)
+        static void EE(string source, string? testName = null)
         {
             long interpreted = I(source);
-            long compiled = C(source);
+            long compiled = C(source, testName);
             Console.WriteLine($"Interpreted: {interpreted}");
             Console.WriteLine($"Compiled: {compiled}");
             Assert.AreEqual(interpreted, compiled, $"Divergence on: {source[..Math.Min(source.Length, 60)]}");

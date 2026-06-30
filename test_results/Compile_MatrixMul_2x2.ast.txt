@@ -1,0 +1,38 @@
+--- AST Dump ---
+Function: main
+  Return Type: tint
+  Body:
+    CompoundStmt:
+      VarDecl: A : tint 
+      VarDecl: B : tint 
+      VarDecl: C : tint 
+      ExprStmt: Assignment: = (ArrayAccess: A (IntegerLiteral: 0 ) = IntegerLiteral: 1)
+      ExprStmt: Assignment: = (ArrayAccess: A (IntegerLiteral: 1 ) = IntegerLiteral: 2)
+      ExprStmt: Assignment: = (ArrayAccess: A (IntegerLiteral: 2 ) = IntegerLiteral: 3)
+      ExprStmt: Assignment: = (ArrayAccess: A (IntegerLiteral: 3 ) = IntegerLiteral: 4)
+      ExprStmt: Assignment: = (ArrayAccess: B (IntegerLiteral: 0 ) = IntegerLiteral: 5)
+      ExprStmt: Assignment: = (ArrayAccess: B (IntegerLiteral: 1 ) = IntegerLiteral: 6)
+      ExprStmt: Assignment: = (ArrayAccess: B (IntegerLiteral: 2 ) = IntegerLiteral: 7)
+      ExprStmt: Assignment: = (ArrayAccess: B (IntegerLiteral: 3 ) = IntegerLiteral: 8)
+      VarDecl: i : tint = IntegerLiteral: 0
+      WhileStmt:
+        Condition: BinaryOp: < (Identifier: i IntegerLiteral: 2)
+        Body:
+        CompoundStmt:
+          VarDecl: j : tint = IntegerLiteral: 0
+          WhileStmt:
+            Condition: BinaryOp: < (Identifier: j IntegerLiteral: 2)
+            Body:
+            CompoundStmt:
+              VarDecl: sum : tint = IntegerLiteral: 0
+              VarDecl: k : tint = IntegerLiteral: 0
+              WhileStmt:
+                Condition: BinaryOp: < (Identifier: k IntegerLiteral: 2)
+                Body:
+                CompoundStmt:
+                  ExprStmt: Assignment: = (Identifier: sum = BinaryOp: + (Identifier: sum BinaryOp: * (ArrayAccess: A (BinaryOp: + (BinaryOp: * (Identifier: i IntegerLiteral: 2) Identifier: k) ) ArrayAccess: B (BinaryOp: + (BinaryOp: * (Identifier: k IntegerLiteral: 2) Identifier: j) ))))
+                  ExprStmt: Assignment: = (Identifier: k = BinaryOp: + (Identifier: k IntegerLiteral: 1))
+              ExprStmt: Assignment: = (ArrayAccess: C (BinaryOp: + (BinaryOp: * (Identifier: i IntegerLiteral: 2) Identifier: j) ) = Identifier: sum)
+              ExprStmt: Assignment: = (Identifier: j = BinaryOp: + (Identifier: j IntegerLiteral: 1))
+          ExprStmt: Assignment: = (Identifier: i = BinaryOp: + (Identifier: i IntegerLiteral: 1))
+      ReturnStmt: BinaryOp: + (BinaryOp: + (BinaryOp: + (ArrayAccess: C (IntegerLiteral: 0 ) ArrayAccess: C (IntegerLiteral: 1 )) ArrayAccess: C (IntegerLiteral: 2 )) ArrayAccess: C (IntegerLiteral: 3 ))

@@ -9,11 +9,11 @@ add:
     PUSH R4
     MOV RZ, SP
     SUBI SP, SP, 2
-    STOREI RZ, -1, RW
-    STOREI RZ, -2, RX
-    LOADI RW, RZ, -1
+    STOREI RW, RZ, -2
+    STOREI RX, RZ, -1
+    LOADI RW, RZ, -2
     PUSH RW
-    LOADI RX, RZ, -2
+    LOADI RX, RZ, -1
     POP RY
     ADD R0,RY,RX
     MOV R2,R0
@@ -31,11 +31,11 @@ mul:
     PUSH R4
     MOV RZ, SP
     SUBI SP, SP, 2
-    STOREI RZ, -1, RW
-    STOREI RZ, -2, RX
-    LOADI RW, RZ, -1
+    STOREI RW, RZ, -2
+    STOREI RX, RZ, -1
+    LOADI RW, RZ, -2
     PUSH RW
-    LOADI RX, RZ, -2
+    LOADI RX, RZ, -1
     POP RY
     MUL R0,RY,RX
     MOV R2,R0
@@ -68,52 +68,16 @@ main:
     POP RX
     POP RW
     MOV RY,R2
-    STOREI RZ, -1, RY
+    STOREI RY, RZ, -4
     LI R0,5
-    LI R3,6
-    PUSH RW
-    PUSH RX
-    PUSH RY
-    PUSH R0
-    PUSH R1
-    MOV RW,R0
-    MOV RX,R3
-    LIMM R1,mul
-    CALL R1
-    POP R1
-    POP R0
-    POP RY
-    POP RX
-    POP RW
-    MOV RW,R2
-    STOREI RZ, -2, RW
-    LI RX,2
-    LI RY,3
-    PUSH RW
-    PUSH RX
-    PUSH RY
-    PUSH R0
-    PUSH R1
-    MOV RW,RX
-    MOV RX,RY
-    LIMM R1,add
-    CALL R1
-    POP R1
-    POP R0
-    POP RY
-    POP RX
-    POP RW
-    MOV R0,R2
-    STOREI RZ, -3, R0
-    LI R3,4
-    LI RW,5
+    LI RW,6
     PUSH RW
     PUSH RX
     PUSH RY
     PUSH R0
     PUSH R1
     MOV RX,RW
-    MOV RW,R3
+    MOV RW,R0
     LIMM R1,mul
     CALL R1
     POP R1
@@ -122,15 +86,51 @@ main:
     POP RX
     POP RW
     MOV RX,R2
-    STOREI RZ, -4, RX
-    LOADI RY, RZ, -1
+    STOREI RX, RZ, -3
+    LI RY,2
+    LI R0,3
+    PUSH RW
+    PUSH RX
     PUSH RY
-    LOADI R0, RZ, -2
-    POP R3
-    ADD RW,R3,R0
-    MOV R2,RW
-    LIMM R0,epilogue_2
-    JMP R0
+    PUSH R0
+    PUSH R1
+    MOV RW,RY
+    MOV RX,R0
+    LIMM R1,add
+    CALL R1
+    POP R1
+    POP R0
+    POP RY
+    POP RX
+    POP RW
+    MOV RW,R2
+    STOREI RW, RZ, -2
+    LI RX,4
+    LI RY,5
+    PUSH RW
+    PUSH RX
+    PUSH RY
+    PUSH R0
+    PUSH R1
+    MOV RW,RX
+    MOV RX,RY
+    LIMM R1,mul
+    CALL R1
+    POP R1
+    POP R0
+    POP RY
+    POP RX
+    POP RW
+    MOV R0,R2
+    STOREI R0, RZ, -1
+    LOADI RW, RZ, -4
+    PUSH RW
+    LOADI RX, RZ, -3
+    POP RY
+    ADD R0,RY,RX
+    MOV R2,R0
+    LIMM RX,epilogue_2
+    JMP RX
 epilogue_2:
     ADDI SP, SP, 4
     POP R4

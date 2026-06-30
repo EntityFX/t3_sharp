@@ -9,11 +9,11 @@ add:
     PUSH R4
     MOV RZ, SP
     SUBI SP, SP, 2
-    STOREI RZ, -1, RW
-    STOREI RZ, -2, RX
-    LOADI RW, RZ, -1
+    STOREI RW, RZ, -2
+    STOREI RX, RZ, -1
+    LOADI RW, RZ, -2
     PUSH RW
-    LOADI RX, RZ, -2
+    LOADI RX, RZ, -1
     POP RY
     ADD R0,RY,RX
     MOV R2,R0
@@ -47,14 +47,14 @@ main:
     MOV RY,R2
     PUSH RY
     LI R0,5
-    LI R3,6
+    LI RW,6
     PUSH RW
     PUSH RX
     PUSH RY
     PUSH R0
     PUSH R1
+    MOV RX,RW
     MOV RW,R0
-    MOV RX,R3
     LIMM R1,add
     CALL R1
     POP R1
@@ -62,12 +62,12 @@ main:
     POP RY
     POP RX
     POP RW
-    MOV RW,R2
-    POP RX
-    ADD RY,RX,RW
-    MOV R2,RY
-    LIMM RW,epilogue_1
-    JMP RW
+    MOV RX,R2
+    POP RY
+    ADD R0,RY,RX
+    MOV R2,R0
+    LIMM RX,epilogue_1
+    JMP RX
 epilogue_1:
     POP R4
     POP R3

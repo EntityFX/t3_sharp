@@ -11,30 +11,30 @@ main:
     SUBI SP, SP, 4
     LI RW,5
     NEG RX,RW
-    STOREI RZ, -1, RX
+    STOREI RX, RZ, -4
     LI RY,3
-    STOREI RZ, -2, RY
+    STOREI RY, RZ, -3
     LI R0,10
-    NEG R3,R0
-    STOREI RZ, -3, R3
-    LI RW,2
-    STOREI RZ, -4, RW
-    LOADI RX, RZ, -1
-    PUSH RX
-    LOADI RY, RZ, -2
-    POP R0
-    MUL R3,R0,RY
-    PUSH R3
-    LOADI RY, RZ, -3
+    NEG RW,R0
+    STOREI RW, RZ, -2
+    LI RX,2
+    STOREI RX, RZ, -1
+    LOADI RY, RZ, -4
     PUSH RY
-    LOADI R0, RZ, -4
+    LOADI R0, RZ, -3
     POP RW
-    DIV RX,RW,R0
-    POP R0
-    ADD RW,R0,RX
-    MOV R2,RW
-    LIMM RX,epilogue_0
-    JMP RX
+    MUL RX,RW,R0
+    PUSH RX
+    LOADI R0, RZ, -2
+    PUSH R0
+    LOADI RW, RZ, -1
+    POP RY
+    DIV R0,RY,RW
+    POP RW
+    ADD RY,RW,R0
+    MOV R2,RY
+    LIMM R0,epilogue_0
+    JMP R0
 epilogue_0:
     ADDI SP, SP, 4
     POP R4

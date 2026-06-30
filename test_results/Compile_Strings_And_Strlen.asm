@@ -23,7 +23,7 @@ main:
     POP RX
     POP RW
     MOV RX,R2
-    STOREI RZ, -1, RX
+    STOREI RX, RZ, -2
     LIMM RY,str_2
     PUSH RW
     PUSH RX
@@ -39,15 +39,15 @@ main:
     POP RX
     POP RW
     MOV R0,R2
-    STOREI RZ, -2, R0
-    LOADI R3, RZ, -1
-    PUSH R3
+    STOREI R0, RZ, -1
     LOADI RW, RZ, -2
-    POP RX
-    ADD RY,RX,RW
-    MOV R2,RY
-    LIMM RW,epilogue_0
-    JMP RW
+    PUSH RW
+    LOADI RX, RZ, -1
+    POP RY
+    ADD R0,RY,RX
+    MOV R2,R0
+    LIMM RX,epilogue_0
+    JMP RX
 epilogue_0:
     ADDI SP, SP, 2
     POP R4

@@ -1,0 +1,12 @@
+--- AST Dump ---
+Function: main
+  Return Type: tint
+  Body:
+    CompoundStmt:
+      VarDecl: arr : tint 
+      ExprStmt: Assignment: = (ArrayAccess: arr (IntegerLiteral: 0 ) = IntegerLiteral: 1)
+      ExprStmt: Assignment: = (ArrayAccess: arr (IntegerLiteral: 1 ) = IntegerLiteral: 2)
+      ExprStmt: Assignment: = (ArrayAccess: arr (IntegerLiteral: 2 ) = IntegerLiteral: 3)
+      ExprStmt: Assignment: = (ArrayAccess: arr (IntegerLiteral: 3 ) = IntegerLiteral: 4)
+      ExprStmt: Assignment: = (ArrayAccess: arr (IntegerLiteral: 4 ) = IntegerLiteral: 5)
+      ReturnStmt: BinaryOp: + (BinaryOp: + (BinaryOp: + (BinaryOp: + (ArrayAccess: arr (IntegerLiteral: 0 ) ArrayAccess: arr (IntegerLiteral: 1 )) ArrayAccess: arr (IntegerLiteral: 2 )) ArrayAccess: arr (IntegerLiteral: 3 )) ArrayAccess: arr (IntegerLiteral: 4 ))

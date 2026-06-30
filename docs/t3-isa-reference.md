@@ -20,6 +20,7 @@
 - **R-type**: `[Op1(3)] [Op2(3)] [Op3(3)]` — каждый balanced, диапазон ±4
 - **I-type**: `[Op1(3)] [Imm(6)]` — Op1 balanced (±4), Imm balanced (±364)
 - **J-type**: `[Reg(3)] [000000]` — Reg balanced (±4), 6 тритов padding (всегда 0)
+- **S-type** (LOADI/STOREI): `[Op1(3)] [Op2(3)] [Imm(3)]` — Op1/Op2 balanced (±4), Imm balanced (±13)
 
 ### Encoder (InstructionEncoder)
 
@@ -29,6 +30,7 @@
 long EncodeR(int pred, int opcode, int op1, int op2, int op3)
 long EncodeI(int pred, int opcode, int op1, long imm)
 long EncodeJ(int pred, int opcode, int reg)
+long EncodeS(int pred, int opcode, int op1, int op2, long imm3)  // LOADI/STOREI
 ```
 
 **ToUnsignedField**: `value + offset` где `offset = (3^width - 1) / 2`.
@@ -50,6 +52,7 @@ DecodedInstruction Decode(Word54 word)  // использует Word18.FromWrapp
     - **R-type**: Извлечь Op1/Op2/Op3 из Args как raw unsigned (3 трита каждый), затем конвертировать в balanced: `value - 13`
     - **I-type**: Извлечь Op1 (3 трита) и Imm (6 тритов) из Args, конвертировать в balanced: Op1 -= 13, Imm -= 364
     - **J-type**: Извлечь Reg (3 трита) из Args, конвертировать в balanced: Reg -= 13. Imm = 0 (padding)
+    - **LOADI/STOREI** (S-type): Извлечь Op1 (3 трита), Op2 (3 трита), Imm (3 трита) из Args, конвертировать в balanced: Op1 -= 13, Op2 -= 13, Imm -= 13
 
 **Важно**: Для J-type imm всегда равен 0. 6 тритов padding в младших разрядах Args гарантированно равны 0, но decoder устанавливает imm = 0 явно.
 
@@ -158,9 +161,9 @@ Registers encoded by trit value (-4..+4). Phys index = trit + 4.
 | Op | Mnemonic | Type |
 |----|----------|------|
 | 50 | LOAD | R |
-| 51 | LOADI | I |
+| 51 | LOADI | S |
 | 52 | STORE | R |
-| 53 | STOREI | I |
+| 53 | STOREI | S |
 | 54 | PUSH | R |
 | 55 | POP | R |
 
@@ -271,41 +274,49 @@ LIMM — 2-словная инструкция для загрузки знач�
 
 ## Компилятор T-lang ABI
 
-### Регистровая модель компилятора
+### Регистровая модель компилятора (ABI v4)
 
-| Регистр | Назначение | Сохраняется caller'ом |
-|---------|-----------|----------------------|
-| RW (0) | Временный | Да |
-| RX (1) | Временный | Да |
-| RY (2) | Временный | Да |
-| RZ (3) | Временный | Да |
-| R0 (4) | Временный | Да |
-| R1 (5) | Call temp (адрес вызова) | Да |
-| R2 (6) | Return value | Нет (callee не сохраняет) |
-| R3 (7) | Временный | Да |
-| R4 (8) | Address register | Да |
+| Регистр | Phys | Назначение | Сохраняется |
+|---------|------|-----------|-------------|
+| RW (0) | 0 | Temporary, arg 0 | Caller-saved |
+| RX (1) | 1 | Temporary, arg 1 | Caller-saved |
+| RY (2) | 2 | Temporary, arg 2 | Caller-saved |
+| RZ (3) | 3 | **Frame Pointer** (FP) | Callee-saved |
+| R0 (4) | 4 | Temporary, arg 3 | Caller-saved |
+| R1 (5) | 5 | Call temp | Caller-saved |
+| R2 (6) | 6 | Return value | NOT saved |
+| R3 (7) | 7 | Temporary | Callee-saved |
+| R4 (8) | 8 | Address register | Callee-saved |
 
-### Calling Convention
+### Calling Convention (ABI v4)
 
 **Caller**:
-1. PUSH caller-saved регистров (RW, RX, RY, RZ, R0, R1, R3, R4)
-2. PUSH аргументов в обратном порядке
-3. LIMM R1, адрес_функции
-4. CALL R1
-5. POP восстановление caller-saved регистров
-6. MOV результат, R2
+1. Сохранить caller-saved регистры через стек
+2. Передать первые 4 аргумента в RW,RX,RY,R0; остальные — через стек
+3. `LIMM R1, function; CALL R1`
+4. Скопировать результат из R2
 
 **Callee (пролог)**:
-1. Метка функции
-2. PUSH R4, R3, R1, R0, RZ, RY, RX, RW (все, кроме R2)
+```asm
+PUSH RZ          ; save old FP
+PUSH R3          ; callee-saved
+PUSH R4          ; callee-saved  
+MOV RZ, SP       ; set FP
+SUBI SP, SP, N   ; allocate local frame
+```
 
 **Callee (эпилог)**:
-1. POP RW, RX, RY, RZ, R0, R1, R3, R4
-2. RET
+```asm
+ADDI SP, SP, N   ; deallocate frame
+POP R4
+POP R3
+POP RZ
+RET
+```
 
-**return**: Генерирует `LIMM` + `JMP` на метку эпилога (не `RET` напрямую).
+**return**: Генерирует `MOV R2, value` + `LIMM` + `JMP` на метку эпилога (не `RET` напрямую).
 
-**Важно**: R2 (return value) не сохраняется и не восстанавливается в прологе/эпилоге. Caller копирует значение из R2 после возврата.
+**Важно**: R2 (return value) не сохраняется и не восстанавливается в прологе/эпилоге. Caller копирует значение из R2 после возврата. RZ используется как frame pointer.
 
 ## Timing
 

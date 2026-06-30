@@ -10,85 +10,85 @@ main:
     MOV RZ, SP
     SUBI SP, SP, 5
     LI RW,1
+    PUSH RW
     LI RX,0
-    LI R4, 1
+    LI R4, 5
     SUB R4, RZ, R4
     ADD R4,R4,RX
-    PUSH RW
     POP RY
-    STOREI R4, 0, RY
-    LI RY,2
-    LI RX,1
-    LI R4, 1
-    SUB R4, RZ, R4
-    ADD R4,R4,RX
-    PUSH RY
-    POP R0
-    STOREI R4, 0, R0
-    LI R0,3
+    STOREI RY, R4, 0
     LI RX,2
-    LI R4, 1
+    PUSH RX
+    LI RY,1
+    LI R4, 5
     SUB R4, RZ, R4
-    ADD R4,R4,RX
-    PUSH R0
-    POP R3
-    STOREI R4, 0, R3
-    LI R3,4
-    LI RX,3
-    LI R4, 1
+    ADD R4,R4,RY
+    POP R0
+    STOREI R0, R4, 0
+    LI RY,3
+    PUSH RY
+    LI R0,2
+    LI R4, 5
     SUB R4, RZ, R4
-    ADD R4,R4,RX
-    PUSH R3
+    ADD R4,R4,R0
     POP RW
-    STOREI R4, 0, RW
+    STOREI RW, R4, 0
+    LI R0,4
+    PUSH R0
+    LI RW,3
+    LI R4, 5
+    SUB R4, RZ, R4
+    ADD R4,R4,RW
+    POP RX
+    STOREI RX, R4, 0
     LI RW,5
+    PUSH RW
     LI RX,4
-    LI R4, 1
+    LI R4, 5
     SUB R4, RZ, R4
     ADD R4,R4,RX
-    PUSH RW
-    POP RX
-    STOREI R4, 0, RX
+    POP RY
+    STOREI RY, R4, 0
     LI RX,0
-    LI R4, 1
+    LI R4, 5
     SUB R4, RZ, R4
     ADD R4,R4,RX
     LOADI RX,R4, 0
     PUSH RX
     LI RY,1
-    LI R4, 1
+    LI R4, 5
     SUB R4, RZ, R4
     ADD R4,R4,RY
-    LOADI RX,R4, 0
-    POP RY
-    ADD R0,RY,RX
-    PUSH R0
+    LOADI RY,R4, 0
+    POP R0
+    ADD RW,R0,RY
+    PUSH RW
     LI RY,2
-    LI R4, 1
+    LI R4, 5
     SUB R4, RZ, R4
     ADD R4,R4,RY
-    LOADI RX,R4, 0
-    POP RY
-    ADD R3,RY,RX
-    PUSH R3
+    LOADI RY,R4, 0
+    POP R0
+    ADD RX,R0,RY
+    PUSH RX
     LI RY,3
-    LI R4, 1
+    LI R4, 5
     SUB R4, RZ, R4
     ADD R4,R4,RY
-    LOADI RX,R4, 0
-    POP RY
-    ADD RW,RY,RX
+    LOADI RY,R4, 0
+    POP R0
+    ADD RW,R0,RY
     PUSH RW
     LI RY,4
-    LI R4, 1
+    LI R4, 5
     SUB R4, RZ, R4
     ADD R4,R4,RY
-    LOADI RX,R4, 0
-    POP RY
-    ADD R0,RY,RX
-    MOV R2,R0
-    LIMM RX,epilogue_0
-    JMP RX
+    LOADI RY,R4, 0
+    POP R0
+    ADD RX,R0,RY
+    MOV R2,RX
+    LIMM RY,epilogue_0
+    JMP RY
 epilogue_0:
     ADDI SP, SP, 5
     POP R4

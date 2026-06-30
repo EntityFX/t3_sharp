@@ -10,47 +10,47 @@ main:
     MOV RZ, SP
     SUBI SP, SP, 1
     LI RW,2
-    STOREI RZ, -1, RW
+    STOREI RW, RZ, -1
     LOADI RX, RZ, -1
     LI RY,1
     CMP RX,RY
     LIMM R0,scase_2
     JE R0
-    LI R3,2
-    CMP RX,R3
-    LIMM RW,scase_3
-    JE RW
-    LI RX,3
-    CMP RX,RX
-    LIMM RY,scase_4
-    JE RY
-    LIMM R0,scase_5
-    JMP R0
-scase_2:
-    LI R3,10
-    MOV R2,R3
-    LIMM RW,epilogue_0
+    LI RW,2
+    CMP RX,RW
+    LIMM RX,scase_3
+    JE RX
+    LI RY,3
+    CMP RX,RY
+    LIMM R0,scase_4
+    JE R0
+    LIMM RW,scase_5
     JMP RW
-    LIMM RX,swend_1
-    JMP RX
-scase_3:
-    LI RY,2
-    MOV R2,RY
-    LIMM R0,epilogue_0
+scase_2:
+    LI RX,10
+    MOV R2,RX
+    LIMM RY,epilogue_0
+    JMP RY
+    LIMM R0,swend_1
     JMP R0
-    LIMM R3,swend_1
-    JMP R3
-scase_4:
-    LI RW,30
+scase_3:
+    LI RW,2
     MOV R2,RW
     LIMM RX,epilogue_0
     JMP RX
     LIMM RY,swend_1
     JMP RY
+scase_4:
+    LI R0,30
+    MOV R2,R0
+    LIMM RW,epilogue_0
+    JMP RW
+    LIMM RX,swend_1
+    JMP RX
 scase_5:
-    LI R0,1
-    NEG R3,R0
-    MOV R2,R3
+    LI RY,1
+    NEG R0,RY
+    MOV R2,R0
     LIMM RW,epilogue_0
     JMP RW
     LIMM RX,swend_1

@@ -1,0 +1,11 @@
+--- AST Dump ---
+Function: main
+  Return Type: tint
+  Body:
+    CompoundStmt:
+      VarDecl: c : Color = Identifier: Green
+      ReturnStmt: Identifier: c
+Enum: Color
+  Member: Red = 1
+  Member: Green 
+  Member: Blue = -1
