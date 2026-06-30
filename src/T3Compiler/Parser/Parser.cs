@@ -236,6 +236,7 @@ namespace T3Compiler.Parser
             if (t.Type == TokenType.StringLiteral) { Next(); return new StringLiteral { Value = t.Value }; }
             if (t.Type == TokenType.CharLiteral) { Next(); return new IntegerLiteral { Value = ((int)t.Value[0]).ToString() }; }
             if (t.Type is TokenType.KwTrue or TokenType.KwFalse or TokenType.KwMaybe) { Next(); return new BooleanLiteral { Value = t.Type == TokenType.KwTrue ? 1 : (t.Type == TokenType.KwFalse ? -1 : 0) }; }
+            if (t.Type == TokenType.KwNull) { Next(); return new NullLiteral(); }
             if (t.Type == TokenType.Identifier) { Next(); return new Identifier { Name = t.Value }; }
             if (t.Type == TokenType.LParen) {
                 int saved = _pos;

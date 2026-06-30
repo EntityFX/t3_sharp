@@ -21,7 +21,7 @@ namespace T3Compiler.Lexer
         KwStruct, KwUnion, KwEnum, KwTypedef,
         KwConst, KwVolatile,
         KwSigned, KwUnsigned,
-        KwTrue, KwFalse,
+        KwTrue, KwFalse, KwNull,
         KwExtern, KwStatic, KwAuto, KwRegister, KwInline,
         KwSizeof,
 

@@ -11,6 +11,7 @@ namespace T3Interpreter
         readonly AstProgram _program;
         readonly Stack<Dictionary<string, T3Value>> _scopes = new();
         readonly Dictionary<string, FunctionDef> _functions = new(StringComparer.OrdinalIgnoreCase);
+        readonly List<long> _heap = new();
         T3Value _returnValue = T3Value.Void;
         bool _didReturn,
             _didBreak,
@@ -66,6 +67,8 @@ namespace T3Interpreter
                 return T3Value.FromInt(ParseInt(il.Value));
             if (n is BooleanLiteral bl)
                 return T3Value.FromBool(bl.Value);
+            if (n is NullLiteral)
+                return T3Value.Null;
             if (n is Identifier id)
                 return GetVar(id.Name);
             if (n is BinaryOp bo)
@@ -195,6 +198,15 @@ namespace T3Interpreter
             }
             if (fc.FunctionName == "strlen")
                 return T3Value.FromInt(0);
+            if (fc.FunctionName == "malloc")
+            {
+                int n = (int)Eval(fc.Arguments[0]).AsInt();
+                int addr = _heap.Count;
+                for (int i = 0; i < n; i++) _heap.Add(0);
+                return T3Value.FromInt(addr);
+            }
+            if (fc.FunctionName == "free")
+                return T3Value.Void;
 
             if (!_functions.TryGetValue(fc.FunctionName, out var f))
                 throw new Exception($"Undefined function: {fc.FunctionName}");

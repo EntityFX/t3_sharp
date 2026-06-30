@@ -5,7 +5,7 @@ namespace T3Interpreter
 {
     public class T3Value
     {
-        public enum ValueKind { Int, Float, Bool, Trit, Void, Array, Struct }
+    public enum ValueKind { Int, Float, Bool, Trit, Void, Array, Struct, Null }
         public ValueKind Kind;
         long _intVal;
         double _floatVal;
@@ -20,9 +20,11 @@ namespace T3Interpreter
         public static T3Value FromArray(int sz) { var a = new T3Value { Kind = ValueKind.Array, _arrayVal = new T3Value[sz] }; for (int i = 0; i < sz; i++) a._arrayVal[i] = FromInt(0); return a; }
         public static T3Value FromStruct() => new() { Kind = ValueKind.Struct, _structVal = new() };
         public static readonly T3Value Void = new() { Kind = ValueKind.Void };
+        public static readonly T3Value Null = new() { Kind = ValueKind.Null };
 
-        public long AsInt() => Kind switch { ValueKind.Int => _intVal, ValueKind.Bool => _boolVal, _ => 0 };
-        public int AsBool() => Kind switch { ValueKind.Bool => _boolVal, ValueKind.Int => _intVal > 0 ? 1 : (_intVal < 0 ? -1 : 0), _ => 0 };
+        public long AsInt() => Kind switch { ValueKind.Int => _intVal, ValueKind.Bool => _boolVal, ValueKind.Null => 0, _ => 0 };
+        public int AsBool() => Kind switch { ValueKind.Bool => _boolVal, ValueKind.Int => _intVal > 0 ? 1 : (_intVal < 0 ? -1 : 0), ValueKind.Null => 0, _ => 0 };
+        public bool IsNull => Kind == ValueKind.Null;
 
         public static T3Value operator +(T3Value a, T3Value b) => FromInt(a.AsInt() + b.AsInt());
         public static T3Value operator -(T3Value a, T3Value b) => FromInt(a.AsInt() - b.AsInt());

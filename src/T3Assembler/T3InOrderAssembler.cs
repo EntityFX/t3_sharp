@@ -192,7 +192,6 @@ namespace T3Assembler
                 return new List<Int128>{InstructionEncoder.EncodeI(pred,(int)Opcode.LI,op1,rv)};
             }
             else if(mn=="LIMM")return new List<Int128>{InstructionEncoder.EncodeI(pred,(int)Opcode.LIMM,op1,0),(Int128)ResolveOperandValue(ip[2])};
-            else if(mn=="GETSP")return new List<Int128>{InstructionEncoder.EncodeI(pred,(int)op,op1,0)};
             else if(mn=="INI"||mn=="OUTI"){if(ip.Length>2)imm=(long)ResolveOperandValue(ip[2]);return new List<Int128>{InstructionEncoder.EncodeI(pred,(int)op,op1,imm)};}
             else if(op == Opcode.LOADI || op == Opcode.STOREI){
                 int baseReg = 0;

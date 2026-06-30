@@ -347,6 +347,7 @@ namespace T3Compiler.CodeGen
                 return LoadV(id.Name,0);
             }
             if(n is BooleanLiteral bl) return Imm(bl.Value);
+            if(n is NullLiteral) return Imm(0);
             if(n is StringLiteral sl) return EmitString(sl.Value);
             if(n is BinaryOp bo) return GenBin(bo);
             if(n is UnaryOp uo) return GenUn(uo);
@@ -651,6 +652,21 @@ namespace T3Compiler.CodeGen
         }
         
         int EmitCall(FunctionCall fc){
+            // Built-in: malloc(n) — allocate n words on heap using HP (R3)
+            if (fc.FunctionName == "malloc")
+            {
+                int sizeR = GenExpr(fc.Arguments[0]);
+                int r = AllocR();
+                EmitCode($"    MOV {RegName(r)}, HP");
+                EmitCode($"    ADD HP, HP, {RegName(sizeR)}");
+                return r;
+            }
+            // Built-in: free(ptr) — no-op bump allocator
+            if (fc.FunctionName == "free")
+            {
+                return Imm(0);
+            }
+
             // ABI v4: Register args 0..3, stack for 4+.
             // Local variables are now stored in the stack frame and are safe across calls.
             

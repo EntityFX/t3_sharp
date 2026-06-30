@@ -98,7 +98,5 @@ namespace T3Simulator.Common
         PUSHI = 117,
         POPI = 118,
 
-        // SP access
-        GETSP = 119
     }
 }

@@ -10,6 +10,7 @@ namespace T3Compiler.Parser
     public class StringLiteral : AstNode { public string Value; }
     public class Identifier : AstNode { public string Name; }
     public class BooleanLiteral : AstNode { public int Value; } // trit: true=+1, false=-1, maybe=0
+    public class NullLiteral : AstNode { }
 
     public class BinaryOp : AstNode
     { public string Operator; public AstNode Left; public AstNode Right; }
