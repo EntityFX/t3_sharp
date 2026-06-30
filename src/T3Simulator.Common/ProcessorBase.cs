@@ -26,6 +26,11 @@ namespace T3Simulator.Common
         protected long _instructionCount;
         protected long _stallCount;
 
+        /// <summary>Fraction of memory reserved for heap: numerator/denominator (default 2/3).</summary>
+        public const int HeapFractionNumerator = 2;
+        public const int HeapFractionDenominator = 3;
+        /// <summary>Heap start address = memSize * 2 / 3 ≈ 699,050. Heap grows up, stack grows down.</summary>
+        public const long HeapStart = 1048576L * HeapFractionNumerator / HeapFractionDenominator;
         private readonly long _initialSp;
 
         public long CycleCount => _cycleCount;

@@ -56,6 +56,7 @@ namespace T3Compiler.CodeGen
             // Generate all code
             EmitCode("; T→T3");
             EmitCode("__entry:");
+            EmitCode($"    LIMM HP,{ProcessorBase<Word18>.HeapStart}");
             EmitCode("    LIMM R1,main");
             EmitCode("    CALL R1");
             EmitCode("    HALT");
@@ -656,10 +657,10 @@ namespace T3Compiler.CodeGen
             if (fc.FunctionName == "malloc")
             {
                 int sizeR = GenExpr(fc.Arguments[0]);
-                int r = AllocR();
-                EmitCode($"    MOV {RegName(r)}, HP");
+                int retR = AllocR();
+                EmitCode($"    MOV {RegName(retR)}, HP");
                 EmitCode($"    ADD HP, HP, {RegName(sizeR)}");
-                return r;
+                return retR;
             }
             // Built-in: free(ptr) — no-op bump allocator
             if (fc.FunctionName == "free")

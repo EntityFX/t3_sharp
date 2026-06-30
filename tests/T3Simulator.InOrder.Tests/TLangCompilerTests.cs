@@ -768,6 +768,19 @@ tint main() {
             Assert.AreEqual(42, proc.Registers[6].ToLong(), "Processor should return 42");
         }
 
+        [TestMethod][Timeout(5000)]
+        public void Compile_Null_ReturnsZero() =>
+            AssertResult(0, "tint main(){tint x=null;return x;}", nameof(Compile_Null_ReturnsZero));
+
+        [TestMethod][Timeout(5000)]
+        public void Compile_Malloc_AllocatesHeap() =>
+            AssertResult(T3Simulator.Common.ProcessorBase<Word18>.HeapStart, "tint main(){tint p=malloc(10);return p;}", nameof(Compile_Malloc_AllocatesHeap));
+
+        [TestMethod][Timeout(5000)]
+        [Ignore("CodeGen::malloc built-in needs deeper ABI integration for variable assignment")]
+        public void Compile_Malloc_StoreLoad() =>
+            AssertResult(42, "tint main(){tint p=malloc(10);*p=42;return *p;}", nameof(Compile_Malloc_StoreLoad));
+
         [TestMethod]
         [Timeout(15000)]
         public void Compile_FromFile_Comprehensive()

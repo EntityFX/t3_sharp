@@ -207,9 +207,9 @@ namespace T3Compiler.Parser
             if (Peek().Type is TokenType.OpMinus or TokenType.OpPlus or TokenType.OpExclamation or TokenType.OpTilde or TokenType.OpPlusPlus or TokenType.OpMinusMinus or TokenType.OpStar or TokenType.OpAmpersand) { string o = Next().Value; return new UnaryOp { Operator = o, Operand = ParseUn() }; }
             if (Peek().Type == TokenType.KwSizeof) {
                 Next();
-                if (Peek().Type == TokenType.LParen) { Next(); var ts = ParseType(); Expect(TokenType.RParen); return new IntegerLiteral { Value = "1" }; } // sizeof(type) → 1 word for now
+                if (Peek().Type == TokenType.LParen) { Next(); var ts = ParseType(); Expect(TokenType.RParen); return new IntegerLiteral { Value = GetTypeSize(ts).ToString(), Suffix = "type" }; }
                 var e = ParseUn();
-                return new IntegerLiteral { Value = "1" }; // sizeof(expr) → 1
+                return new IntegerLiteral { Value = "1" };
             }
             return ParsePost();
         }
@@ -223,9 +223,26 @@ namespace T3Compiler.Parser
                 else if (Peek().Type == TokenType.LBracket) { var ar = new ArrayAccess { ArrayName = (n as Identifier)?.Name ?? "" }; while (Match(TokenType.LBracket)) { ar.Indices.Add(ParseExpr()); Expect(TokenType.RBracket); } n = ar; }
                 else if (Peek().Type == TokenType.OpDot) { Next(); n = new MemberAccess { Object = n, MemberName = Expect(TokenType.Identifier).Value }; }
                 else if (Peek().Type == TokenType.OpArrow) { Next(); n = new MemberAccess { Object = new UnaryOp { Operator = "*", Operand = n }, MemberName = Expect(TokenType.Identifier).Value }; }
+                else if (Peek().Type == TokenType.OpPlusPlus) { Next(); n = new UnaryOp { Operator = "post++", Operand = n }; }
+                else if (Peek().Type == TokenType.OpMinusMinus) { Next(); n = new UnaryOp { Operator = "post--", Operand = n }; }
                 else break;
             }
             return n;
+        }
+
+        int GetTypeSize(TypeSpec ts)
+        {
+            if (ts.TypeName == "void") return 0;
+            if (ts.TypeName == "trit" || ts.TypeName == "tril") return 3; // trit/tril promote to tint in expressions
+            if (ts.TypeName == "tryte" || ts.TypeName == "char") return 1;
+            if (ts.TypeName == "tshort" || ts.TypeName == "short") return 2;
+            if (ts.TypeName == "tint" || ts.TypeName == "int") return 3;
+            if (ts.TypeName == "tlong" || ts.TypeName == "long") return 6;
+            if (ts.TypeName == "tlong long" || ts.TypeName == "tlonglong") return 9;
+            if (ts.TypeName == "tfloat") return 3;
+            if (ts.TypeName == "tdouble") return 6;
+            if (ts.StructName != null) return 1; // struct — placeholder
+            return 1;
         }
 
         AstNode ParsePri()
@@ -237,6 +254,7 @@ namespace T3Compiler.Parser
             if (t.Type == TokenType.CharLiteral) { Next(); return new IntegerLiteral { Value = ((int)t.Value[0]).ToString() }; }
             if (t.Type is TokenType.KwTrue or TokenType.KwFalse or TokenType.KwMaybe) { Next(); return new BooleanLiteral { Value = t.Type == TokenType.KwTrue ? 1 : (t.Type == TokenType.KwFalse ? -1 : 0) }; }
             if (t.Type == TokenType.KwNull) { Next(); return new NullLiteral(); }
+            if (t.Type == TokenType.LBrace) { Next(); return ParseInitializer(); }
             if (t.Type == TokenType.Identifier) { Next(); return new Identifier { Name = t.Value }; }
             if (t.Type == TokenType.LParen) {
                 int saved = _pos;
@@ -252,6 +270,18 @@ namespace T3Compiler.Parser
                 _pos = saved + 1; var e = ParseExpr(); Expect(TokenType.RParen); return e;
             }
             throw new Exception($"Unexpected token in expression: {t}");
+        }
+
+        AstNode ParseInitializer()
+        {
+            var items = new List<AstNode>();
+            while (Peek().Type != TokenType.RBrace)
+            {
+                items.Add(ParseExpr());
+                if (Peek().Type == TokenType.Comma) Next();
+            }
+            Expect(TokenType.RBrace);
+            return new InitializerList { Items = items };
         }
     }
 }

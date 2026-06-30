@@ -157,6 +157,12 @@ namespace T3Interpreter.Tests
         [TestMethod] [Timeout(5000)] public void Compile_ConstantFolding_Complex() { var s="tint main(){return (2+3)*4;}"; Assert.IsTrue(C(s)==20); }
         [TestMethod] [Timeout(5000)] public void Compile_ConstantFolding_WithVar() { var s="tint main(){tint x=10;return x*2+3*4;}"; Assert.IsTrue(C(s)==32); }
 
+        [TestMethod] [Timeout(5000)] public void Null_ReturnsZero() => Assert.AreEqual(0, C("tint main(){ return null; }"));
+        [TestMethod] [Timeout(5000)] public void Null_Equiv() => EE("tint main(){ return null; }");
+        [TestMethod] [Timeout(5000)] public void Intrp_NullLiteral() => Assert.AreEqual(0, I("tint main(){return null;}"));
+        [TestMethod] [Timeout(5000)] public void Intrp_NullIsZero() => Assert.AreEqual(0, I("tint main(){tint x=null;return x;}"));
+        [TestMethod] [Timeout(5000)] public void Intrp_Malloc() => Assert.IsTrue(I("tint main(){tint p=malloc(10);return p;}") >= 0);
+
         [TestMethod] [Timeout(5000)] public void SourceError_MissingSemicolon()
         {
             var tokens = new Tokenizer("tint main(){return 42}").Tokenize();
