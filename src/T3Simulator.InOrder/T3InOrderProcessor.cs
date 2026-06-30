@@ -12,8 +12,18 @@ namespace T3Simulator.InOrder
     /// </summary>
     public class T3InOrderProcessor<TWord> : ProcessorBase<TWord> where TWord : IT3Word<TWord>
     {
-        /// <summary>Last processor error message (set on exception; read by CLI/UI).</summary>
+        private System.IO.TextWriter? _traceWriter;
         public string? LastError { get; private set; }
+
+        public void EnableTracing(System.IO.TextWriter writer)
+        {
+            _traceWriter = writer;
+        }
+
+        private void LogTrace(string message)
+        {
+            _traceWriter?.WriteLine(message);
+        }
 
         public string DumpState()
         {
@@ -70,6 +80,8 @@ namespace T3Simulator.InOrder
 
             TWord currentWord = ReadWord(PC);
             DecodedInstruction instr = InstructionDecoder.Decode(currentWord);
+
+            LogTrace($"PC: {PC:D4} | Word: {currentWord} | Op: {instr.Opcode} | Pred: {instr.Predicate}");
 
             if (!EvaluatePredicate(instr.Predicate))
             {
@@ -380,6 +392,7 @@ namespace T3Simulator.InOrder
                     return false;
                 
                 case Opcode.CALL:
+                    LogTrace($"  [CALL] SP: {SP} -> {SP-1} | RetAddr: {PC + 1} | Target: {(instr.Immediate == 0 ? GetRegisterValue(instr.PhysOp1).ToLong().ToString() : (PC + instr.Immediate).ToString())}");
                     // Robust CALL implementation for recursion and deep nesting.
                     // We ensure SP is decremented and the return address is saved.
                     SP -= 1;
@@ -399,10 +412,11 @@ namespace T3Simulator.InOrder
                     return true;
 
                 case Opcode.RET:
+                    TWord retAddrWord = ReadWord(SP);
+                    LogTrace($"  [RET] SP: {SP} -> {SP+1} | RetAddr: {retAddrWord.ToLong()}");
                     // Robust RET implementation.
                     if (SP < 0) throw new StackOverflowException("T3 Processor Stack Underflow: RET called with negative SP.");
                     
-                    TWord retAddrWord = ReadWord(SP);
                     PC = (int)ToLong(retAddrWord);
                     SP += 1;
                     IncrementCycles(2);
