@@ -18,149 +18,143 @@ namespace T3Simulator.InOrder.Tests
     [TestClass]
     public class TLangCompilerTests
     {
-        private long CompileAndRun(string source, string testName = "unknown")
-        {
-            var pp = new T3Preprocessor();
-            string pre = pp.Process(source);
-            var ast = new Parser(new Tokenizer(pre).Tokenize()).ParseProgram();
-            
-            string dumpDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "..", "test_results");
-            if (!Directory.Exists(dumpDir)) Directory.CreateDirectory(dumpDir);
+    private List<Word18> Compile(string source, string testName)
+    {
+        var pp = new T3Preprocessor();
+        string pre = pp.Process(source);
+        var ast = new Parser(new Tokenizer(pre).Tokenize()).ParseProgram();
+        
+        string dumpDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "..", "test_results");
+        if (!Directory.Exists(dumpDir)) Directory.CreateDirectory(dumpDir);
 
-            if (CompilerDebugConfig.EnableDumps)
-            {
-                // Dump AST for debugging
-                var astText = AstDumper.Dump(ast);
-                File.WriteAllText(Path.Combine(dumpDir, $"{testName}.ast.txt"), astText);
-            }
-            
-            string asm = new CodeGenerator(ast).Generate();
-            
-            if (CompilerDebugConfig.EnableDumps)
-            {
-                // Dump ASM for debugging
-                File.WriteAllText(Path.Combine(dumpDir, $"{testName}.asm"), asm);
-            }
-            
-            var bin = new T3InOrderAssembler(T3Config.T3_18).Assemble(asm);
-            var words = bin.Select(x => Word18.FromInt128(x)).ToList();
-            
-            if (CompilerDebugConfig.EnableDumps)
-            {
-                // Dump Ternary Binary for debugging
-                var binStrings = words.Select(w => w.ToTritString()).ToList();
-                File.WriteAllLines(Path.Combine(dumpDir, $"{testName}.bin.txt"), binStrings);
-            }
-            
-            var proc = new T3InOrderProcessor<Word18>(T3Config.T3_18);
-            proc.LoadProgram(words);
-            
-            if (CompilerDebugConfig.EnableDumps)
-            {
-                // Processor tracing
-                var traceFile = Path.Combine(dumpDir, $"{testName}.trace.txt");
-                using var traceWriter = new StreamWriter(traceFile);
-                proc.EnableTracing(traceWriter);
-                
-                try 
-                {
-                    proc.Run();
-                }
-                catch (Exception ex)
-                {
-                    File.WriteAllText(Path.Combine(dumpDir, $"{testName}.crash.state.txt"), 
-                        $"Exception: {ex.Message}\n{ex.StackTrace}\n\n{proc.DumpState()}");
-                    throw;
-                }
-                finally
-                {
-                    traceWriter.Flush();
-                }
-            }
-            else
-            {
-                try 
-                {
-                    proc.Run();
-                }
-                catch (Exception ex)
-                {
-                    File.WriteAllText(Path.Combine(dumpDir, $"{testName}.crash.state.txt"), 
-                        $"Exception: {ex.Message}\n{ex.StackTrace}\n\n{proc.DumpState()}");
-                    throw;
-                }
-            }
-            
-            // Save final state for analysis of incorrect results
-            File.WriteAllText(Path.Combine(dumpDir, $"{testName}.final.state.txt"), proc.DumpState());
-            
-            return proc.Registers[6].ToLong(); // R2→phys6
+        if (CompilerDebugConfig.EnableDumps)
+        {
+            var astText = AstDumper.Dump(ast);
+            File.WriteAllText(Path.Combine(dumpDir, $"{testName}.ast.txt"), astText);
         }
+        
+        string asm = new CodeGenerator(ast).Generate();
+        
+        if (CompilerDebugConfig.EnableDumps)
+        {
+            File.WriteAllText(Path.Combine(dumpDir, $"{testName}.asm"), asm);
+        }
+        
+        var bin = new T3InOrderAssembler(T3Config.T3_18).Assemble(asm);
+        var words = bin.Select(x => Word18.FromInt128(x)).ToList();
+        
+        if (CompilerDebugConfig.EnableDumps)
+        {
+            var binStrings = words.Select(w => w.ToTritString()).ToList();
+            File.WriteAllLines(Path.Combine(dumpDir, $"{testName}.bin.txt"), binStrings);
+        }
+        
+        return words;
+    }
+
+    private long Run(List<Word18> words, string testName, bool enableTrace = false)
+    {
+        var proc = new T3InOrderProcessor<Word18>(T3Config.T3_18);
+        proc.LoadProgram(words);
+        
+        string dumpDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "..", "test_results");
+
+        if (enableTrace)
+        {
+            var traceFile = Path.Combine(dumpDir, $"{testName}.trace.txt");
+            using var traceWriter = new StreamWriter(traceFile);
+            proc.EnableTracing(traceWriter);
+            
+            try 
+            {
+                proc.Run();
+            }
+            catch (Exception ex)
+            {
+                File.WriteAllText(Path.Combine(dumpDir, $"{testName}.crash.state.txt"), 
+                    $"Exception: {ex.Message}\n{ex.StackTrace}\n\n{proc.DumpState()}");
+                throw;
+            }
+            finally
+            {
+                traceWriter.Flush();
+            }
+        }
+        else
+        {
+            try 
+            {
+                proc.Run();
+            }
+            catch (Exception ex)
+            {
+                File.WriteAllText(Path.Combine(dumpDir, $"{testName}.crash.state.txt"), 
+                    $"Exception: {ex.Message}\n{ex.StackTrace}\n\n{proc.DumpState()}");
+                throw;
+            }
+        }
+        
+        File.WriteAllText(Path.Combine(dumpDir, $"{testName}.final.state.txt"), proc.DumpState());
+        return proc.Registers[6].ToLong();
+    }
+
+    private long CompileAndRun(string source, string testName = "unknown", bool enableTrace = false)
+    {
+        var words = Compile(source, testName);
+        return Run(words, testName, enableTrace);
+    }
+
+    private void AssertResult(long expected, string source, string testName)
+    {
+        // First pass: no trace
+        long actual = CompileAndRun(source, testName, enableTrace: false);
+        
+        if (actual != expected)
+        {
+            // Second pass: full trace for debugging
+            CompileAndRun(source, testName, enableTrace: true);
+            Assert.AreEqual(expected, actual, $"Test {testName} failed. Full trace generated in test_results/{testName}.trace.txt");
+        }
+        else
+        {
+            Assert.AreEqual(expected, actual);
+        }
+    }
 
         [TestMethod]
         [Timeout(5000)]
         public void Compile_SimpleArithmetic_Returns42() =>
-            Assert.AreEqual(42, CompileAndRun("tint main(){tint x=40;tint y=2;return x+y;}", nameof(Compile_SimpleArithmetic_Returns42)));
+            AssertResult(42, "tint main(){tint x=40;tint y=2;return x+y;}", nameof(Compile_SimpleArithmetic_Returns42));
 
         [TestMethod]
         [Timeout(5000)]
         public void Compile_While_SumTo5() =>
-            Assert.AreEqual(
-                15,
-                CompileAndRun("tint main(){tint s=0;tint i=1;while(i<=5){s=s+i;i=i+1;}return s;}", nameof(Compile_While_SumTo5))
-            );
+            AssertResult(15, "tint main(){tint s=0;tint i=1;while(i<=5){s=s+i;i=i+1;}return s;}", nameof(Compile_While_SumTo5));
 
         [TestMethod]
         [Timeout(5000)]
         public void Compile_While_SumMulti() =>
-            Assert.AreEqual(
-                225,
-                CompileAndRun(
-                    "tint main() {	tint w=0;	tint z=1;	tint x=1;	tint y=1;	tint i=0;	while(i<=36){	    z = z + 1;	    x = x + 2;	    y = y + 3;		i=i+1;}	w = z + x + y;	return w;}", 
-                    nameof(Compile_While_SumMulti)
-                )
-            );
+            AssertResult(225, "tint main() {	tint w=0;	tint z=1;	tint x=1;	tint y=1;	tint i=0;	while(i<=36){	    z = z + 1;	    x = x + 2;	    y = y + 3;		i=i+1;}	w = z + x + y;	return w;}", nameof(Compile_While_SumMulti));
 
         [TestMethod]
         [Timeout(5000)]
         public void Compile_For_Factorial() =>
-            Assert.AreEqual(
-                120,
-                CompileAndRun("tint main(){tint r=1;tint i=1;while(i<=5){r=r*i;i=i+1;}return r;}", nameof(Compile_For_Factorial))
-            );
+            AssertResult(120, "tint main(){tint r=1;tint i=1;while(i<=5){r=r*i;i=i+1;}return r;}", nameof(Compile_For_Factorial));
 
         [TestMethod]
         [Timeout(5000)]
         public void Compile_NestedWhile_SumProd() =>
-            Assert.AreEqual(
-                36,
-                CompileAndRun(
-                    "tint main(){tint s=0;tint i=1;while(i<=3){tint j=1;while(j<=3){s=s+i*j;j=j+1;}i=i+1;}return s;}", 
-                    nameof(Compile_NestedWhile_SumProd)
-                )
-            );
+            AssertResult(36, "tint main(){tint s=0;tint i=1;while(i<=3){tint j=1;while(j<=3){s=s+i*j;j=j+1;}i=i+1;}return s;}", nameof(Compile_NestedWhile_SumProd));
 
         [TestMethod]
         [Timeout(5000)]
         public void Compile_NestedWhile_SimpleSum() =>
-            Assert.AreEqual(
-                9,
-                CompileAndRun(
-                    "tint main() { tint s=0; tint i=1; while(i<=3){ tint j=1; while(j<=3){ s=s+1;j=j+1;} i=i+1; } return s;}", 
-                    nameof(Compile_NestedWhile_SimpleSum)
-                )
-            );
+            AssertResult(9, "tint main() { tint s=0; tint i=1; while(i<=3){ tint j=1; while(j<=3){ s=s+1;j=j+1;} i=i+1; } return s;}", nameof(Compile_NestedWhile_SimpleSum));
 
         [TestMethod]
         [Timeout(5000)]
         public void Compile_NestedWhile_SimpleSumLong() =>
-            Assert.AreEqual(
-                1296,
-                CompileAndRun(
-                    "tint main() { tint s=0; tint i=1; while(i<=36){ tint j=1; while(j<=36){ s=s+1;j=j+1;} i=i+1; } return s;}", 
-                    nameof(Compile_NestedWhile_SimpleSumLong)
-                )
-            );
+            AssertResult(1296, "tint main() { tint s=0; tint i=1; while(i<=36){ tint j=1; while(j<=36){ s=s+1;j=j+1;} i=i+1; } return s;}", nameof(Compile_NestedWhile_SimpleSumLong));
 
         [TestMethod]
         [Timeout(5000)]

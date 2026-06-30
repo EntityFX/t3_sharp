@@ -25,6 +25,19 @@ namespace T3Simulator.InOrder
             _traceWriter?.WriteLine(message);
         }
 
+        private void LogFullState(DecodedInstruction instr, TWord currentWord)
+        {
+            if (_traceWriter == null) return;
+
+            string regs = "";
+            for (int i = 0; i < 5; i++) {
+                regs += $" R{i}:{GetRegisterValue(i).ToLong()}";
+            }
+            regs += $" SP:{SP}";
+
+            _traceWriter.WriteLine($"[PC:{PC:D4}] {instr.Opcode} | {regs} | Cond:{Cond}");
+        }
+
         public string DumpState()
         {
             var sb = new System.Text.StringBuilder();
@@ -81,6 +94,7 @@ namespace T3Simulator.InOrder
             TWord currentWord = ReadWord(PC);
             DecodedInstruction instr = InstructionDecoder.Decode(currentWord);
 
+            LogFullState(instr, currentWord);
             LogTrace($"PC: {PC:D4} | Word: {currentWord} | Op: {instr.Opcode} | Pred: {instr.Predicate}");
 
             if (!EvaluatePredicate(instr.Predicate))

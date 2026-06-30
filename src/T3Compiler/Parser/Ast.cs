@@ -18,7 +18,10 @@ namespace T3Compiler.Parser
     { public string Operator; public AstNode Operand; }
 
     public class Assignment : AstNode
-    { public AstNode Target; public string Operator; public AstNode Value; }
+    {
+        public AstNode Target;
+        public string Operator; public AstNode Value;
+    }
 
     public class FunctionCall : AstNode
     { public string FunctionName; public List<AstNode> Arguments = new(); }
@@ -46,14 +49,14 @@ namespace T3Compiler.Parser
     public class FieldDef
     { public TypeSpec Type; public string Name; }
 
-public class StructDef
-{ public string Name; public List<FieldDef> Fields = new(); public bool IsUnion; }
+    public class StructDef
+    { public string Name; public List<FieldDef> Fields = new(); public bool IsUnion; }
 
-public class EnumMember
-{ public string Name; public int? Value; }
+    public class EnumMember
+    { public string Name; public int? Value; }
 
-public class EnumDef
-{ public string Name; public List<EnumMember> Members = new(); }
+    public class EnumDef
+    { public string Name; public List<EnumMember> Members = new(); }
 
     // === Statements ===
     public abstract class Statement { }

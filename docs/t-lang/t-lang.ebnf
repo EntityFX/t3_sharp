@@ -64,8 +64,10 @@ string_literal     = '"' { any_character } '"' .
 true_const         = "true" | "истина" .
 false_const        = "false" | "ложь" .
 maybe_const        = "maybe" | "может" .
+null_literal       = "null" | "нуль" .
 constant           = integer_literal | float_literal | char_literal
-                   | string_literal | true_const | false_const | maybe_const .
+                   | string_literal | true_const | false_const | maybe_const
+                   | null_literal .
 
 (* ----------------------------------------------------------
    2. Выражения
@@ -121,7 +123,7 @@ tryte_type         = "tryte" | "трайт" .
 tshort_type        = "tshort" | "ткоротк" .
 tint_type          = "tint" | "тцел" .
 tlong_type         = "tlong" | "тдлин" .
-tlong_long_type    = "tlong" | "long" | "тдлиндлин" .
+tlong_long_type    = "tlong" | "long" | "тдлин" | "длин" .
 tfloat_type        = "tfloat" | "твещ" .
 tdouble_type       = "tdouble" | "тдвойн" .
 trit_type          = "trit" | "трит" .
