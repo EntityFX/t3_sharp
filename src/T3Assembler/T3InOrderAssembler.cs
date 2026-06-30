@@ -208,7 +208,11 @@ namespace T3Assembler
                 }
                 return new List<Int128>{InstructionEncoder.EncodeS(pred,(int)op,op1,baseReg,imm)};
             }
-            else if(IsIType(op)){if(ip.Length>2)imm=(long)ResolveOperandValue(ip[2]);return new List<Int128>{InstructionEncoder.EncodeI(pred,(int)op,op1,imm)};}
+            else if(IsIType(op)){
+                // Use last argument as immediate (handles 3-arg I-type like ADDI SP, SP, 7)
+                if(ip.Length>2)imm=(long)ResolveOperandValue(ip[ip.Length - 1]);
+                return new List<Int128>{InstructionEncoder.EncodeI(pred,(int)op,op1,imm)};
+            }
             else return new List<Int128>{InstructionEncoder.EncodeR(pred,(int)op,op1,op2,op3)};
         }
         bool IsJumpMnemonic(string m)=>m is"JMP"or"JE"or"JNE"or"JL"or"JG"or"JM"or"JLE"or"JGE"or"CALL";

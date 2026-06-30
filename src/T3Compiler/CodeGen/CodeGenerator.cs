@@ -390,13 +390,16 @@ namespace T3Compiler.CodeGen
                 int es = _varElemSizes.TryGetValue(aa.ArrayName, out int s) ? s : 1;
                 int scaledIdx = idx;
                 if(es > 1){
+                    // Protect idx from Imm(es) reusing its register
+                    EmitCode($"    PUSH {RegName(idx)}");
                     int esR = Imm(es);
+                    int idxSaved = AllocR();
+                    EmitCode($"    POP {RegName(idxSaved)}");
                     int sIdx = AllocR();
-                    EmitCode($"    MUL {RegName(sIdx)},{RegName(idx)},{RegName(esR)}");
+                    EmitCode($"    MUL {RegName(sIdx)},{RegName(idxSaved)},{RegName(esR)}");
                     scaledIdx = sIdx;
-                    FreeR(esR); FreeR(idx);
+                    FreeR(esR); FreeR(idxSaved); FreeR(idx);
                 }
-                int r = AllocR();
                 if(_varSlots.TryGetValue(aa.ArrayName, out int ba)){
                     LabelAddr(ADDRREG, ba);
                 } else if(_globalLabels.TryGetValue(aa.ArrayName, out string glbl)){
@@ -408,6 +411,7 @@ namespace T3Compiler.CodeGen
                 int offR = Imm(off);
                 int finalAddrR = AllocR();
                 EmitCode($"    ADD {RegName(finalAddrR)},{RegName(tempR)},{RegName(offR)}");
+                int r = AllocR();
                 EmitCode($"    LOADI {RegName(r)},{RegName(finalAddrR)}, 0");
                 FreeR(tempR); FreeR(offR); FreeR(finalAddrR); FreeR(scaledIdx);
                 return r;
@@ -447,6 +451,8 @@ namespace T3Compiler.CodeGen
             if(ma.Object is ArrayAccess aa && _structFields.TryGetValue(aa.ArrayName, out var fl2)){
                 int off = fl2.FindIndex(f => f.Name == ma.MemberName);
                 if(off >= 0){
+                    // PUSH value to protect from register reuse during address computation
+                    EmitCode($"    PUSH {RegName(v)}");
                     int idx = FlatIdx(aa);
                     int es = _varElemSizes.TryGetValue(aa.ArrayName, out int s) ? s : 1;
                     int scaledIdx = idx;
@@ -469,8 +475,10 @@ namespace T3Compiler.CodeGen
                     int finalAddrR = AllocR();
                     EmitCode($"    ADD {RegName(finalAddrR)},{RegName(tempR)},{RegName(offR)}");
                     
-                    EmitCode($"    STOREI {RegName(v)}, {RegName(finalAddrR)}, 0");
-                    FreeR(tempR); FreeR(offR); FreeR(finalAddrR); FreeR(scaledIdx);
+                    int sv = AllocR();
+                    EmitCode($"    POP {RegName(sv)}");
+                    EmitCode($"    STOREI {RegName(sv)}, {RegName(finalAddrR)}, 0");
+                    FreeR(sv); FreeR(tempR); FreeR(offR); FreeR(finalAddrR); FreeR(scaledIdx);
                 }
             }
             if(ma.Object is UnaryOp uo&&uo.Operator=="*"&&uo.Operand is Identifier ptrId){
@@ -746,17 +754,18 @@ namespace T3Compiler.CodeGen
         }
         
         int EmitArrAccess(ArrayAccess aa){
-            int r = AllocR();
             int idxR = FlatIdx(aa);
             int es = _varElemSizes.TryGetValue(aa.ArrayName, out int s) ? s : 1;
             if(es > 1){
+                // Protect idxR from Imm(es) reusing its register
+                EmitCode($"    PUSH {RegName(idxR)}");
                 int esR = Imm(es);
+                int idxSaved = AllocR();
+                EmitCode($"    POP {RegName(idxSaved)}");
                 int scaledIdx = AllocR();
-                EmitCode($"    MUL {RegName(scaledIdx)},{RegName(idxR)},{RegName(esR)}");
-                int oldIdxR = idxR;
+                EmitCode($"    MUL {RegName(scaledIdx)},{RegName(idxSaved)},{RegName(esR)}");
+                FreeR(esR); FreeR(idxSaved); FreeR(idxR);
                 idxR = scaledIdx;
-                FreeR(esR);
-                FreeR(oldIdxR);
             }
             if(_varSlots.TryGetValue(aa.ArrayName, out int slot)){
                 LabelAddr(ADDRREG, slot);
@@ -765,11 +774,15 @@ namespace T3Compiler.CodeGen
                 EmitCode($"    LIMM {RegName(ADDRREG)}, {glbl}");
                 EmitCode($"    ADD {RegName(ADDRREG)},{RegName(ADDRREG)},{RegName(idxR)}");
             } else throw new Exception($"Undefined array: {aa.ArrayName}");
-            EmitCode($"    LOADI {RegName(r)},{RegName(ADDRREG)}, 0");
+            // Allocate result register AFTER computing address
             FreeR(idxR);
+            int r = AllocR();
+            EmitCode($"    LOADI {RegName(r)},{RegName(ADDRREG)}, 0");
             return r;
         }
         void EmitArrStore(ArrayAccess aa,int v){
+            // PUSH value to protect from register reuse during address computation
+            EmitCode($"    PUSH {RegName(v)}");
             int idxR = FlatIdx(aa);
             int es = _varElemSizes.TryGetValue(aa.ArrayName, out int s) ? s : 1;
             if(es > 1){
@@ -788,7 +801,10 @@ namespace T3Compiler.CodeGen
                 EmitCode($"    LIMM {RegName(ADDRREG)}, {glbl}");
                 EmitCode($"    ADD {RegName(ADDRREG)},{RegName(ADDRREG)},{RegName(idxR)}");
             } else throw new Exception($"Undefined array: {aa.ArrayName}");
-            EmitCode($"    STOREI {RegName(v)}, {RegName(ADDRREG)}, 0");
+            int sv = AllocR();
+            EmitCode($"    POP {RegName(sv)}");
+            EmitCode($"    STOREI {RegName(sv)}, {RegName(ADDRREG)}, 0");
+            FreeR(sv);
             FreeR(idxR);
         }
         
