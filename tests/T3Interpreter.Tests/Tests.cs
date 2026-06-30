@@ -163,6 +163,27 @@ namespace T3Interpreter.Tests
         [TestMethod] [Timeout(5000)] public void Intrp_NullIsZero() => Assert.AreEqual(0, I("tint main(){tint x=null;return x;}"));
         [TestMethod] [Timeout(5000)] public void Intrp_Malloc() => Assert.IsTrue(I("tint main(){tint p=malloc(10);return p;}") >= 0);
 
+        // === New language feature tests (interpreter) ===
+        [TestMethod] [Timeout(5000)] public void Intrp_Strlen() => Assert.AreEqual(5, I("tint main(){return strlen(\"Hello\");}"));
+        [TestMethod] [Timeout(5000)] public void Intrp_ShiftMul() => Assert.AreEqual(9, I("tint len(tint x,tint n){while(n>0){x=x*3;n=n-1;}return x;} tint main(){return len(1,2);}"));
+        [TestMethod] [Timeout(5000)] public void Intrp_ShiftDiv() => Assert.AreEqual(3, I("tint len(tint x,tint n){while(n>0){x=x/3;n=n-1;}return x;} tint main(){return len(27,2);}"));
+        [TestMethod] [Timeout(5000)] public void Intrp_BitwiseNot() => Assert.AreEqual(-5, I("tint main(){tint x=5;return ~x;}"));
+        [TestMethod] [Timeout(5000)] public void Intrp_PrefixInc() => Assert.AreEqual(6, I("tint main(){tint x=5;++x;return x;}"));
+        [TestMethod] [Timeout(5000)] public void Intrp_PrefixDec() => Assert.AreEqual(4, I("tint main(){tint x=5;--x;return x;}"));
+        [TestMethod] [Timeout(5000)] public void Intrp_PostfixInc() => Assert.AreEqual(5, I("tint main(){tint x=5;return x++;}"));
+        [TestMethod] [Timeout(5000)] public void Intrp_PostfixDec() => Assert.AreEqual(5, I("tint main(){tint x=5;return x--;}"));
+        [TestMethod] [Timeout(5000)] public void Intrp_AndEq() => Assert.AreEqual(5, I("tint main(){tint x=7;x&=5;return x;}"));
+        [TestMethod] [Timeout(5000)] public void Intrp_OrEq() => Assert.AreEqual(7, I("tint main(){tint x=7;x|=5;return x;}"));
+        [TestMethod] [Timeout(5000)] public void Intrp_XorEq() => Assert.AreEqual(2, I("tint main(){tint x=7;x^=5;return x;}"));
+        [TestMethod] [Timeout(5000)] public void Intrp_SizeofTint() => Assert.AreEqual(3, I("tint main(){return sizeof(tint);}"));
+        [TestMethod] [Timeout(5000)] public void Intrp_SizeofTryte() => Assert.AreEqual(1, I("tint main(){return sizeof(tryte);}"));
+        [TestMethod] [Timeout(5000)] public void Intrp_SizeofTlong() => Assert.AreEqual(6, I("tint main(){return sizeof(tlong);}"));
+        [TestMethod] [Timeout(5000)] public void Intrp_FloatLiteral() => Assert.AreEqual(3, I("tint main(){tfloat x=3.14;return x;}"));
+        [TestMethod] [Timeout(5000)] public void Intrp_FloatVar() => Assert.AreEqual(0, I("tint main(){tfloat x;return x;}"));
+        [TestMethod] [Timeout(5000)] public void Intrp_BraceInit() => Assert.AreEqual(14, I("tint main(){tint a[3]={2,4,8};return a[0]+a[1]+a[2];}"));
+        [TestMethod] [Timeout(5000)] public void Intrp_StringLiteral() => Assert.IsTrue(I("tint main(){tint s=strlen(\"Hello\");return s;}") > 0);
+        [TestMethod] [Timeout(5000)] public void Intrp_FloatDefaultZero() => Assert.AreEqual(0, I("tint main(){tfloat f;tfloat g;return f==g?1:0;}"));
+
         [TestMethod] [Timeout(5000)] public void SourceError_MissingSemicolon()
         {
             var tokens = new Tokenizer("tint main(){return 42}").Tokenize();
