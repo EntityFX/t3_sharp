@@ -825,23 +825,24 @@ namespace T3Compiler.CodeGen
             if(_varSlots.TryGetValue(name,out int a)){
                 _liveVars.Add(name);
                 int offset = a + idx - _currentLocalSize;
+                // STOREI format: srcReg, baseReg, offset
                 if (offset >= -13 && offset <= 13) {
-                    EmitCode($"    STOREI RZ, {offset}, {RegName(reg)}");
+                    EmitCode($"    STOREI {RegName(reg)}, RZ, {offset}");
                 } else {
                     int offR = Imm(offset);
                     int addrR = AllocR();
                     EmitCode($"    ADD {RegName(addrR)}, RZ, {RegName(offR)}");
-                    EmitCode($"    STOREI {RegName(addrR)}, 0, {RegName(reg)}");
+                    EmitCode($"    STOREI {RegName(reg)}, {RegName(addrR)}, 0");
                     FreeR(offR); FreeR(addrR);
                 }
                 return;
             }
             if(_globalSlots.TryGetValue(name,out int gs)){
                 EmitAbsAddr(ADDRREG, (long)gs+idx);
-                EmitCode($"    STOREI {RegName(ADDRREG)}, 0, {RegName(reg)}");return;
+                EmitCode($"    STOREI {RegName(reg)}, {RegName(ADDRREG)}, 0");return;
             }
             if(_globalLabels.TryGetValue(name,out string glbl)){
-                EmitCode($"    LIMM {RegName(ADDRREG)},{glbl}");EmitCode($"    STOREI {RegName(ADDRREG)}, 0, {RegName(reg)}");return;
+                EmitCode($"    LIMM {RegName(ADDRREG)},{glbl}");EmitCode($"    STOREI {RegName(reg)}, {RegName(ADDRREG)}, 0");return;
             }
             throw new Exception($"Undefined variable: {name}");
         }

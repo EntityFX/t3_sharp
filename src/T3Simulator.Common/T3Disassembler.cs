@@ -58,7 +58,7 @@ namespace T3Simulator.Common
             else if (mnemonic == "NEG") sb.Append($" {GetRegName(instr.PhysOp1)}");
             else if (mnemonic is "MOV" or "CMP")
             {
-                if (instr.PhysOp3 != 0)
+                if (instr.Op3 != 0)
                     sb.Append($" {GetRegName(instr.PhysOp1)}, {GetRegName(instr.PhysOp2)}, {GetRegName(instr.PhysOp3)}");
                 else
                     sb.Append($" {GetRegName(instr.PhysOp1)}, {GetRegName(instr.PhysOp2)}");

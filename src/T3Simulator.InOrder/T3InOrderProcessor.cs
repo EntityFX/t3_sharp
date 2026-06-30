@@ -170,8 +170,9 @@ namespace T3Simulator.InOrder
                     return false;
                 
                 case Opcode.STOREI:
-                    long storeAddr = ToLong(GetRegisterValue(instr.PhysOp1)) + instr.Immediate;
-                    WriteWord(storeAddr, GetRegisterValue(instr.PhysOp2));
+                    // Use PhysOp2 as base register (consistent with LOADI: both use op2 as base)
+                    long storeAddr = ToLong(GetRegisterValue(instr.PhysOp2)) + instr.Immediate;
+                    WriteWord(storeAddr, GetRegisterValue(instr.PhysOp1));
                     IncrementCycles(2);
                     return false;
 
