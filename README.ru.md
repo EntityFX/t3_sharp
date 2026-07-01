@@ -411,7 +411,8 @@ dotnet build -c Release T3Sharp.sln
 | [docs/t3-architecture.ru.md](docs/t3-architecture.ru.md) | 🇷🇺 Русский | Полный справочник по архитектуре |
 | [docs/t3-isa-reference.md](docs/t3-isa-reference.md) | 🇬🇧 English | Полный справочник по системе команд |
 | [docs/t3-isa-reference.ru.md](docs/t3-isa-reference.ru.md) | 🇷🇺 Русский | Полный справочник по системе команд |
-| [docs/ternary-computing-documentation.md](docs/ternary-computing-documentation.md) | 🇬🇧 English | Научная документация по троичным вычислениям (сбалансированная троичная математика, арифметика, логика) |
+| [docs/ternary-computing-documentation.md](docs/ternary-computing-documentation.md) | 🇬🇧 English | Научная документация по троичным вычислениям |
+| | [docs/t3-ternary-computer-comprehensive-guide.ru.md](docs/t3-ternary-computer-comprehensive-guide.ru.md) | 🇷🇺 Русский | **🆕 Полное руководство:** теория троичной логики, архитектура, ISA, T-lang, компилятор, интерпретатор |
 | [SUPPORTED.md](SUPPORTED.md) | 🇬🇧 English | Статус реализации компонентов (Supported / Experimental / Planned / Specification-only) |
 
 ---
