@@ -232,6 +232,52 @@ namespace T3Interpreter.Tests
         [TestMethod] [Timeout(5000)] public void Nanolib_Atoi_Zero() => Assert.AreEqual(0, I("tint main(){return atoi(\"0\");}"));
         [TestMethod] [Timeout(5000)] public void Nanolib_Puts_ReturnsZero() => Assert.AreEqual(0, I("tint main(){return puts(\"hello\");}"));
 
+        // === <tio.h> — I/O stdlib tests ===
+        [TestMethod] [Timeout(5000)] public void Stdlib_PrintInt() => Assert.AreEqual(0, I("tint main(){print_int(42);return 0;}"));
+        [TestMethod] [Timeout(5000)] public void Stdlib_PrintLong() => Assert.AreEqual(0, I("tlong main(){print_long(42);return 0;}"));
+        [TestMethod] [Timeout(5000)] public void Stdlib_PrintFloat() => Assert.AreEqual(0, I("tfloat main(){print_float(3.14);return 0;}"));
+        [TestMethod] [Timeout(5000)] public void Stdlib_PrintTryte() => Assert.AreEqual(0, I("tint main(){print_tryte('A');return 0;}"));
+        [TestMethod] [Timeout(5000)] public void Stdlib_PrintChar() => Assert.AreEqual(0, I("tint main(){print_char('X');return 0;}"));
+        [TestMethod] [Timeout(5000)] public void Stdlib_PrintBal() => Assert.AreEqual(0, I("tint main(){print_bal(42);return 0;}"));
+
+        // === <tstring.h> — String stdlib tests ===
+        [TestMethod] [Timeout(5000)] public void Stdlib_Strlen() => Assert.AreEqual(5, I("tint main(){return t_strlen(\"Hello\");}"));
+        [TestMethod] [Timeout(5000)] public void Stdlib_Strlen_Empty() => Assert.AreEqual(0, I("tint main(){return t_strlen(\"\");}"));
+        [TestMethod] [Timeout(5000)] public void Stdlib_Strcmp_Equal() => Assert.AreEqual(0, I("tint main(){return t_strcmp(\"abc\",\"abc\");}"));
+        [TestMethod] [Timeout(5000)] public void Stdlib_Strcmp_Less() => Assert.AreEqual(-1, I("tint main(){return t_strcmp(\"abc\",\"abd\");}"));
+        [TestMethod] [Timeout(5000)] public void Stdlib_Strcmp_Greater() => Assert.AreEqual(1, I("tint main(){return t_strcmp(\"abd\",\"abc\");}"));
+        [TestMethod] [Timeout(5000)] public void Stdlib_Strncmp_Equal() => Assert.AreEqual(0, I("tint main(){return t_strncmp(\"abc\",\"abc\",3);}"));
+        [TestMethod] [Timeout(5000)] public void Stdlib_Strncmp_Truncated() => Assert.AreEqual(0, I("tint main(){return t_strncmp(\"abc\",\"abcde\",3);}"));
+        [TestMethod] [Timeout(5000)] public void Stdlib_Strchr_Found() => Assert.AreEqual(2, I("tint main(){return t_strchr(\"hello\",'e');}"));
+        [TestMethod] [Timeout(5000)] public void Stdlib_Strchr_NotFound() => Assert.AreEqual(-1, I("tint main(){return t_strchr(\"hello\",'x');}"));
+        [TestMethod] [Timeout(5000)] public void Stdlib_Strrchr_Found() => Assert.AreEqual(4, I("tint main(){return t_strrchr(\"hello\",'l');}"));
+        [TestMethod] [Timeout(5000)] public void Stdlib_Strstr_Found() => Assert.AreEqual(2, I("tint main(){return t_strstr(\"hello\",\"ell\");}"));
+        [TestMethod] [Timeout(5000)] public void Stdlib_Strstr_NotFound() => Assert.AreEqual(-1, I("tint main(){return t_strstr(\"hello\",\"xyz\");}"));
+        [TestMethod] [Timeout(5000)] public void Stdlib_Atoi_Positive() => Assert.AreEqual(42, I("tint main(){return t_atoi(\"42\");}"));
+        [TestMethod] [Timeout(5000)] public void Stdlib_Atoi_Negative() => Assert.AreEqual(-42, I("tint main(){return t_atoi(\"-42\");}"));
+        [TestMethod] [Timeout(5000)] public void Stdlib_Atoi_Zero() => Assert.AreEqual(0, I("tint main(){return t_atoi(\"0\");}"));
+        [TestMethod] [Timeout(5000)] public void Stdlib_Atol_Positive() => Assert.AreEqual(42, I("tlong main(){return t_atol(\"42\");}"));
+        [TestMethod] [Timeout(5000)] public void Stdlib_Atol_Large() => Assert.AreEqual(1000000, I("tlong main(){return t_atol(\"1000000\");}"));
+        [TestMethod] [Timeout(5000)] public void Stdlib_Atof_Simple() => Assert.AreEqual(1, I("tint main(){tfloat x=t_atof(\"3.14\");if(x>3.0&&x<3.2){return 1;}return -1;}"));
+        [TestMethod] [Timeout(5000)] public void Stdlib_Itoa() => Assert.AreEqual(0, I("tint main(){tryte buf[20];return t_itoa(42,buf);}"));
+        [TestMethod] [Timeout(5000)] public void Stdlib_Baltoa() => Assert.AreEqual(0, I("tint main(){tryte buf[20];t_baltoa(42,buf);return 0;}"));
+
+        // === <tmath.h> — Math stdlib tests ===
+        [TestMethod] [Timeout(5000)] public void Stdlib_Abs_Pos() => Assert.AreEqual(42, I("tint main(){return t_abs(42);}"));
+        [TestMethod] [Timeout(5000)] public void Stdlib_Abs_Neg() => Assert.AreEqual(42, I("tint main(){return t_abs(-42);}"));
+        [TestMethod] [Timeout(5000)] public void Stdlib_Min() => Assert.AreEqual(3, I("tint main(){return t_min(3,10);}"));
+        [TestMethod] [Timeout(5000)] public void Stdlib_Max() => Assert.AreEqual(10, I("tint main(){return t_max(3,10);}"));
+        [TestMethod] [Timeout(5000)] public void Stdlib_Sqrt() => Assert.AreEqual(1, I("tint main(){tfloat x=t_sqrt(9.0);if(x>2.9&&x<3.1){return 1;}return -1;}"));
+        [TestMethod] [Timeout(5000)] public void Stdlib_Floor() => Assert.AreEqual(1, I("tint main(){tfloat x=t_floor(3.7);if(x>2.9&&x<3.1){return 1;}return -1;}"));
+        [TestMethod] [Timeout(5000)] public void Stdlib_Ceil() => Assert.AreEqual(1, I("tint main(){tfloat x=t_ceil(3.1);if(x>3.9&&x<4.1){return 1;}return -1;}"));
+        [TestMethod] [Timeout(5000)] public void Stdlib_Sin() => Assert.AreEqual(1, I("tint main(){tfloat x=t_sin(0.0);if(x>-0.1&&x<0.1){return 1;}return -1;}"));
+        [TestMethod] [Timeout(5000)] public void Stdlib_Cos() => Assert.AreEqual(1, I("tint main(){tfloat x=t_cos(0.0);if(x>0.9&&x<1.1){return 1;}return -1;}"));
+        [TestMethod] [Timeout(5000)] public void Stdlib_Exp() => Assert.AreEqual(1, I("tint main(){tfloat x=t_exp(0.0);if(x>0.9&&x<1.1){return 1;}return -1;}"));
+        [TestMethod] [Timeout(5000)] public void Stdlib_Log() => Assert.AreEqual(1, I("tint main(){tfloat x=t_log(1.0);if(x>-0.1&&x<0.1){return 1;}return -1;}"));
+        [TestMethod] [Timeout(5000)] public void Stdlib_Log3() => Assert.AreEqual(1, I("tint main(){tfloat x=t_log3(9.0);if(x>1.9&&x<2.1){return 1;}return -1;}"));
+        [TestMethod] [Timeout(5000)] public void Stdlib_Pow() => Assert.AreEqual(1, I("tint main(){tfloat x=t_pow(2.0,3.0);if(x>7.9&&x<8.1){return 1;}return -1;}"));
+        [TestMethod] [Timeout(5000)] public void Stdlib_Clamp() => Assert.AreEqual(5, I("tint main(){return clamp(2,5,10);}"));
+
         [TestMethod] [Timeout(5000)] public void SourceError_MissingSemicolon()
         {
             var tokens = new Tokenizer("tint main(){return 42}").Tokenize();

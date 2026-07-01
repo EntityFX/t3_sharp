@@ -301,95 +301,27 @@ namespace T3Interpreter
 
         T3Value EvalCall(FunctionCall fc)
         {
-            if (fc.FunctionName == "putchar")
-            {
-                Console.Write((char)Eval(fc.Arguments[0]).AsInt());
-                return T3Value.FromInt(0);
-            }
-            if (fc.FunctionName == "printint")
-            {
-                Console.Write(Eval(fc.Arguments[0]).AsInt());
-                return T3Value.FromInt(0);
-            }
-            if (fc.FunctionName == "strlen")
-            {
-                var str = Eval(fc.Arguments[0]);
-                if (str.Kind == T3Value.ValueKind.Array && str.ArrayLength > 0)
-                    return str.GetElement(0);
-                return T3Value.FromInt(0);
-            }
-            if (fc.FunctionName == "malloc")
-            {
-                int n = (int)Eval(fc.Arguments[0]).AsInt();
-                int addr = _heap.Count;
-                for (int i = 0; i < n; i++) _heap.Add(0);
-                return T3Value.FromInt(addr);
-            }
-            if (fc.FunctionName == "free")
-                return T3Value.Void;
+            string fn = fc.FunctionName;
 
-            // === nanolib builtins ===
-            if (fc.FunctionName == "puts")
+            // === Nanolib builtins (I/O, string, math) ===
+            if (Nanolib.TryCall(fn, fc, Eval, out var nlResult))
             {
-                var str = Eval(fc.Arguments[0]);
-                if (str.Kind == T3Value.ValueKind.Array)
+                // Special case: malloc/free need access to _heap
+                if (fn == "malloc")
                 {
-                    int len = (int)str.GetElement(0).AsInt();
-                    for (int i = 1; i <= len; i++)
-                        Console.Write((char)str.GetElement(i).AsInt());
+                    int n = (int)Eval(fc.Arguments[0]).AsInt();
+                    int addr = _heap.Count;
+                    for (int i = 0; i < n; i++) _heap.Add(0);
+                    return T3Value.FromInt(addr);
                 }
-                Console.WriteLine();
-                return T3Value.FromInt(0);
-            }
-            if (fc.FunctionName == "atoi")
-            {
-                var str = Eval(fc.Arguments[0]);
-                if (str.Kind == T3Value.ValueKind.Array)
-                {
-                    int len = (int)str.GetElement(0).AsInt();
-                    if (len == 0) return T3Value.FromInt(0);
-                    bool neg = str.GetElement(1).AsInt() == '-';
-                    int val = 0;
-                    for (int i = neg ? 2 : 1; i <= len; i++)
-                        val = val * 10 + (int)(str.GetElement(i).AsInt() - '0');
-                    return T3Value.FromInt(neg ? -val : val);
-                }
-                return T3Value.FromInt(0);
-            }
-            if (fc.FunctionName == "abs")
-            {
-                long v = Eval(fc.Arguments[0]).AsInt();
-                return T3Value.FromInt(v < 0 ? -v : v);
-            }
-            if (fc.FunctionName == "min")
-            {
-                long a = Eval(fc.Arguments[0]).AsInt();
-                long b = Eval(fc.Arguments[1]).AsInt();
-                return T3Value.FromInt(a < b ? a : b);
-            }
-            if (fc.FunctionName == "max")
-            {
-                long a = Eval(fc.Arguments[0]).AsInt();
-                long b = Eval(fc.Arguments[1]).AsInt();
-                return T3Value.FromInt(a > b ? a : b);
-            }
-            if (fc.FunctionName == "clamp")
-            {
-                long v = Eval(fc.Arguments[0]).AsInt();
-                long lo = Eval(fc.Arguments[1]).AsInt();
-                long hi = Eval(fc.Arguments[2]).AsInt();
-                if (v < lo) return T3Value.FromInt(lo);
-                if (v > hi) return T3Value.FromInt(hi);
-                return T3Value.FromInt(v);
-            }
-            if (fc.FunctionName == "printfloat")
-            {
-                Console.Write(Eval(fc.Arguments[0]).AsFloat().ToString(System.Globalization.CultureInfo.InvariantCulture));
-                return T3Value.FromInt(0);
+                if (fn == "free")
+                    return T3Value.Void;
+                return nlResult;
             }
 
-            if (!_functions.TryGetValue(fc.FunctionName, out var f))
-                ThrowError(fc, $"undefined function '{fc.FunctionName}'");
+            // === User-defined functions ===
+            if (!_functions.TryGetValue(fn, out var f))
+                ThrowError(fc, $"undefined function '{fn}'");
             var frame = new Dictionary<string, T3Value>();
             for (int i = 0; i < f.Parameters.Count && i < fc.Arguments.Count; i++)
                 frame[f.Parameters[i].Name] = Eval(fc.Arguments[i]);
