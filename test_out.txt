@@ -1,0 +1,6 @@
+Test run for C:\projects\t3_sharp\tests\T3Simulator.InOrder.Tests\bin\Debug\net8.0\T3Simulator.InOrder.Tests.dll (.NETCoreApp,Version=v8.0)
+VSTest version 17.11.1 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Attempting to cancel the build...

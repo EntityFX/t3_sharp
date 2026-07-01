@@ -89,31 +89,7 @@ namespace T3Compiler.CodeGen
             foreach(var (lbl, val) in _globalsToEmit) Emit($"{lbl}: .word {val}");
             
             Emit("\n; --- StdLib ---");
-            Emit("strlen:");
-            Emit("    PUSH RZ");Emit("    PUSH R3");Emit("    PUSH R4");
-            Emit("    LI R2, 0");
-            Emit("strlen_loop:");
-            Emit("    LOADI R1, RW, 0");
-            Emit("    CMPI R1, 0");
-            Emit("    JE strlen_end");
-            Emit("    ADDI R2, 1");
-            Emit("    ADDI RW, 1");
-            Emit("    JMP strlen_loop");
-            Emit("strlen_end:");
-            Emit("    POP R4");Emit("    POP R3");Emit("    POP RZ");
-            Emit("    RET");
-            // putchar(c) — write char to port 0
-            Emit("putchar:");
-            Emit("    PUSH RZ");Emit("    PUSH R3");Emit("    PUSH R4");
-            Emit("    OUTI RW, 0");
-            Emit("    POP R4");Emit("    POP R3");Emit("    POP RZ");
-            Emit("    RET");
-            // getchar() — read char from port 0
-            Emit("getchar:");
-            Emit("    PUSH RZ");Emit("    PUSH R3");Emit("    PUSH R4");
-            Emit("    INI R2, 0");
-            Emit("    POP R4");Emit("    POP R3");Emit("    POP RZ");
-            Emit("    RET");
+            NanolibCodeGen.EmitStdLib(_output);
             
             return _output.ToString();
         }

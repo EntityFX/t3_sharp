@@ -1,0 +1,8 @@
+--- AST Dump ---
+Function: main
+  Return Type: tint
+  Body:
+    CompoundStmt:
+      VarDecl: p : tint = FunctionCall: malloc (IntegerLiteral: 10 )
+      ExprStmt: Assignment: = (UnaryOp: * (Identifier: p) = IntegerLiteral: 42)
+      ReturnStmt: UnaryOp: * (Identifier: p)
