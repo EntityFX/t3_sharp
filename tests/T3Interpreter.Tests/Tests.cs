@@ -142,6 +142,10 @@ namespace T3Interpreter.Tests
 
         [TestMethod] [Timeout(5000)] public void Compile_Typedef_TIntAlias() => Assert.AreEqual(42, C("typedef tint myint; myint main(){return 42;}"));
         [TestMethod] [Timeout(5000)] public void Compile_Typedef_WithFunction() => Assert.AreEqual(15, C("typedef tint i32; i32 add(i32 a,i32 b){return a+b;}i32 main(){return add(5,10);}"));
+        [TestMethod] [Timeout(5000)] public void Intrp_Typedef_TIntAlias() => Assert.AreEqual(42, I("typedef tint myint; myint main(){return 42;}"));
+        [TestMethod] [Timeout(5000)] public void Intrp_Typedef_WithFunction() => Assert.AreEqual(15, I("typedef tint i32; i32 add(i32 a,i32 b){return a+b;}i32 main(){return add(5,10);}"));
+        [TestMethod] [Timeout(5000)] public void Intrp_Typedef_FloatAlias() => Assert.AreEqual(1, I("typedef tfloat tf; tf main(){tf x=3.14;tf y=3.14;if(x==y){return 1;}return -1;}"));
+        [TestMethod] [Timeout(5000)] public void Intrp_Typedef_Chain() => Assert.AreEqual(7, I("typedef tint a;typedef a b;b main(){return 7;}"));
 
         static long C_asm(string source)
         {
@@ -164,6 +168,12 @@ namespace T3Interpreter.Tests
         [TestMethod] [Timeout(5000)] public void Intrp_Malloc() => Assert.IsTrue(I("tint main(){tint p=malloc(10);return p;}") >= 0);
 
         // === New language feature tests (interpreter) ===
+        [TestMethod] [Timeout(5000)] public void Intrp_CharLiteral_A() => Assert.AreEqual(65, I("tint main(){return 'A';}"));
+        [TestMethod] [Timeout(5000)] public void Intrp_CharLiteral_0() => Assert.AreEqual(48, I("tint main(){return '0';}"));
+        [TestMethod] [Timeout(5000)] public void Intrp_CharLiteral_Newline() => Assert.AreEqual(10, I("tint main(){return '\\n';}"));
+        [TestMethod] [Timeout(5000)] public void Intrp_CharLiteral_InExpr() => Assert.AreEqual(131, I("tint main(){return 'A'+'B';}"));
+        [TestMethod] [Timeout(5000)] public void Equiv_CharLiteral_A() => EE("tint main(){return 'A';}");
+        [TestMethod] [Timeout(5000)] public void Equiv_CharLiteral_0() => EE("tint main(){return '0';}");
         [TestMethod] [Timeout(5000)] public void Intrp_Strlen() => Assert.AreEqual(5, I("tint main(){return strlen(\"Hello\");}"));
         [TestMethod] [Timeout(5000)] public void Intrp_ShiftMul() => Assert.AreEqual(9, I("tint len(tint x,tint n){while(n>0){x=x*3;n=n-1;}return x;} tint main(){return len(1,2);}"));
         [TestMethod] [Timeout(5000)] public void Intrp_ShiftDiv() => Assert.AreEqual(3, I("tint len(tint x,tint n){while(n>0){x=x/3;n=n-1;}return x;} tint main(){return len(27,2);}"));
@@ -183,6 +193,44 @@ namespace T3Interpreter.Tests
         [TestMethod] [Timeout(5000)] public void Intrp_BraceInit() => Assert.AreEqual(14, I("tint main(){tint a[3]={2,4,8};return a[0]+a[1]+a[2];}"));
         [TestMethod] [Timeout(5000)] public void Intrp_StringLiteral() => Assert.IsTrue(I("tint main(){tint s=strlen(\"Hello\");return s;}") > 0);
         [TestMethod] [Timeout(5000)] public void Intrp_FloatDefaultZero() => Assert.AreEqual(1, I("tint main(){tfloat f;tfloat g;if(f==g){return 1;}return -1;}"));
+        [TestMethod] [Timeout(5000)] public void Intrp_FloatCompareEq() => Assert.AreEqual(1, I("tint main(){tfloat x=3.14;tfloat y=3.14;if(x==y){return 1;}return -1;}"));
+        [TestMethod] [Timeout(5000)] public void Intrp_FloatCompareNe() => Assert.AreEqual(1, I("tint main(){tfloat x=3.14;tfloat y=2.71;if(x!=y){return 1;}return -1;}"));
+        [TestMethod] [Timeout(5000)] public void Intrp_FloatCompareLt() => Assert.AreEqual(1, I("tint main(){tfloat x=1.0;tfloat y=2.0;if(x<y){return 1;}return -1;}"));
+        [TestMethod] [Timeout(5000)] public void Intrp_FloatCompareGt() => Assert.AreEqual(1, I("tint main(){tfloat x=3.0;tfloat y=1.0;if(x>y){return 1;}return -1;}"));
+        [TestMethod] [Timeout(5000)] public void Intrp_FloatNeg() => Assert.AreEqual(1, I("tint main(){tfloat x=3.14;tfloat y=-x;if(y<0){return 1;}return -1;}"));
+
+        // === tlong (36-trit) tests ===
+        [TestMethod] [Timeout(5000)] public void Intrp_TlongLiteral() => Assert.AreEqual(42, I("tlong main(){return 42tl;}"));
+        [TestMethod] [Timeout(5000)] public void Intrp_TlongAdd() => Assert.AreEqual(30, I("tlong main(){tlong a=10tl;tlong b=20tl;return a+b;}"));
+        [TestMethod] [Timeout(5000)] public void Intrp_TlongSub() => Assert.AreEqual(70, I("tlong main(){tlong a=100tl;tlong b=30tl;return a-b;}"));
+        [TestMethod] [Timeout(5000)] public void Intrp_TlongMul() => Assert.AreEqual(42, I("tlong main(){tlong a=6tl;tlong b=7tl;return a*b;}"));
+        [TestMethod] [Timeout(5000)] public void Intrp_TlongDiv() => Assert.AreEqual(7, I("tlong main(){tlong a=42tl;tlong b=6tl;return a/b;}"));
+        [TestMethod] [Timeout(5000)] public void Intrp_TlongCompare() => Assert.AreEqual(1, I("tlong main(){tlong a=100tl;tlong b=200tl;if(a<b){return 1;}return -1;}"));
+        [TestMethod] [Timeout(5000)] public void Intrp_TlongNeg() => Assert.AreEqual(-42, I("tlong main(){tlong a=42tl;tlong b=-a;return b;}"));
+        [TestMethod] [Timeout(5000)] public void Intrp_TlongVarDecl() => Assert.AreEqual(0, I("tlong main(){tlong x;return x;}"));
+        [TestMethod] [Timeout(5000)] public void Intrp_TlongGlobal() => Assert.AreEqual(99, I("tlong g;tlong main(){g=99tl;return g;}"));
+        [TestMethod] [Timeout(5000)] public void Intrp_TlongOverflow() => Assert.AreEqual(-75047317648499560, I("tlong main(){tlong x=75047317648499560tl;tlong y=1tl;return x+y;}"));
+
+        // === union tests ===
+        [TestMethod] [Timeout(5000)] public void Intrp_Union_WriteRead() => Assert.AreEqual(42, I("union Data{tint x;tint y;};tint main(){union Data d;d.x=42;return d.x;}"));
+        [TestMethod] [Timeout(5000)] public void Intrp_Union_SharedStorage() => Assert.AreEqual(42, I("union Data{tint x;tint y;};tint main(){union Data d;d.x=42;return d.y;}"));
+        [TestMethod] [Timeout(5000)] public void Intrp_Union_Overwrite() => Assert.AreEqual(99, I("union Data{tint x;tint y;};tint main(){union Data d;d.x=42;d.y=99;return d.x;}"));
+        [TestMethod] [Timeout(5000)] public void Intrp_Union_Global() => Assert.AreEqual(7, I("union Data{tint x;tint y;};Data g;tint main(){g.x=7;return g.y;}"));
+        [TestMethod] [Timeout(5000)] public void Intrp_Union_DefaultZero() => Assert.AreEqual(0, I("union Data{tint x;tint y;};tint main(){union Data d;return d.x;}"));
+
+        // === nanolib builtins ===
+        [TestMethod] [Timeout(5000)] public void Nanolib_Abs_Pos() => Assert.AreEqual(42, I("tint main(){return abs(42);}"));
+        [TestMethod] [Timeout(5000)] public void Nanolib_Abs_Neg() => Assert.AreEqual(42, I("tint main(){return abs(-42);}"));
+        [TestMethod] [Timeout(5000)] public void Nanolib_Min() => Assert.AreEqual(3, I("tint main(){return min(3,10);}"));
+        [TestMethod] [Timeout(5000)] public void Nanolib_Min_Reverse() => Assert.AreEqual(3, I("tint main(){return min(10,3);}"));
+        [TestMethod] [Timeout(5000)] public void Nanolib_Max() => Assert.AreEqual(10, I("tint main(){return max(3,10);}"));
+        [TestMethod] [Timeout(5000)] public void Nanolib_Clamp_Low() => Assert.AreEqual(5, I("tint main(){return clamp(2,5,10);}"));
+        [TestMethod] [Timeout(5000)] public void Nanolib_Clamp_High() => Assert.AreEqual(10, I("tint main(){return clamp(20,5,10);}"));
+        [TestMethod] [Timeout(5000)] public void Nanolib_Clamp_Mid() => Assert.AreEqual(7, I("tint main(){return clamp(7,5,10);}"));
+        [TestMethod] [Timeout(5000)] public void Nanolib_Atoi_Simple() => Assert.AreEqual(42, I("tint main(){return atoi(\"42\");}"));
+        [TestMethod] [Timeout(5000)] public void Nanolib_Atoi_Neg() => Assert.AreEqual(-42, I("tint main(){return atoi(\"-42\");}"));
+        [TestMethod] [Timeout(5000)] public void Nanolib_Atoi_Zero() => Assert.AreEqual(0, I("tint main(){return atoi(\"0\");}"));
+        [TestMethod] [Timeout(5000)] public void Nanolib_Puts_ReturnsZero() => Assert.AreEqual(0, I("tint main(){return puts(\"hello\");}"));
 
         [TestMethod] [Timeout(5000)] public void SourceError_MissingSemicolon()
         {

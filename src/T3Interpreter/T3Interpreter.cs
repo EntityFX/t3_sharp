@@ -11,6 +11,7 @@ namespace T3Interpreter
         readonly AstProgram _program;
         readonly Stack<Dictionary<string, T3Value>> _scopes = new();
         readonly Dictionary<string, FunctionDef> _functions = new(StringComparer.OrdinalIgnoreCase);
+        readonly Dictionary<string, TypeSpec> _typedefs = new();
         readonly List<long> _heap = new();
         T3Value _returnValue = T3Value.Void;
         bool _didReturn,
@@ -33,6 +34,24 @@ namespace T3Interpreter
                     cur = _enumValues[m.Name] + 1;
                 }
             }
+            foreach (var td in program.Typedefs)
+                _typedefs[td.Name] = td.Type;
+        }
+
+        /// <summary>Resolve a typedef chain to the base TypeSpec.</summary>
+        TypeSpec ResolveType(TypeSpec ts)
+        {
+            while (ts.TypeName != null && _typedefs.TryGetValue(ts.TypeName, out var resolved))
+                ts = resolved;
+            return ts;
+        }
+
+        /// <summary>Throw an error with source position context from an AST node.</summary>
+        void ThrowError(AstNode? node, string message)
+        {
+            if (node != null && (node.Line != 0 || node.Column != 0))
+                throw new Exception($"runtime error at {node.Line}:{node.Column}: {message}");
+            throw new Exception($"runtime error: {message}");
         }
 
         public long Run()
@@ -44,14 +63,26 @@ namespace T3Interpreter
             foreach (var g in _program.Globals)
             {
                 T3Value init = T3Value.FromInt(0);
-                if (g.Type.Dims.Count > 0)
+                var resolvedGlobalType = ResolveType(g.Type);
+                if (resolvedGlobalType.Dims.Count > 0)
                 {
-                    int sz = g.Type.Dims.Aggregate(1, (a, b) => a * b);
+                    int sz = resolvedGlobalType.Dims.Aggregate(1, (a, b) => a * b);
                     init = T3Value.FromArray(sz);
                 }
-                else if (g.Type.StructName != null)
+                else if (resolvedGlobalType.StructName != null)
                 {
-                    init = T3Value.FromStruct();
+                    if (_structDefs.TryGetValue(resolvedGlobalType.StructName, out var sd) && sd.IsUnion)
+                        init = T3Value.FromUnion();
+                    else
+                        init = T3Value.FromStruct();
+                }
+                else if (resolvedGlobalType.TypeName is "tlong" or "long")
+                {
+                    init = T3Value.FromLong(0);
+                }
+                else if (resolvedGlobalType.TypeName != null && _structDefs.TryGetValue(resolvedGlobalType.TypeName, out var sd2))
+                {
+                    init = sd2.IsUnion ? T3Value.FromUnion() : T3Value.FromStruct();
                 }
                 if (g.Initializer != null)
                     init = Eval(g.Initializer);
@@ -64,7 +95,11 @@ namespace T3Interpreter
         T3Value Eval(AstNode n)
         {
             if (n is IntegerLiteral il)
+            {
+                if (il.Suffix == "tl")
+                    return T3Value.FromLong(ParseInt(il.Value));
                 return T3Value.FromInt(ParseInt(il.Value));
+            }
             if (n is FloatLiteral fl)
                 return T3Value.FromFloat(double.Parse(fl.Value, System.Globalization.CultureInfo.InvariantCulture));
             if (n is BooleanLiteral bl)
@@ -74,7 +109,7 @@ namespace T3Interpreter
             if (n is StringLiteral sl)
                 return MakeString(sl.Value);
             if (n is Identifier id)
-                return GetVar(id.Name);
+                return GetVar(id.Name, id);
             if (n is BinaryOp bo)
                 return EvalBin(bo);
             if (n is UnaryOp uo)
@@ -89,13 +124,18 @@ namespace T3Interpreter
                 return EvalArrayAccess(aa);
             if (n is MemberAccess ma)
                 return EvalMemberAccess(ma);
-            throw new NotSupportedException(n.GetType().Name);
+            ThrowError(n, $"unsupported expression type '{n.GetType().Name}'");
+            return T3Value.FromInt(0); // unreachable
         }
 
         T3Value EvalBin(BinaryOp bo)
         {
             var l = Eval(bo.Left);
             var r = Eval(bo.Right);
+            // Use float comparison if either operand is float
+            bool isFloat = l.Kind == T3Value.ValueKind.Float || r.Kind == T3Value.ValueKind.Float;
+            // Use long comparison if either operand is long (36-trit)
+            bool isLong = l.Kind == T3Value.ValueKind.Long || r.Kind == T3Value.ValueKind.Long;
             return bo.Operator switch
             {
                 "+" => l + r,
@@ -103,12 +143,36 @@ namespace T3Interpreter
                 "*" => l * r,
                 "/" => l / r,
                 "%" => l % r,
-                "==" => T3Value.FromBool(l.AsInt() == r.AsInt() ? 1 : -1),
-                "!=" => T3Value.FromBool(l.AsInt() != r.AsInt() ? 1 : -1),
-                "<" => T3Value.FromBool(l.AsInt() < r.AsInt() ? 1 : -1),
-                ">" => T3Value.FromBool(l.AsInt() > r.AsInt() ? 1 : -1),
-                "<=" => T3Value.FromBool(l.AsInt() <= r.AsInt() ? 1 : -1),
-                ">=" => T3Value.FromBool(l.AsInt() >= r.AsInt() ? 1 : -1),
+                "==" => isLong
+                    ? T3Value.FromBool(l.AsLong() == r.AsLong() ? 1 : -1)
+                    : isFloat
+                    ? T3Value.FromBool(l.AsFloat() == r.AsFloat() ? 1 : -1)
+                    : T3Value.FromBool(l.AsInt() == r.AsInt() ? 1 : -1),
+                "!=" => isLong
+                    ? T3Value.FromBool(l.AsLong() != r.AsLong() ? 1 : -1)
+                    : isFloat
+                    ? T3Value.FromBool(l.AsFloat() != r.AsFloat() ? 1 : -1)
+                    : T3Value.FromBool(l.AsInt() != r.AsInt() ? 1 : -1),
+                "<" => isLong
+                    ? T3Value.FromBool(l.AsLong() < r.AsLong() ? 1 : -1)
+                    : isFloat
+                    ? T3Value.FromBool(l.AsFloat() < r.AsFloat() ? 1 : -1)
+                    : T3Value.FromBool(l.AsInt() < r.AsInt() ? 1 : -1),
+                ">" => isLong
+                    ? T3Value.FromBool(l.AsLong() > r.AsLong() ? 1 : -1)
+                    : isFloat
+                    ? T3Value.FromBool(l.AsFloat() > r.AsFloat() ? 1 : -1)
+                    : T3Value.FromBool(l.AsInt() > r.AsInt() ? 1 : -1),
+                "<=" => isLong
+                    ? T3Value.FromBool(l.AsLong() <= r.AsLong() ? 1 : -1)
+                    : isFloat
+                    ? T3Value.FromBool(l.AsFloat() <= r.AsFloat() ? 1 : -1)
+                    : T3Value.FromBool(l.AsInt() <= r.AsInt() ? 1 : -1),
+                ">=" => isLong
+                    ? T3Value.FromBool(l.AsLong() >= r.AsLong() ? 1 : -1)
+                    : isFloat
+                    ? T3Value.FromBool(l.AsFloat() >= r.AsFloat() ? 1 : -1)
+                    : T3Value.FromBool(l.AsInt() >= r.AsInt() ? 1 : -1),
                 "&&" => T3Value.FromBool(l.AsBool() > 0 && r.AsBool() > 0 ? 1 : -1),
                 "||" => T3Value.FromBool(l.AsBool() > 0 || r.AsBool() > 0 ? 1 : -1),
                 "&" => T3Value.FromInt(l.AsInt() & r.AsInt()),
@@ -126,15 +190,34 @@ namespace T3Interpreter
             switch (uo.Operator)
             {
                 case "cast": return v;  // type cast is a no-op (unified T3Value)
-                case "-": return T3Value.FromInt(-v.AsInt());
+                case "-":
+                    if (v.Kind == T3Value.ValueKind.Long) return T3Value.FromLong(-v.AsLong());
+                    if (v.Kind == T3Value.ValueKind.Float) return T3Value.FromFloat(-v.AsFloat());
+                    return T3Value.FromInt(-v.AsInt());
                 case "!": return T3Value.FromBool(v.AsBool() > 0 ? -1 : 1);
                 case "~": return T3Value.FromInt(-v.AsInt());
                 case "*": return v;
                 case "&": return v;
-                case "++": { var newVal = T3Value.FromInt(v.AsInt() + 1); if (uo.Operand is Identifier id) SetVarId(id, newVal); return newVal; }
-                case "--": { var newVal = T3Value.FromInt(v.AsInt() - 1); if (uo.Operand is Identifier id) SetVarId(id, newVal); return newVal; }
-                case "post++": { var orig = T3Value.FromInt(v.AsInt()); if (uo.Operand is Identifier id) SetVarId(id, T3Value.FromInt(v.AsInt() + 1)); return orig; }
-                case "post--": { var orig = T3Value.FromInt(v.AsInt()); if (uo.Operand is Identifier id) SetVarId(id, T3Value.FromInt(v.AsInt() - 1)); return orig; }
+                case "++":
+                    if (v.Kind == T3Value.ValueKind.Long)
+                    { var newVal = T3Value.FromLong(v.AsLong() + 1); if (uo.Operand is Identifier id) SetVarId(id, newVal); return newVal; }
+                    else
+                    { var newVal = T3Value.FromInt(v.AsInt() + 1); if (uo.Operand is Identifier id) SetVarId(id, newVal); return newVal; }
+                case "--":
+                    if (v.Kind == T3Value.ValueKind.Long)
+                    { var newVal = T3Value.FromLong(v.AsLong() - 1); if (uo.Operand is Identifier id) SetVarId(id, newVal); return newVal; }
+                    else
+                    { var newVal = T3Value.FromInt(v.AsInt() - 1); if (uo.Operand is Identifier id) SetVarId(id, newVal); return newVal; }
+                case "post++":
+                    if (v.Kind == T3Value.ValueKind.Long)
+                    { var orig = T3Value.FromLong(v.AsLong()); if (uo.Operand is Identifier id) SetVarId(id, T3Value.FromLong(v.AsLong() + 1)); return orig; }
+                    else
+                    { var orig = T3Value.FromInt(v.AsInt()); if (uo.Operand is Identifier id) SetVarId(id, T3Value.FromInt(v.AsInt() + 1)); return orig; }
+                case "post--":
+                    if (v.Kind == T3Value.ValueKind.Long)
+                    { var orig = T3Value.FromLong(v.AsLong()); if (uo.Operand is Identifier id) SetVarId(id, T3Value.FromLong(v.AsLong() - 1)); return orig; }
+                    else
+                    { var orig = T3Value.FromInt(v.AsInt()); if (uo.Operand is Identifier id) SetVarId(id, T3Value.FromInt(v.AsInt() - 1)); return orig; }
                 case "sizeof": return EvalSizeof(uo.Operand);
                 default: return v;
             }
@@ -245,8 +328,68 @@ namespace T3Interpreter
             if (fc.FunctionName == "free")
                 return T3Value.Void;
 
+            // === nanolib builtins ===
+            if (fc.FunctionName == "puts")
+            {
+                var str = Eval(fc.Arguments[0]);
+                if (str.Kind == T3Value.ValueKind.Array)
+                {
+                    int len = (int)str.GetElement(0).AsInt();
+                    for (int i = 1; i <= len; i++)
+                        Console.Write((char)str.GetElement(i).AsInt());
+                }
+                Console.WriteLine();
+                return T3Value.FromInt(0);
+            }
+            if (fc.FunctionName == "atoi")
+            {
+                var str = Eval(fc.Arguments[0]);
+                if (str.Kind == T3Value.ValueKind.Array)
+                {
+                    int len = (int)str.GetElement(0).AsInt();
+                    if (len == 0) return T3Value.FromInt(0);
+                    bool neg = str.GetElement(1).AsInt() == '-';
+                    int val = 0;
+                    for (int i = neg ? 2 : 1; i <= len; i++)
+                        val = val * 10 + (int)(str.GetElement(i).AsInt() - '0');
+                    return T3Value.FromInt(neg ? -val : val);
+                }
+                return T3Value.FromInt(0);
+            }
+            if (fc.FunctionName == "abs")
+            {
+                long v = Eval(fc.Arguments[0]).AsInt();
+                return T3Value.FromInt(v < 0 ? -v : v);
+            }
+            if (fc.FunctionName == "min")
+            {
+                long a = Eval(fc.Arguments[0]).AsInt();
+                long b = Eval(fc.Arguments[1]).AsInt();
+                return T3Value.FromInt(a < b ? a : b);
+            }
+            if (fc.FunctionName == "max")
+            {
+                long a = Eval(fc.Arguments[0]).AsInt();
+                long b = Eval(fc.Arguments[1]).AsInt();
+                return T3Value.FromInt(a > b ? a : b);
+            }
+            if (fc.FunctionName == "clamp")
+            {
+                long v = Eval(fc.Arguments[0]).AsInt();
+                long lo = Eval(fc.Arguments[1]).AsInt();
+                long hi = Eval(fc.Arguments[2]).AsInt();
+                if (v < lo) return T3Value.FromInt(lo);
+                if (v > hi) return T3Value.FromInt(hi);
+                return T3Value.FromInt(v);
+            }
+            if (fc.FunctionName == "printfloat")
+            {
+                Console.Write(Eval(fc.Arguments[0]).AsFloat().ToString(System.Globalization.CultureInfo.InvariantCulture));
+                return T3Value.FromInt(0);
+            }
+
             if (!_functions.TryGetValue(fc.FunctionName, out var f))
-                throw new Exception($"Undefined function: {fc.FunctionName}");
+                ThrowError(fc, $"undefined function '{fc.FunctionName}'");
             var frame = new Dictionary<string, T3Value>();
             for (int i = 0; i < f.Parameters.Count && i < fc.Arguments.Count; i++)
                 frame[f.Parameters[i].Name] = Eval(fc.Arguments[i]);
@@ -317,18 +460,30 @@ namespace T3Interpreter
                     break;
                 case VarDeclaration vd:
                     T3Value defaultVal;
-                    if (vd.Type.Dims.Count > 0)
+                    var resolvedType = ResolveType(vd.Type);
+                    if (resolvedType.Dims.Count > 0)
                     {
-                        int sz = vd.Type.Dims.Aggregate(1, (a, b) => a * b);
+                        int sz = resolvedType.Dims.Aggregate(1, (a, b) => a * b);
                         defaultVal = T3Value.FromArray(sz);
                     }
-                    else if (vd.Type.StructName != null)
+                    else if (resolvedType.StructName != null)
                     {
-                        defaultVal = T3Value.FromStruct();
+                        if (_structDefs.TryGetValue(resolvedType.StructName, out var sd) && sd.IsUnion)
+                            defaultVal = T3Value.FromUnion();
+                        else
+                            defaultVal = T3Value.FromStruct();
                     }
-                    else if (vd.Type.TypeName is "tfloat" or "tdouble")
+                    else if (resolvedType.TypeName != null && _structDefs.TryGetValue(resolvedType.TypeName, out var sd2))
+                    {
+                        defaultVal = sd2.IsUnion ? T3Value.FromUnion() : T3Value.FromStruct();
+                    }
+                    else if (resolvedType.TypeName is "tfloat" or "tdouble")
                     {
                         defaultVal = T3Value.FromFloat(0.0);
+                    }
+                    else if (resolvedType.TypeName is "tlong" or "long")
+                    {
+                        defaultVal = T3Value.FromLong(0);
                     }
                     else
                     {
@@ -446,7 +601,7 @@ namespace T3Interpreter
             }
         }
 
-        T3Value GetVar(string name)
+        T3Value GetVar(string name, AstNode? context = null)
         {
             if (_enumValues.TryGetValue(name, out int ev))
                 return T3Value.FromInt(ev);
@@ -455,7 +610,8 @@ namespace T3Interpreter
                 if (scope.TryGetValue(name, out var v))
                     return v;
             }
-            throw new Exception($"Undefined variable: {name}");
+            ThrowError(context, $"undefined variable '{name}'");
+            return T3Value.FromInt(0); // unreachable
         }
 
         void SetVar(string name, T3Value val)

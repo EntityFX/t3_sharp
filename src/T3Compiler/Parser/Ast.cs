@@ -3,7 +3,11 @@ using System.Collections.Generic;
 namespace T3Compiler.Parser
 {
     // === Expressions ===
-    public abstract class AstNode { }
+    public abstract class AstNode
+    {
+        public int Line;
+        public int Column;
+    }
 
     public class IntegerLiteral : AstNode { public string Value; public string? Suffix; }
     public class FloatLiteral : AstNode { public string Value; }
