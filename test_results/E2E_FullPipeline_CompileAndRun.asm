@@ -1,5 +1,6 @@
 ; T→T3
 __entry:
+    LIMM HP,699050
     LIMM R1,main
     CALL R1
     HALT

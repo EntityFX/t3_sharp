@@ -182,7 +182,7 @@ namespace T3Interpreter.Tests
         [TestMethod] [Timeout(5000)] public void Intrp_FloatVar() => Assert.AreEqual(0, I("tint main(){tfloat x;return x;}"));
         [TestMethod] [Timeout(5000)] public void Intrp_BraceInit() => Assert.AreEqual(14, I("tint main(){tint a[3]={2,4,8};return a[0]+a[1]+a[2];}"));
         [TestMethod] [Timeout(5000)] public void Intrp_StringLiteral() => Assert.IsTrue(I("tint main(){tint s=strlen(\"Hello\");return s;}") > 0);
-        [TestMethod] [Timeout(5000)] public void Intrp_FloatDefaultZero() => Assert.AreEqual(0, I("tint main(){tfloat f;tfloat g;return f==g?1:0;}"));
+        [TestMethod] [Timeout(5000)] public void Intrp_FloatDefaultZero() => Assert.AreEqual(1, I("tint main(){tfloat f;tfloat g;if(f==g){return 1;}return -1;}"));
 
         [TestMethod] [Timeout(5000)] public void SourceError_MissingSemicolon()
         {
