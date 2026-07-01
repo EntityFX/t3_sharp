@@ -13,6 +13,7 @@ namespace T3Compiler.CodeGen
         readonly List<(string label, long value)> _globalsToEmit=new();
         readonly Dictionary<string,List<int>> _arrDims=new();readonly Dictionary<string,List<FieldDef>> _structFields=new();
         readonly Stack<(string brk,string cont)> _loopStack=new();readonly Dictionary<string,List<FieldDef>> _structDefs=new();
+        readonly HashSet<string> _floatVars=new();
         string? _epilogueLabel;
         readonly HashSet<string> _liveVars = new();
         bool _fpuLive = false;
@@ -229,13 +230,35 @@ namespace T3Compiler.CodeGen
         void GenIf(IfStmt s){
             string le=Lbl("end"),lt=Lbl("then");
             if(s.Condition is BinaryOp bo && bo.Operator is not "&&" and not "||"){
-                int a=GenExpr(bo.Left);int b=GenExpr(bo.Right);
-                EmitCode($"    CMP {RegName(a)},{RegName(b)}");
-                JumpCond(bo.Operator,lt);
-                if(s.ElseBody!=null)GenStmt(s.ElseBody);
-                Jmp(le);
-                EmitCode($"{lt}:");GenStmt(s.ThenBody);
-                EmitCode($"{le}:");
+                // Check if this is a float comparison (both operands must be float for FCMP)
+                bool leftIsFloat = bo.Left is FloatLiteral || (bo.Left is Identifier idL && _floatVars.Contains(idL.Name));
+                bool rightIsFloat = bo.Right is FloatLiteral || (bo.Right is Identifier idR && _floatVars.Contains(idR.Name));
+                if (IsCmp(bo.Operator) && leftIsFloat && rightIsFloat)
+                {
+                    // Float comparison using FCMP on FPU registers
+                    _fpuLive = true;
+                    int a = GenExpr(bo.Left);
+                    EmitCode($"    FLW {RegName(a)},{RegName(a)}");
+                    int b = GenExpr(bo.Right);
+                    EmitCode($"    FLW {RegName(b)},{RegName(b)}");
+                    EmitCode($"    FCMP {RegName(a)},{RegName(b)}");
+                    FreeR(a); FreeR(b);
+                    JumpCond(bo.Operator, lt);
+                    if(s.ElseBody!=null)GenStmt(s.ElseBody);
+                    Jmp(le);
+                    EmitCode($"{lt}:");GenStmt(s.ThenBody);
+                    EmitCode($"{le}:");
+                }
+                else
+                {
+                    int a=GenExpr(bo.Left);int b=GenExpr(bo.Right);
+                    EmitCode($"    CMP {RegName(a)},{RegName(b)}");
+                    JumpCond(bo.Operator,lt);
+                    if(s.ElseBody!=null)GenStmt(s.ElseBody);
+                    Jmp(le);
+                    EmitCode($"{lt}:");GenStmt(s.ThenBody);
+                    EmitCode($"{le}:");
+                }
             }else{
                 int c=GenExpr(s.Condition);
                 EmitCode($"    LI R2,0");EmitCode($"    CMP {RegName(c)},R2");
@@ -612,6 +635,30 @@ namespace T3Compiler.CodeGen
                     _ => throw new NotImplementedException(bo.Operator)
                 };return Imm(result);
             }
+            // Float comparison: use FCMP on FPU registers.
+            // EmitFloat() loads the float value into FPU register via FLW
+            // and returns the ADDRESS in GP register. Float variables store
+            // this address. We use FLW to load the value into FPU register
+            // from the address, then FCMP to compare FPU registers directly.
+            bool leftIsFloat = bo.Left is FloatLiteral || (bo.Left is Identifier idL && _floatVars.Contains(idL.Name));
+            bool rightIsFloat = bo.Right is FloatLiteral || (bo.Right is Identifier idR && _floatVars.Contains(idR.Name));
+            if (IsCmp(bo.Operator) && (leftIsFloat || rightIsFloat))
+            {
+                _fpuLive = true;
+                int leftReg = GenExpr(bo.Left);
+                // FLW loads float from address in GP reg into FPU reg (same index)
+                EmitCode($"    FLW {RegName(leftReg)},{RegName(leftReg)}");
+                int rightReg = GenExpr(bo.Right);
+                EmitCode($"    FLW {RegName(rightReg)},{RegName(rightReg)}");
+                int resReg = AllocR();
+                EmitCode($"    FCMP {RegName(leftReg)},{RegName(rightReg)}");
+                FreeR(leftReg); FreeR(rightReg);
+                string lt = Lbl("t"), ld = Lbl("d");
+                JumpCond(bo.Operator, lt);
+                EmitCode($"    LI {RegName(resReg)},-1");Jmp(ld);
+                EmitCode($"{lt}:");EmitCode($"    LI {RegName(resReg)},1");
+                EmitCode($"{ld}:");return resReg;
+            }
             int l1 = GenExpr(bo.Left);
             EmitCode($"    PUSH {RegName(l1)}");
             int r1 = GenExpr(bo.Right);
@@ -625,7 +672,7 @@ namespace T3Compiler.CodeGen
                 JumpCond(bo.Operator, lt);
                 EmitCode($"    LI {RegName(resReg)},-1");Jmp(ld);
                 EmitCode($"{lt}:");EmitCode($"    LI {RegName(resReg)},1");
-                EmitCode($"{ld}:");return resReg;
+                EmitCode($"{ld}:");FreeR(l2);FreeR(r1);return resReg;
             }
             int resultReg = AllocR();while (resultReg == l2 || resultReg == r1) resultReg = AllocR();
             string op = bo.Operator switch { "+" => "ADD", "-" => "SUB", "*" => "MUL", "/" => "DIV", "%" => "MOD", "&" => "AND", "|" => "OR", "^" => "XOR", "<<" => "SHL", ">>" => "SHR", _ => throw new NotSupportedException($"Unsupported binary operator: {bo.Operator}") };
@@ -863,6 +910,7 @@ namespace T3Compiler.CodeGen
             if(!_varSlots.ContainsKey(name)){
                 int sz=1;
                 int elemSize=1;
+                if(ts.TypeName=="tfloat") _floatVars.Add(name);
                 if(ts.StructName!=null&&_structDefs.TryGetValue(ts.StructName,out var sf)){
                     sz=sf.Count;
                     _structFields[name]=sf;

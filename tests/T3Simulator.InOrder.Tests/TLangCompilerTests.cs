@@ -720,6 +720,56 @@ namespace T3Simulator.InOrder.Tests
             );
 
         [TestMethod]
+        [Timeout(5000)]
+        public void Compile_FloatCompareEq() =>
+            AssertResult(1, "tint main(){tfloat x=3.14;tfloat y=3.14;if(x==y){return 1;}return -1;}", nameof(Compile_FloatCompareEq));
+
+        [TestMethod]
+        [Timeout(5000)]
+        public void Compile_FloatCompareNe() =>
+            AssertResult(1, "tint main(){tfloat x=3.14;tfloat y=2.71;if(x!=y){return 1;}return -1;}", nameof(Compile_FloatCompareNe));
+
+        [TestMethod]
+        [Timeout(5000)]
+        public void Compile_FloatCompareLt() =>
+            AssertResult(1, "tint main(){tfloat x=1.0;tfloat y=2.0;if(x<y){return 1;}return -1;}", nameof(Compile_FloatCompareLt));
+
+        [TestMethod]
+        [Timeout(5000)]
+        public void Compile_FloatCompareGt() =>
+            AssertResult(1, "tint main(){tfloat x=3.0;tfloat y=1.0;if(x>y){return 1;}return -1;}", nameof(Compile_FloatCompareGt));
+
+        [TestMethod]
+        [Timeout(5000)]
+        public void Compile_FloatCompareLe() =>
+            AssertResult(1, "tint main(){tfloat x=2.0;tfloat y=2.0;if(x<=y){return 1;}return -1;}", nameof(Compile_FloatCompareLe));
+
+        [TestMethod]
+        [Timeout(5000)]
+        public void Compile_FloatCompareGe() =>
+            AssertResult(1, "tint main(){tfloat x=2.0;tfloat y=2.0;if(x>=y){return 1;}return -1;}", nameof(Compile_FloatCompareGe));
+
+        [TestMethod]
+        [Timeout(5000)]
+        public void Compile_FloatCompareLtStrict() =>
+            AssertResult(1, "tint main(){tfloat x=1.0;tfloat y=2.0;if(x<y){return 1;}return -1;}", nameof(Compile_FloatCompareLtStrict));
+
+        [TestMethod]
+        [Timeout(5000)]
+        public void Compile_FloatCompareGtStrict() =>
+            AssertResult(1, "tint main(){tfloat x=3.0;tfloat y=1.0;if(x>y){return 1;}return -1;}", nameof(Compile_FloatCompareGtStrict));
+
+        [TestMethod]
+        [Timeout(5000)]
+        public void Compile_FloatDefaultZeroCompare() =>
+            AssertResult(1, "tint main(){tfloat f;tfloat g;if(f==g){return 1;}return -1;}", nameof(Compile_FloatDefaultZeroCompare));
+
+        [TestMethod]
+        [Timeout(5000)]
+        public void Compile_FloatCompareWithIntLiteral() =>
+            AssertResult(1, "tint main(){tfloat x=5.0;if(x>0){return 1;}return -1;}", nameof(Compile_FloatCompareWithIntLiteral));
+
+        [TestMethod]
         [Timeout(15000)]
         public void ComplexIntegrationTest_GlobalVarsAndIncludes()
         {
