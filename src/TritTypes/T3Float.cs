@@ -51,14 +51,45 @@ namespace TritTypes
         public static T3Float FromDouble(double value)
         {
             if (value == 0) return new T3Float(182, 0);
+            
             // For integer values within Word18 range, use exact exponent=182
             if (value == Math.Floor(value) && value >= -193710244 && value <= 193710244)
                 return new T3Float(182, (long)value);
-            // For other values, use logarithmic decomposition
-            double log3 = Math.Log(3);
-            double exp = Math.Round(Math.Log(Math.Abs(value), 3));
-            long mantissa = (long)Math.Round(value / Math.Pow(3, exp));
-            return new T3Float((long)exp + 182, mantissa);
+            
+            // Normalize for maximum precision:
+            // Start with |mant| ≈ 1, then decrease exponent while |mant| ≤ maxMant.
+            // This uses all 12 trits of mantissa for maximum precision.
+            const long maxMant = 265720; // (3^12 - 1) / 2
+            double absVal = Math.Abs(value);
+            int sign = value < 0 ? -1 : 1;
+            
+            // Start with exponent that gives |mant| ≈ 1
+            int exp = (int)Math.Round(Math.Log(absVal, 3));
+            
+            // Clamp exponent to 6-trit range [-182, +182]
+            if (exp < -182) exp = -182;
+            if (exp > 182) exp = 182;
+            
+            // Decrease exponent while mantissa fits in 12 trits (max precision)
+            long mantissa;
+            while (true)
+            {
+                mantissa = (long)Math.Round(absVal / Math.Pow(3, exp));
+                if (mantissa > maxMant || mantissa < -maxMant)
+                {
+                    // Overflow: increase exponent
+                    exp++;
+                    mantissa = (long)Math.Round(absVal / Math.Pow(3, exp));
+                    break;
+                }
+                if (exp <= -182) break; // Hit minimum exponent
+                // Check if next lower exponent would overflow
+                long nextMant = (long)Math.Round(absVal / Math.Pow(3, exp - 1));
+                if (nextMant > maxMant || nextMant < -maxMant) break;
+                exp--;
+            }
+            
+            return new T3Float(exp + 182, mantissa * sign);
         }
     }
 
@@ -102,9 +133,41 @@ namespace TritTypes
         public static T3Double FromDouble(double value)
         {
             if (value == 0) return new T3Double(3280, 0);
-            double exp = Math.Round(Math.Log(Math.Abs(value), 3));
-            Int128 mantissa = (Int128)Math.Round(value / Math.Pow(3, exp));
-            return new T3Double((long)exp + 3280, mantissa);
+            
+            // Normalize for maximum precision:
+            // Start with |mant| ≈ 1, then decrease exponent while |mant| ≤ maxMant.
+            // This uses all 28 trits of mantissa for maximum precision.
+            Int128 maxMant = (Int128)(TernaryMath.Pow3(28) - 1) / 2;
+            double absVal = Math.Abs(value);
+            int sign = value < 0 ? -1 : 1;
+            
+            // Start with exponent that gives |mant| ≈ 1
+            int exp = (int)Math.Round(Math.Log(absVal, 3));
+            
+            // Clamp exponent to 8-trit range
+            if (exp < -3280) exp = -3280;
+            if (exp > 3280) exp = 3280;
+            
+            // Decrease exponent while mantissa fits in 28 trits (max precision)
+            Int128 mantissa;
+            while (true)
+            {
+                mantissa = (Int128)Math.Round(absVal / Math.Pow(3, exp));
+                if (mantissa > maxMant || mantissa < -maxMant)
+                {
+                    // Overflow: increase exponent
+                    exp++;
+                    mantissa = (Int128)Math.Round(absVal / Math.Pow(3, exp));
+                    break;
+                }
+                if (exp <= -3280) break; // Hit minimum exponent
+                // Check if next lower exponent would overflow
+                Int128 nextMant = (Int128)Math.Round(absVal / Math.Pow(3, exp - 1));
+                if (nextMant > maxMant || nextMant < -maxMant) break;
+                exp--;
+            }
+            
+            return new T3Double(exp + 3280, mantissa * sign);
         }
     }
 }
