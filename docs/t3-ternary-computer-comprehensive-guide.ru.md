@@ -303,7 +303,7 @@ T3 использует **сбалансированную троичную си
 
 #### Трайт / tryte (6 тритов)
 
-<p align="center"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 290 115" width="580" height="230"><defs><linearGradient id="tbg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#faf8f5"/><stop offset="100%" stop-color="#ede8e0"/></linearGradient></defs><rect x="2" y="2" width="286" height="111" rx="8" fill="url(#tbg)" stroke="#bbb" stroke-width="1.5"/><text x="15" y="22" font-size="11" font-family="sans-serif" fill="#888">tryte</text><text x="270" y="22" text-anchor="end" font-size="11" font-family="sans-serif" fill="#888">6 тритов · [−364,+364]</text><!-- cells --><g transform="translate(10,32)"><!-- t5 --><rect x="0" y="0" width="42" height="52" rx="5" fill="#ede8e0" stroke="#ccc" stroke-width="1"/><text x="21" y="36" text-anchor="middle" font-size="28" font-family="monospace" font-weight="bold" fill="#e07060">−</text><text x="21" y="50" text-anchor="middle" font-size="8" font-family="sans-serif" fill="#888">t₅</text><!-- t4 --><rect x="45" y="0" width="42" height="52" rx="5" fill="#ede8e0" stroke="#ccc" stroke-width="1"/><text x="66" y="36" text-anchor="middle" font-size="28" font-family="monospace" font-weight="bold" fill="#8b7355">0</text><text x="66" y="50" text-anchor="middle" font-size="8" font-family="sans-serif" fill="#888">t₄</text><!-- t3 --><rect x="90" y="0" width="42" height="52" rx="5" fill="#ede8e0" stroke="#ccc" stroke-width="1"/><text x="111" y="36" text-anchor="middle" font-size="28" font-family="monospace" font-weight="bold" fill="#70a870">+</text><text x="111" y="50" text-anchor="middle" font-size="8" font-family="sans-serif" fill="#888">t₃</text><!-- t2 --><rect x="135" y="0" width="42" height="52" rx="5" fill="#ede8e0" stroke="#ccc" stroke-width="1"/><text x="156" y="36" text-anchor="middle" font-size="28" font-family="monospace" font-weight="bold" fill="#e07060">−</text><text x="156" y="50" text-anchor="middle" font-size="8" font-family="sans-serif" fill="#888">t₂</text><!-- t1 --><rect x="180" y="0" width="42" height="52" rx="5" fill="#ede8e0" stroke="#ccc" stroke-width="1"/><text x="201" y="36" text-anchor="middle" font-size="28" font-family="monospace" font-weight="bold" fill="#70a870">+</text><text x="201" y="50" text-anchor="middle" font-size="8" font-family="sans-serif" fill="#888">t₁</text><!-- t0 --><rect x="225" y="0" width="42" height="52" rx="5" fill="#ede8e0" stroke="#ccc" stroke-width="1"/><text x="246" y="36" text-anchor="middle" font-size="28" font-family="monospace" font-weight="bold" fill="#8b7355">0</text><text x="246" y="50" text-anchor="middle" font-size="8" font-family="sans-serif" fill="#888">t₀</text></g><!-- value --><text x="145" y="103" text-anchor="middle" font-size="12" font-family="monospace" fill="#555">−0+−+0₃ = −(1×3⁵) + 0 + (1×3³) − (1×3²) + (1×3¹) + 0 = −243+0+27−9+3 = −222₁₀</text></svg></p>
+<p align="center"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 290 115" width="580" height="230"><defs><linearGradient id="tbg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#faf8f5"/><stop offset="100%" stop-color="#ede8e0"/></linearGradient></defs><rect x="2" y="2" width="286" height="111" rx="8" fill="url(#tbg)" stroke="#bbb" stroke-width="1.5"/><text x="15" y="22" font-size="9" font-family="sans-serif" fill="#888">tryte</text><text x="270" y="22" text-anchor="end" font-size="9" font-family="sans-serif" fill="#888">6 тритов · [−364,+364]</text><!-- cells --><g transform="translate(10,32)"><!-- t5 --><rect x="0" y="0" width="42" height="52" rx="5" fill="#ede8e0" stroke="#ccc" stroke-width="1"/><text x="21" y="36" text-anchor="middle" font-size="28" font-family="monospace" font-weight="bold" fill="#e07060">−</text><text x="21" y="50" text-anchor="middle" font-size="8" font-family="sans-serif" fill="#888">t₅</text><!-- t4 --><rect x="45" y="0" width="42" height="52" rx="5" fill="#ede8e0" stroke="#ccc" stroke-width="1"/><text x="66" y="36" text-anchor="middle" font-size="28" font-family="monospace" font-weight="bold" fill="#8b7355">0</text><text x="66" y="50" text-anchor="middle" font-size="8" font-family="sans-serif" fill="#888">t₄</text><!-- t3 --><rect x="90" y="0" width="42" height="52" rx="5" fill="#ede8e0" stroke="#ccc" stroke-width="1"/><text x="111" y="36" text-anchor="middle" font-size="28" font-family="monospace" font-weight="bold" fill="#70a870">+</text><text x="111" y="50" text-anchor="middle" font-size="8" font-family="sans-serif" fill="#888">t₃</text><!-- t2 --><rect x="135" y="0" width="42" height="52" rx="5" fill="#ede8e0" stroke="#ccc" stroke-width="1"/><text x="156" y="36" text-anchor="middle" font-size="28" font-family="monospace" font-weight="bold" fill="#e07060">−</text><text x="156" y="50" text-anchor="middle" font-size="8" font-family="sans-serif" fill="#888">t₂</text><!-- t1 --><rect x="180" y="0" width="42" height="52" rx="5" fill="#ede8e0" stroke="#ccc" stroke-width="1"/><text x="201" y="36" text-anchor="middle" font-size="28" font-family="monospace" font-weight="bold" fill="#70a870">+</text><text x="201" y="50" text-anchor="middle" font-size="8" font-family="sans-serif" fill="#888">t₁</text><!-- t0 --><rect x="225" y="0" width="42" height="52" rx="5" fill="#ede8e0" stroke="#ccc" stroke-width="1"/><text x="246" y="36" text-anchor="middle" font-size="28" font-family="monospace" font-weight="bold" fill="#8b7355">0</text><text x="246" y="50" text-anchor="middle" font-size="8" font-family="sans-serif" fill="#888">t₀</text></g><!-- value --><text x="145" y="103" text-anchor="middle" font-size="6" font-family="monospace" fill="#555">−0+−+0₃ = −(1×3⁵) + 0 + (1×3³) − (1×3²) + (1×3¹) + 0 = −243+0+27−9+3 = −222₁₀</text></svg></p>
 
 **Трайт** — 6 тритов, минимальная адресуемая единица в T3. Один трайт может хранить:
 
@@ -323,7 +323,7 @@ T3 использует **сбалансированную троичную си
 
 <p align="center"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 770 85" width="770" height="85"><rect x="2" y="2" width="766" height="81" rx="6" fill="#fdfcf9" stroke="#bbb" stroke-width="1.5"/><text x="10" y="18" font-size="10" font-family="sans-serif" fill="#888">Word54 / tlong long</text><text x="760" y="18" text-anchor="end" font-size="10" font-family="sans-serif" fill="#888">54 трита · ±2.9×10²⁵</text><g transform="translate(8,26)"><!-- 18 cells per row, 3 rows implied; show key positions --><rect x="0" y="2" width="40" height="46" rx="4" fill="#ede8e0" stroke="#ccc" stroke-width="1"/><text x="20" y="33" text-anchor="middle" font-size="26" font-family="monospace" font-weight="bold" fill="#e07060">−</text><text x="20" y="45" text-anchor="middle" font-size="7" font-family="sans-serif" fill="#888">t₅₃</text><rect x="42" y="2" width="40" height="46" rx="4" fill="#ede8e0" stroke="#ccc" stroke-width="1"/><text x="62" y="33" text-anchor="middle" font-size="26" font-family="monospace" font-weight="bold" fill="#70a870">+</text><text x="62" y="45" text-anchor="middle" font-size="7" font-family="sans-serif" fill="#888">t₅₂</text><rect x="84" y="2" width="40" height="46" rx="4" fill="#ede8e0" stroke="#ccc" stroke-width="1"/><text x="104" y="33" text-anchor="middle" font-size="26" font-family="monospace" font-weight="bold" fill="#8b7355">0</text><text x="104" y="45" text-anchor="middle" font-size="7" font-family="sans-serif" fill="#888">t₅₁</text><!-- ...continued marker --><rect x="168" y="2" width="40" height="46" rx="4" fill="#ede8e0" stroke="#ccc" stroke-width="1"/><text x="188" y="33" text-anchor="middle" font-size="20" font-family="monospace" font-weight="bold" fill="#aaa">⋯</text><text x="188" y="45" text-anchor="middle" font-size="7" font-family="sans-serif" fill="#888">t₅₀..t₃</text><rect x="252" y="2" width="40" height="46" rx="4" fill="#ede8e0" stroke="#ccc" stroke-width="1"/><text x="272" y="33" text-anchor="middle" font-size="26" font-family="monospace" font-weight="bold" fill="#70a870">+</text><text x="272" y="45" text-anchor="middle" font-size="7" font-family="sans-serif" fill="#888">t₂</text><rect x="294" y="2" width="40" height="46" rx="4" fill="#ede8e0" stroke="#ccc" stroke-width="1"/><text x="314" y="33" text-anchor="middle" font-size="26" font-family="monospace" font-weight="bold" fill="#e07060">−</text><text x="314" y="45" text-anchor="middle" font-size="7" font-family="sans-serif" fill="#888">t₁</text><rect x="336" y="2" width="40" height="46" rx="4" fill="#ede8e0" stroke="#ccc" stroke-width="1"/><text x="356" y="33" text-anchor="middle" font-size="26" font-family="monospace" font-weight="bold" fill="#8b7355">0</text><text x="356" y="45" text-anchor="middle" font-size="7" font-family="sans-serif" fill="#888">t₀</text></g></svg></p>
 
-**Word54** — 54 трита (9 трайтов), двойное слово. Хранение в C#: `Int128`. Диапазон: \(\pm(3^{54}-1)/2 \approx \pm 2.9\times10^{25}\).
+**Word54** — 54 трита (9 трайтов), двойное слово. Хранение в C#: `Int128`. Диапазон: $(\pm(3^{54}-1)/2 \approx \pm 2.9\times10^{25})$.
 
 #### T3Float (18 тритов: 6 экспонента + 12 мантисса)
 
@@ -448,35 +448,45 @@ T3 — 18-тритный троичный процессор с гарвардс
 
 #### Общего назначения (General Purpose)
 
-| Регистр | Индекс | Назначение |
-|---------|--------|-----------|
-| R0 | 0 | Временный / Аргумент 1 |
-| R1 | 1 | Временный / Аргумент 2 |
-| R2 | 2 | Возвращаемое значение / Аргумент 3 |
-| R3 | 3 | Временный / Аргумент 4 |
-| R4 | 4 | Сохраняемый (callee-saved) |
-| R5 | 5 | Сохраняемый (callee-saved) |
-| SP | 6 | Указатель стека (Stack Pointer) |
-| PC | 7 | Счётчик команд (Program Counter) |
-| R8 (ZR) | 8 | Нулевой регистр (всегда 0) |
+Девять регистров GP (индексы −4…+4 в массиве `Registers[9]`):
 
-#### Специальные
+| Индекс | Имя | Назначение |
+|--------|-----|-----------|
+| 0 (−4) | **RW** | Рабочий (Working) / Аргумент 1 |
+| 1 (−3) | **RX** | Индексный / Аргумент 2 |
+| 2 (−2) | **RY** | Аргумент 3 / Возвращаемое значение |
+| 3 (−1) | **RZ** | Аргумент 4 / Frame Pointer |
+| 4 (0) | **R0** | Временный |
+| 5 (+1) | **R1** | Сохраняемый (callee-saved) |
+| 6 (+2) | **R2** | Сохраняемый (callee-saved) |
+| 7 (+3) | **R3** | Сохраняемый |
+| 8 (+4) | **R4** | Сохраняемый |
 
-| Регистр | Назначение |
-|---------|-----------|
-| PR | Регистр предикации (3×9 тритов — флаги True/Maybe/False) |
-| Cond | Флаги условий (9 тритов) |
-| RZ | Frame Pointer (экспериментальный) |
+#### Специальные (отдельные поля, не в `Registers[]`)
+
+| Регистр | Поле C# | Тип | Назначение |
+|---------|---------|-----|-----------|
+| **SP** | `long SP` | int64 | Указатель стека (Stack Pointer) |
+| **PC** | `long PC` | int64 | Счётчик команд (Program Counter) |
+| **Cond** | `int Cond` | int32 | Флаг условия (−1/0/+1) |
+| **PR** | `TWord PR` | Word18 | Предикатный регистр (3×9 тритов) |
+| **WP** | `int WP` | int32 | Указатель окна регистров |
 
 #### FPU (Floating-Point Unit)
 
-| Регистр | Индекс | Назначение |
-|---------|--------|-----------|
-| FW | 0 | Временный FPU |
-| F1 | 1 | Аргумент 1 FPU |
-| F2 | 2 | Аргумент 2 / Возврат FPU |
-| F3 | 3 | Сохраняемый FPU |
-| F4 | 4 | Сохраняемый FPU |
+Девять регистров FPU (индексы −4…+4 в массиве `FRegisters[9]`):
+
+| Индекс | Имя | Назначение |
+|--------|-----|-----------|
+| 0 (−4) | **FW** | Рабочий FPU |
+| 1 (−3) | **FX** | Аргумент 1 FPU |
+| 2 (−2) | **FY** | Аргумент 2 / Возврат FPU |
+| 3 (−1) | **FZ** | Аргумент 3 FPU |
+| 4 (0) | **F0** | Временный FPU |
+| 5 (+1) | **F1** | Сохраняемый FPU |
+| 6 (+2) | **F2** | Сохраняемый FPU |
+| 7 (+3) | **F3** | Сохраняемый FPU |
+| 8 (+4) | **F4** | Сохраняемый FPU |
 
 ### 5.3 Формат инструкций
 
