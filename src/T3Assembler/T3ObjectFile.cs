@@ -34,12 +34,13 @@ namespace T3Assembler
 
         public struct Relocation
         {
-            public int SectionOffset;    // offset within text/data where LIMM immediate lives
+            public int SectionOffset;    // offset within text/data where fixup is needed
             public int SymbolIndex;      // index into Symbols[]
-            public RelocationType Type;  // LIMM_ABSOLUTE
+            public RelocationType Type;  // LIMM_ABSOLUTE, PC_RELATIVE
+            public SectionType Section;  // which section this relocation applies to
         }
 
-        public enum RelocationType { LIMM_ABSOLUTE = 0 }
+        public enum RelocationType { LIMM_ABSOLUTE = 0, PC_RELATIVE = 1 }
 
         public List<Relocation> Relocations = new();
 
@@ -68,6 +69,7 @@ namespace T3Assembler
                 w.Write(rel.SectionOffset);
                 w.Write(rel.SymbolIndex);
                 w.Write((int)rel.Type);
+                w.Write((int)rel.Section);
             }
         }
 
@@ -90,7 +92,7 @@ namespace T3Assembler
             for (int i = 0; i < symCount; i++)
                 obj.Symbols.Add(new Symbol { Name = r.ReadString(), Type = (SymbolType)r.ReadInt32(), Section = (SectionType)r.ReadInt32(), Offset = r.ReadInt32() });
             for (int i = 0; i < relCount; i++)
-                obj.Relocations.Add(new Relocation { SectionOffset = r.ReadInt32(), SymbolIndex = r.ReadInt32(), Type = (RelocationType)r.ReadInt32() });
+                obj.Relocations.Add(new Relocation { SectionOffset = r.ReadInt32(), SymbolIndex = r.ReadInt32(), Type = (RelocationType)r.ReadInt32(), Section = (SectionType)r.ReadInt32() });
 
             return obj;
         }

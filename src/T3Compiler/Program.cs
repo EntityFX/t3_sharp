@@ -9,7 +9,8 @@ using T3Compiler.CodeGen;
 namespace T3Compiler
 {
     /// <summary>
-    /// T3-lang Compiler CLI — compiles T source to T3 assembly.
+    /// T3-lang Compiler CLI — compiles T source to T3 assembly or object files.
+    /// Supports: -c (compile to .o), --emit-obj, --assemble, and linking.
     /// </summary>
     class Program
     {
@@ -26,6 +27,8 @@ namespace T3Compiler
             var includePaths = new List<string>();
             var defines = new Dictionary<string, string>();
             bool assemble = false;
+            bool emitObj = false;
+            bool compileOnly = false; // -c flag
 
             // Parse arguments
             for (int i = 0; i < args.Length; i++)
@@ -46,6 +49,10 @@ namespace T3Compiler
                     outputFile = args[++i];
                 else if (arg == "--assemble")
                     assemble = true;
+                else if (arg == "--emit-obj")
+                    emitObj = true;
+                else if (arg == "-c")
+                    compileOnly = true;
                 else if (!arg.StartsWith("-"))
                     inputFile = arg;
             }
@@ -64,7 +71,12 @@ namespace T3Compiler
             }
 
             if (outputFile == null)
-                outputFile = Path.ChangeExtension(inputFile, ".asm");
+            {
+                if (emitObj || compileOnly)
+                    outputFile = Path.ChangeExtension(inputFile, ".o");
+                else
+                    outputFile = Path.ChangeExtension(inputFile, ".asm");
+            }
 
             try
             {
@@ -73,10 +85,6 @@ namespace T3Compiler
 
                 // 1. Preprocess
                 var pp = new T3Preprocessor(includePaths);
-                foreach (var d in defines)
-                    pp.GetType().GetField("_macros", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
-                      ?.SetValue(pp, new Dictionary<string, string>(defines));
-                // Workaround: add defines via Process directive injection
                 string defineSource = "";
                 foreach (var d in defines)
                     defineSource += $"#define {d.Key} {d.Value}\n";
@@ -97,24 +105,33 @@ namespace T3Compiler
                 string asmCode = gen.Generate();
 
                 // 5. Output
-                File.WriteAllText(outputFile, asmCode);
-                Console.WriteLine($"Compiled {inputFile} → {outputFile}");
-
-                // 6. Assemble (optional)
-                if (assemble)
+                if (emitObj || compileOnly)
                 {
+                    // Assemble to object file (.o)
                     var assembler = new T3Assembler.T3InOrderAssembler(T3Simulator.Common.T3Config.T3_18);
-                    var binary = assembler.Assemble(asmCode);
-                    string binFile = Path.ChangeExtension(outputFile, ".bin");
-                    // Write binary as text (trit strings)
-                    using (var sw = new StreamWriter(binFile))
+                    var obj = assembler.AssembleToObject(asmCode, Path.GetDirectoryName(Path.GetFullPath(inputFile))!);
+                    obj.Write(outputFile);
+                    Console.WriteLine($"Compiled {inputFile} → {outputFile} ({obj.TextSection.Count} text words, {obj.DataSection.Count} data words, {obj.Symbols.Count} symbols)");
+                }
+                else
+                {
+                    // Write assembly
+                    File.WriteAllText(outputFile, asmCode);
+                    Console.WriteLine($"Compiled {inputFile} → {outputFile}");
+
+                    // 6. Assemble (optional)
+                    if (assemble)
                     {
-                        foreach (var word in binary)
+                        var assembler = new T3Assembler.T3InOrderAssembler(T3Simulator.Common.T3Config.T3_18);
+                        var binary = assembler.Assemble(asmCode);
+                        string binFile = Path.ChangeExtension(outputFile, ".bin");
+                        using (var sw = new StreamWriter(binFile))
                         {
-                            sw.WriteLine(TritTypes.BalancedTernary.ToTernaryString((long)word));
+                            foreach (var word in binary)
+                                sw.WriteLine(TritTypes.BalancedTernary.ToTernaryString((long)word));
                         }
+                        Console.WriteLine($"Assembled → {binFile}");
                     }
-                    Console.WriteLine($"Assembled → {binFile}");
                 }
 
                 return 0;
@@ -133,10 +150,12 @@ namespace T3Compiler
             Console.WriteLine("Usage: t3cc [options] <source.t>");
             Console.WriteLine();
             Console.WriteLine("Options:");
-            Console.WriteLine("  -I <path>     Add include path");
-            Console.WriteLine("  -D <name>[=value]  Define preprocessor macro");
-            Console.WriteLine("  -o <file>     Output assembly file (default: source.asm)");
-            Console.WriteLine("  --assemble    Also assemble to binary (.bin)");
+            Console.WriteLine("  -I <path>         Add include path");
+            Console.WriteLine("  -D <name>[=value] Define preprocessor macro");
+            Console.WriteLine("  -o <file>         Output file (default: source.asm or source.o)");
+            Console.WriteLine("  --assemble        Also assemble to binary (.bin)");
+            Console.WriteLine("  --emit-obj        Compile to object file (.o)");
+            Console.WriteLine("  -c                Compile to object file only (.o)");
         }
     }
 }

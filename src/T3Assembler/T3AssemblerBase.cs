@@ -12,6 +12,8 @@ namespace T3Assembler
         protected readonly T3Config _config;
         protected readonly Dictionary<string,int> _labels=new();
         protected readonly Dictionary<string, Int128> _constants=new();
+        protected readonly HashSet<string> _globals = new();
+        protected readonly HashSet<string> _externs = new();
         protected readonly List<string> _lines=new();
         public T3AssemblerBase(T3Config c){_config=c;}
         public abstract List<Int128> Assemble(string src);
