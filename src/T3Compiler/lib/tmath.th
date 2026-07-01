@@ -8,6 +8,7 @@
 tint  t_abs(tint x);
 tint  t_min(tint a, tint b);
 tint  t_max(tint a, tint b);
+tint  clamp(tint v, tint lo, tint hi);
 tfloat t_sqrt(tfloat x);
 tfloat t_floor(tfloat x);
 tfloat t_ceil(tfloat x);

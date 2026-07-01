@@ -304,5 +304,314 @@ namespace T3Interpreter.Tests
                 Assert.IsTrue(ex.Message.Contains("Unexpected character"), $"Got: {ex.Message}");
             }
         }
+
+        // === Library tests (via #include) ===
+
+        /// <summary>Run interpreter with include paths pointing to src/T3Compiler/lib/.</summary>
+        static long I_with_lib(string source)
+        {
+            string libDir = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "..", "src", "T3Compiler", "lib");
+            var pp = new T3Preprocessor(new List<string> { libDir });
+            string preprocessed = pp.Process(source);
+            var ast = new Parser(new Tokenizer(preprocessed).Tokenize()).ParseProgram();
+            return new global::T3Interpreter.T3Interpreter(ast).Run();
+        }
+
+        [TestMethod] [Timeout(5000)]
+        public void Lib_t_strlen()
+        {
+            long result = I_with_lib(
+                "#include <tstring.th>\n" +
+                "#include <libtstring.t>\n" +
+                "tint main() {\n" +
+                "    tryte s[] = {5, 'H', 'e', 'l', 'l', 'o'};\n" +
+                "    return t_strlen(s);\n" +
+                "}");
+            Assert.AreEqual(5, result);
+        }
+
+        [TestMethod] [Timeout(5000)]
+        public void Lib_t_strcmp_eq()
+        {
+            long result = I_with_lib(
+                "#include <tstring.th>\n" +
+                "#include <libtstring.t>\n" +
+                "tint main() {\n" +
+                "    tryte a[] = {3, 'a', 'b', 'c'};\n" +
+                "    tryte b[] = {3, 'a', 'b', 'c'};\n" +
+                "    return t_strcmp(a, b);\n" +
+                "}");
+            Assert.AreEqual(0, result);
+        }
+
+        [TestMethod] [Timeout(5000)]
+        public void Lib_t_strcmp_lt()
+        {
+            long result = I_with_lib(
+                "#include <tstring.th>\n" +
+                "#include <libtstring.t>\n" +
+                "tint main() {\n" +
+                "    tryte a[] = {3, 'a', 'b', 'c'};\n" +
+                "    tryte b[] = {3, 'a', 'b', 'd'};\n" +
+                "    return t_strcmp(a, b);\n" +
+                "}");
+            Assert.AreEqual(-1, result);
+        }
+
+        [TestMethod] [Timeout(5000)]
+        public void Lib_t_strcmp_gt()
+        {
+            long result = I_with_lib(
+                "#include <tstring.th>\n" +
+                "#include <libtstring.t>\n" +
+                "tint main() {\n" +
+                "    tryte a[] = {3, 'a', 'b', 'd'};\n" +
+                "    tryte b[] = {3, 'a', 'b', 'c'};\n" +
+                "    return t_strcmp(a, b);\n" +
+                "}");
+            Assert.AreEqual(1, result);
+        }
+
+        [TestMethod] [Timeout(5000)]
+        public void Lib_t_strcpy()
+        {
+            long result = I_with_lib(
+                "#include <tstring.th>\n" +
+                "#include <libtstring.t>\n" +
+                "tint main() {\n" +
+                "    tryte src[] = {5, 'H', 'e', 'l', 'l', 'o'};\n" +
+                "    tryte dst[10]; dst[0] = 9;\n" +
+                "    t_strcpy(dst, src);\n" +
+                "    return dst[0];\n" +  // length should be 5
+                "}");
+            Assert.AreEqual(5, result);
+        }
+
+        [TestMethod] [Timeout(5000)]
+        public void Lib_t_strcat()
+        {
+            long result = I_with_lib(
+                "#include <tstring.th>\n" +
+                "#include <libtstring.t>\n" +
+                "tint main() {\n" +
+                "    tryte a[] = {3, 'a', 'b', 'c', 0, 0, 0, 0, 0, 0};\n" +
+                "    tryte b[] = {3, 'd', 'e', 'f'};\n" +
+                "    t_strcat(a, b);\n" +
+                "    return a[0];\n" +  // length should be 6
+                "}");
+            Assert.AreEqual(6, result);
+        }
+
+        [TestMethod] [Timeout(5000)]
+        public void Lib_t_strchr_found()
+        {
+            long result = I_with_lib(
+                "#include <tstring.th>\n" +
+                "#include <libtstring.t>\n" +
+                "tint main() {\n" +
+                "    tryte s[] = {5, 'H', 'e', 'l', 'l', 'o'};\n" +
+                "    return t_strchr(s, 'l');\n" +  // first 'l' at index 3
+                "}");
+            Assert.AreEqual(3, result);
+        }
+
+        [TestMethod] [Timeout(5000)]
+        public void Lib_t_strchr_notfound()
+        {
+            long result = I_with_lib(
+                "#include <tstring.th>\n" +
+                "#include <libtstring.t>\n" +
+                "tint main() {\n" +
+                "    tryte s[] = {5, 'H', 'e', 'l', 'l', 'o'};\n" +
+                "    return t_strchr(s, 'x');\n" +
+                "}");
+            Assert.AreEqual(0, result);
+        }
+
+        [TestMethod] [Timeout(5000)]
+        public void Lib_t_strrchr()
+        {
+            long result = I_with_lib(
+                "#include <tstring.th>\n" +
+                "#include <libtstring.t>\n" +
+                "tint main() {\n" +
+                "    tryte s[] = {5, 'H', 'e', 'l', 'l', 'o'};\n" +
+                "    return t_strrchr(s, 'l');\n" +  // last 'l' at index 4
+                "}");
+            Assert.AreEqual(4, result);
+        }
+
+        [TestMethod] [Timeout(5000)]
+        public void Lib_t_strstr_found()
+        {
+            long result = I_with_lib(
+                "#include <tstring.th>\n" +
+                "#include <libtstring.t>\n" +
+                "tint main() {\n" +
+                "    tryte haystack[] = {5, 'H', 'e', 'l', 'l', 'o'};\n" +
+                "    tryte needle[] = {2, 'e', 'l'};\n" +
+                "    return t_strstr(haystack, needle);\n" +  // "el" starts at index 2
+                "}");
+            Assert.AreEqual(2, result);
+        }
+
+        [TestMethod] [Timeout(5000)]
+        public void Lib_t_strstr_notfound()
+        {
+            long result = I_with_lib(
+                "#include <tstring.th>\n" +
+                "#include <libtstring.t>\n" +
+                "tint main() {\n" +
+                "    tryte haystack[] = {5, 'H', 'e', 'l', 'l', 'o'};\n" +
+                "    tryte needle[] = {2, 'x', 'y'};\n" +
+                "    return t_strstr(haystack, needle);\n" +
+                "}");
+            Assert.AreEqual(0, result);
+        }
+
+        [TestMethod] [Timeout(5000)]
+        public void Lib_t_atoi()
+        {
+            long result = I_with_lib(
+                "#include <tstring.th>\n" +
+                "#include <libtstring.t>\n" +
+                "tint main() {\n" +
+                "    tryte s[] = {3, '1', '2', '3'};\n" +
+                "    return t_atoi(s);\n" +
+                "}");
+            Assert.AreEqual(123, result);
+        }
+
+        [TestMethod] [Timeout(5000)]
+        public void Lib_t_atoi_neg()
+        {
+            long result = I_with_lib(
+                "#include <tstring.th>\n" +
+                "#include <libtstring.t>\n" +
+                "tint main() {\n" +
+                "    tryte s[] = {3, '-', '4', '2'};\n" +
+                "    return t_atoi(s);\n" +
+                "}");
+            Assert.AreEqual(-42, result);
+        }
+
+        [TestMethod] [Timeout(5000)]
+        public void Lib_t_itoa()
+        {
+            long result = I_with_lib(
+                "#include <tstring.th>\n" +
+                "#include <libtstring.t>\n" +
+                "tint main() {\n" +
+                "    tryte buf[20]; buf[0] = 19;\n" +
+                "    t_itoa(123, buf);\n" +
+                "    return buf[0];\n" +  // length should be 3
+                "}");
+            Assert.AreEqual(3, result);
+        }
+
+        [TestMethod] [Timeout(5000)]
+        public void Lib_t_itoa_content()
+        {
+            long result = I_with_lib(
+                "#include <tstring.th>\n" +
+                "#include <libtstring.t>\n" +
+                "tint main() {\n" +
+                "    tryte buf[20]; buf[0] = 19;\n" +
+                "    t_itoa(42, buf);\n" +
+                "    return buf[1] * 100 + buf[2] * 10 + buf[3];\n" +  // '4'=52, '2'=50
+                "}");
+            Assert.AreEqual(52 * 100 + 50 * 10, result);  // 5200 + 500 = 5700
+        }
+
+        [TestMethod] [Timeout(5000)]
+        public void Lib_t_abs()
+        {
+            long result = I_with_lib(
+                "#include <tmath.th>\n" +
+                "#include <libtmath.t>\n" +
+                "tint main() {\n" +
+                "    return t_abs(-42);\n" +
+                "}");
+            Assert.AreEqual(42, result);
+        }
+
+        [TestMethod] [Timeout(5000)]
+        public void Lib_t_min()
+        {
+            long result = I_with_lib(
+                "#include <tmath.th>\n" +
+                "#include <libtmath.t>\n" +
+                "tint main() {\n" +
+                "    return t_min(10, 20);\n" +
+                "}");
+            Assert.AreEqual(10, result);
+        }
+
+        [TestMethod] [Timeout(5000)]
+        public void Lib_t_max()
+        {
+            long result = I_with_lib(
+                "#include <tmath.th>\n" +
+                "#include <libtmath.t>\n" +
+                "tint main() {\n" +
+                "    return t_max(10, 20);\n" +
+                "}");
+            Assert.AreEqual(20, result);
+        }
+
+        [TestMethod] [Timeout(5000)]
+        public void Lib_clamp()
+        {
+            long result = I_with_lib(
+                "#include <tmath.th>\n" +
+                "#include <libtmath.t>\n" +
+                "tint main() {\n" +
+                "    return clamp(50, 10, 30);\n" +
+                "}");
+            Assert.AreEqual(30, result);
+        }
+
+        [TestMethod] [Timeout(5000)]
+        public void Lib_t_baltoa()
+        {
+            long result = I_with_lib(
+                "#include <tstring.th>\n" +
+                "#include <libtstring.t>\n" +
+                "tint main() {\n" +
+                "    tryte buf[30]; buf[0] = 29;\n" +
+                "    t_baltoa(5, buf);\n" +  // 5 in balanced ternary = +--
+                "    return buf[0];\n" +  // length should be 3
+                "}");
+            Assert.AreEqual(3, result);
+        }
+
+        [TestMethod] [Timeout(5000)]
+        public void Lib_t_strncmp()
+        {
+            long result = I_with_lib(
+                "#include <tstring.th>\n" +
+                "#include <libtstring.t>\n" +
+                "tint main() {\n" +
+                "    tryte a[] = {5, 'a', 'b', 'c', 'd', 'e'};\n" +
+                "    tryte b[] = {3, 'a', 'b', 'x'};\n" +
+                "    return t_strncmp(a, b, 2);\n" +  // first 2 chars match
+                "}");
+            Assert.AreEqual(0, result);
+        }
+
+        [TestMethod] [Timeout(5000)]
+        public void Lib_t_strncpy()
+        {
+            long result = I_with_lib(
+                "#include <tstring.th>\n" +
+                "#include <libtstring.t>\n" +
+                "tint main() {\n" +
+                "    tryte src[] = {5, 'H', 'e', 'l', 'l', 'o'};\n" +
+                "    tryte dst[10]; dst[0] = 9;\n" +
+                "    t_strncpy(dst, src, 3);\n" +
+                "    return dst[0];\n" +  // length should be 3
+                "}");
+            Assert.AreEqual(3, result);
+        }
     }
 }

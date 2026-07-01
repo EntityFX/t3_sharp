@@ -303,7 +303,27 @@ namespace T3Interpreter
         {
             string fn = fc.FunctionName;
 
-            // === Nanolib builtins (I/O, string, math) ===
+            // === User-defined functions have priority over builtins ===
+            // This allows #include of library .t files to override nanolib builtins.
+            if (_functions.TryGetValue(fn, out var f))
+            {
+                var frame = new Dictionary<string, T3Value>();
+                for (int i = 0; i < f.Parameters.Count && i < fc.Arguments.Count; i++)
+                    frame[f.Parameters[i].Name] = Eval(fc.Arguments[i]);
+                _scopes.Push(frame);
+                var savedRet = _returnValue;
+                var savedDid = _didReturn;
+                _returnValue = T3Value.Void;
+                _didReturn = false;
+                EvalStmt(f.Body);
+                var ret = _returnValue;
+                _scopes.Pop();
+                _returnValue = savedRet;
+                _didReturn = savedDid;
+                return ret;
+            }
+
+            // === Nanolib builtins (I/O, string, math) — fallback ===
             if (Nanolib.TryCall(fn, fc, Eval, out var nlResult))
             {
                 // Special case: malloc/free need access to _heap
@@ -319,23 +339,8 @@ namespace T3Interpreter
                 return nlResult;
             }
 
-            // === User-defined functions ===
-            if (!_functions.TryGetValue(fn, out var f))
-                ThrowError(fc, $"undefined function '{fn}'");
-            var frame = new Dictionary<string, T3Value>();
-            for (int i = 0; i < f.Parameters.Count && i < fc.Arguments.Count; i++)
-                frame[f.Parameters[i].Name] = Eval(fc.Arguments[i]);
-            _scopes.Push(frame);
-            var savedRet = _returnValue;
-            var savedDid = _didReturn;
-            _returnValue = T3Value.Void;
-            _didReturn = false;
-            EvalStmt(f.Body);
-            var ret = _returnValue;
-            _scopes.Pop();
-            _returnValue = savedRet;
-            _didReturn = savedDid;
-            return ret;
+            ThrowError(fc, $"undefined function '{fn}'");
+            return T3Value.Void; // unreachable
         }
 
         T3Value EvalTernary(TernaryExpr te)
@@ -393,9 +398,11 @@ namespace T3Interpreter
                 case VarDeclaration vd:
                     T3Value defaultVal;
                     var resolvedType = ResolveType(vd.Type);
+                    bool unsized = false;
                     if (resolvedType.Dims.Count > 0)
                     {
                         int sz = resolvedType.Dims.Aggregate(1, (a, b) => a * b);
+                        if (sz == 0) { unsized = true; sz = 1; }
                         defaultVal = T3Value.FromArray(sz);
                     }
                     else if (resolvedType.StructName != null)
@@ -426,9 +433,13 @@ namespace T3Interpreter
                     {
                         if (vd.Initializer is InitializerList initList)
                         {
-                            for (int i = 0; i < initList.Items.Count && i < defaultVal.ArrayLength; i++)
+                            // For unsized arrays, create new array sized to the initializer
+                            int count = initList.Items.Count;
+                            if (unsized) { defaultVal = T3Value.FromArray(count); initVal = defaultVal; }
+                            for (int i = 0; i < count && i < defaultVal.ArrayLength; i++)
                                 defaultVal.SetElement(i, Eval(initList.Items[i]));
                             initVal = defaultVal;
+                            if (unsized) vd.Type.Dims = new List<int> { count };
                         }
                         else
                         {
@@ -484,7 +495,7 @@ namespace T3Interpreter
 
         void EvalWhile(WhileStmt s)
         {
-            while (Eval(s.Condition).AsBool() > 0)
+            while (!_didReturn && Eval(s.Condition).AsBool() > 0)
             {
                 try { EvalStmt(s.Body); }
                 catch (BreakException) { break; }
@@ -499,18 +510,19 @@ namespace T3Interpreter
                 try { EvalStmt(s.Body); }
                 catch (BreakException) { break; }
                 catch (ContinueException) { }
-            } while (Eval(s.Condition).AsBool() > 0);
+            } while (!_didReturn && Eval(s.Condition).AsBool() > 0);
         }
 
         void EvalFor(ForStmt s)
         {
             if (s.Init != null)
                 EvalStmt(s.Init);
-            while (s.Condition == null || Eval(s.Condition).AsBool() > 0)
+            while (!_didReturn && (s.Condition == null || Eval(s.Condition).AsBool() > 0))
             {
                 try { EvalStmt(s.Body); }
                 catch (BreakException) { break; }
                 catch (ContinueException) { }
+                if (_didReturn) break;
                 if (s.Step != null)
                     Eval(s.Step);
             }

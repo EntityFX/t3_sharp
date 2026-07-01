@@ -103,7 +103,7 @@ namespace T3Compiler.Parser
         void ParseGlobal(AstProgram p)
         {
             var ts = ParseType(); string n = Expect(TokenType.Identifier).Value;
-            while (Match(TokenType.LBracket)) { var d = ParseExpr(); Expect(TokenType.RBracket); if (d is IntegerLiteral il && int.TryParse(il.Value, out int sz)) ts.Dims.Add(sz); }
+            while (Match(TokenType.LBracket)) { if (Peek().Type == TokenType.RBracket) { Next(); ts.Dims.Add(0); } else { var d = ParseExpr(); Expect(TokenType.RBracket); if (d is IntegerLiteral il && int.TryParse(il.Value, out int sz)) ts.Dims.Add(sz); } }
             AstNode? init = null; if (Match(TokenType.OpEq)) init = ParseExpr();
             Expect(TokenType.Semicolon);
             p.Globals.Add(new VarDeclaration { Name = n, Type = ts, Initializer = init });
@@ -184,7 +184,7 @@ namespace T3Compiler.Parser
         VarDeclaration ParseVar()
         {
             var ts = ParseType(); string n = Expect(TokenType.Identifier).Value;
-            while (Match(TokenType.LBracket)) { var d = ParseExpr(); Expect(TokenType.RBracket); if (d is IntegerLiteral il && int.TryParse(il.Value, out int sz)) ts.Dims.Add(sz); }
+            while (Match(TokenType.LBracket)) { if (Peek().Type == TokenType.RBracket) { Next(); ts.Dims.Add(0); } else { var d = ParseExpr(); Expect(TokenType.RBracket); if (d is IntegerLiteral il && int.TryParse(il.Value, out int sz)) ts.Dims.Add(sz); } }
             AstNode? init = null; if (Match(TokenType.OpEq)) init = ParseExpr();
             Expect(TokenType.Semicolon); return new VarDeclaration { Name = n, Type = ts, Initializer = init };
         }
