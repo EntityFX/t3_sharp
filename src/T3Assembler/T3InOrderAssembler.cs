@@ -155,9 +155,9 @@ namespace T3Assembler
                 return new List<Int128>{EncI(pred,regGroup,Opcode.MOV,op1,(long)v)};
             }
 
-            // --- I-type (immediate operand) ---
-            if(isImm)
-                return new List<Int128>{EncI(pred,regGroup,op,op1,imm)};
+            // --- I-type (immediate or last operand is numeric) ---
+            if(isImm || (ip.Length==3 && op2!=0 && !IsRegister(ip[2])))
+                return new List<Int128>{EncI(pred,regGroup,op,op1,ip.Length>=3?(long)ResolveOperandValue(ip[2]):imm)};
 
             // --- S-type (LD/ST) ---
             if(op==Opcode.LD||op==Opcode.ST){

@@ -15,41 +15,41 @@ main:
     LOADI RX, RZ, -2
     PUSH RX
     LI RY,0
-    POP R0
-    CMP R0,RY
-    LIMM RX,t_1
-    JG RX
-    LI RW,-1
-    LIMM RY,d_2
-    JMP RY
+    POP RZ
+    CMP RZ,RY
+    LIMM RW,t_1
+    JG RW
+    LI R0,-1
+    LIMM RX,d_2
+    JMP RX
 t_1:
-    LI RW,1
+    LI R0,1
 d_2:
     LI R2,0
-    CMP RW,R2
-    LIMM R0,t_3
-    JG R0
-    LIMM R0,m_4
-    JE R0
-    LI RW,3
-    NEG RX,RW
-    MOV RY,RX
-    LIMM RY,d_5
-    JMP RY
-m_4:
-    LI R0,0
+    CMP R0,R2
+    LIMM RZ,t_3
+    JG RZ
+    LIMM RY,m_4
+    JE RY
+    LI RZ,3
+    NEG R0,RZ
     MOV RY,R0
     LIMM RW,d_5
     JMP RW
-t_3:
-    LI RX,3
+m_4:
+    LI RX,0
     MOV RY,RX
+    LIMM RY,d_5
+    JMP RY
+t_3:
+    LI RZ,3
+    MOV RY,RZ
 d_5:
     STOREI RY, RZ, -1
-    LOADI RY, RZ, -1
-    MOV R2,RY
-    LIMM R0,epilogue_0
-    JMP R0
+    LOADI R0, RZ, -1
+    MOV R2,R0
+    LIMM RW,epilogue_0
+    JMP RW
 epilogue_0:
     ADDI SP, SP, 2
     POP R4

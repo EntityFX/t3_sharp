@@ -21,20 +21,20 @@ main:
     LI RY, 4
     SUB RY, RZ, RY
     STOREI RY, RZ, -2
+    LOADI RZ, RZ, -2
+    LI R0,0
+    ADD RW,RZ,R0
+    LOADI RW,RW, 0
+    PUSH RW
     LOADI R0, RZ, -2
-    LI RW,0
-    ADD RX,R0,RW
-    LOADI RX,RX, 0
-    PUSH RX
-    LOADI RW, RZ, -2
-    LI RY,1
-    ADD R0,RW,RY
-    LOADI R0,R0, 0
-    POP RY
-    ADD RW,RY,R0
-    MOV R2,RW
-    LIMM R0,epilogue_0
-    JMP R0
+    LI RX,1
+    ADD RY,R0,RX
+    LOADI RY,RY, 0
+    POP RX
+    ADD RZ,RX,RY
+    MOV R2,RZ
+    LIMM RY,epilogue_0
+    JMP RY
 epilogue_0:
     ADDI SP, SP, 4
     POP R4

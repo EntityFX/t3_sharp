@@ -16,12 +16,12 @@ main:
     STOREI RX, RZ, -1
     LOADI RY, RZ, -2
     PUSH RY
-    LOADI R0, RZ, -1
-    POP RW
-    ADD RX,RW,R0
-    MOV R2,RX
-    LIMM R0,epilogue_0
-    JMP R0
+    LOADI RZ, RZ, -1
+    POP R0
+    ADD RW,R0,RZ
+    MOV R2,RW
+    LIMM RZ,epilogue_0
+    JMP RZ
 epilogue_0:
     ADDI SP, SP, 2
     POP R4

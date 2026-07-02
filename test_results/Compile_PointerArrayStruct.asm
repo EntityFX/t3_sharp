@@ -21,19 +21,19 @@ main:
     LI RY, 4
     SUB RY, RZ, RY
     STOREI RY, RZ, -2
-    LI R0, 3
-    SUB R0, RZ, R0
-    STOREI R0, RZ, -1
-    LOADI RW, RZ, -2
-    LOADI RX,RW, 0
-    PUSH RX
-    LOADI RY, RZ, -1
-    LOADI R0,RY, 0
-    POP RW
-    ADD RX,RW,R0
-    MOV R2,RX
-    LIMM R0,epilogue_0
-    JMP R0
+    LI RZ, 3
+    SUB RZ, RZ, RZ
+    STOREI RZ, RZ, -1
+    LOADI R0, RZ, -2
+    LOADI RW,R0, 0
+    PUSH RW
+    LOADI RX, RZ, -1
+    LOADI RY,RX, 0
+    POP RZ
+    ADD R0,RZ,RY
+    MOV R2,R0
+    LIMM RY,epilogue_0
+    JMP RY
 epilogue_0:
     ADDI SP, SP, 4
     POP R4

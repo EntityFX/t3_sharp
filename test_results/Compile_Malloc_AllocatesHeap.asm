@@ -16,8 +16,8 @@ main:
     STOREI RX, RZ, -1
     LOADI RY, RZ, -1
     MOV R2,RY
-    LIMM R0,epilogue_0
-    JMP R0
+    LIMM RZ,epilogue_0
+    JMP RZ
 epilogue_0:
     ADDI SP, SP, 1
     POP R4

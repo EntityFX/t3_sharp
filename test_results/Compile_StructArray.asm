@@ -14,54 +14,54 @@ main:
     PUSH RW
     LI RX,0
     LI RY,2
-    MUL R0,RX,RY
+    MUL RZ,RX,RY
+    LI R4, 2
+    SUB R4, RZ, R4
+    ADD RX,R4,RZ
+    LI RY,0
+    ADD R0,RX,RY
+    POP RW
+    STOREI RW, R0, 0
+    LI RZ,20
+    PUSH RZ
+    LI R0,0
+    LI RY,2
+    MUL RX,R0,RY
+    LI R4, 2
+    SUB R4, RZ, R4
+    ADD R0,R4,RX
+    LI RY,1
+    ADD RW,R0,RY
+    POP RX
+    STOREI RX, RW, 0
+    LI RX,0
+    PUSH RX
+    LI RW,2
+    POP RY
+    MUL R0,RY,RW
     LI R4, 2
     SUB R4, RZ, R4
     ADD RX,R4,R0
     LI RY,0
     ADD RW,RX,RY
-    POP RX
-    STOREI RX, RW, 0
-    LI R0,20
-    PUSH R0
-    LI RW,0
-    LI RY,2
-    MUL RX,RW,RY
-    LI R4, 2
-    SUB R4, RZ, R4
-    ADD RW,R4,RX
-    LI RY,1
-    ADD RX,RW,RY
-    POP RY
-    STOREI RY, RX, 0
-    LI RX,0
+    LOADI RX,RW, 0
     PUSH RX
-    LI RX,2
+    LI R0,0
+    PUSH R0
+    LI RW,2
     POP RY
-    MUL RW,RY,RX
+    MUL RX,RY,RW
     LI R4, 2
     SUB R4, RZ, R4
-    ADD RX,R4,RW
-    LI RY,0
-    ADD RX,RX,RY
-    LOADI RY,RX, 0
-    PUSH RY
-    LI RW,0
-    PUSH RW
-    LI RX,2
-    POP RY
-    MUL RX,RY,RX
-    LI R4, 2
-    SUB R4, RZ, R4
-    ADD RW,R4,RX
+    ADD R0,R4,RX
     LI RY,1
-    ADD RX,RW,RY
-    LOADI R0,RX, 0
+    ADD RW,R0,RY
+    LOADI RY,RW, 0
     POP RX
-    ADD RY,RX,R0
-    MOV R2,RY
-    LIMM R0,epilogue_0
-    JMP R0
+    ADD RW,RX,RY
+    MOV R2,RW
+    LIMM RY,epilogue_0
+    JMP RY
 epilogue_0:
     ADDI SP, SP, 2
     POP R4

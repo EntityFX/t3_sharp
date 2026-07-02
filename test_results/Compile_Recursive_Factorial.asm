@@ -16,27 +16,26 @@ fact:
     CMP RW,RX
     LIMM RY,then_2
     JLE RY
-    LIMM R0,end_1
-    JMP R0
+    LIMM RZ,end_1
+    JMP RZ
 then_2:
-    LI RW,1
-    MOV R2,RW
-    LIMM RX,epilogue_0
-    JMP RX
+    LI R0,1
+    MOV R2,R0
+    LIMM RW,epilogue_0
+    JMP RW
 end_1:
+    LOADI RX, RZ, -1
+    PUSH RX
     LOADI RY, RZ, -1
     PUSH RY
-    LOADI R0, RZ, -1
-    PUSH R0
-    LI RW,1
-    POP RX
-    SUB RY,RX,RW
+    LI RZ,1
+    POP R0
+    SUB RW,R0,RZ
     PUSH RW
     PUSH RX
     PUSH RY
     PUSH R0
     PUSH R1
-    MOV RW,RY
     LIMM R1,fact
     CALL R1
     POP R1
@@ -44,12 +43,12 @@ end_1:
     POP RY
     POP RX
     POP RW
-    MOV RW,R2
-    POP RX
-    MUL R0,RX,RW
-    MOV R2,R0
-    LIMM RW,epilogue_0
-    JMP RW
+    MOV RZ,R2
+    POP R0
+    MUL RX,R0,RZ
+    MOV R2,RX
+    LIMM RZ,epilogue_0
+    JMP RZ
 epilogue_0:
     ADDI SP, SP, 1
     POP R4

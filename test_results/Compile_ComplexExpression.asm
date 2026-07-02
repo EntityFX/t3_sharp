@@ -13,16 +13,16 @@ main:
     PUSH RW
     LI RX,4
     POP RY
-    MUL R0,RY,RX
-    PUSH R0
+    MUL RZ,RY,RX
+    PUSH RZ
     LI RX,3
     POP RY
-    SUB RW,RY,RX
-    PUSH RW
+    SUB R0,RY,RX
+    PUSH R0
     LI RX,10
     POP RY
-    ADD R0,RY,RX
-    MOV R2,R0
+    ADD RW,RY,RX
+    MOV R2,RW
     LIMM RX,epilogue_0
     JMP RX
 epilogue_0:

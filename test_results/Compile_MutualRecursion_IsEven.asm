@@ -16,25 +16,25 @@ isEven:
     CMP RW,RX
     LIMM RY,then_2
     JE RY
-    LIMM R0,end_1
-    JMP R0
+    LIMM RZ,end_1
+    JMP RZ
 then_2:
-    LI RW,1
-    MOV R2,RW
-    LIMM RX,epilogue_0
-    JMP RX
-end_1:
-    LOADI RY, RZ, -1
-    PUSH RY
     LI R0,1
-    POP RW
-    SUB RX,RW,R0
+    MOV R2,R0
+    LIMM RW,epilogue_0
+    JMP RW
+end_1:
+    LOADI RX, RZ, -1
+    PUSH RX
+    LI RY,1
+    POP RZ
+    SUB R0,RZ,RY
     PUSH RW
     PUSH RX
     PUSH RY
     PUSH R0
     PUSH R1
-    MOV RW,RX
+    MOV RW,R0
     LIMM R1,isOdd
     CALL R1
     POP R1
@@ -42,10 +42,10 @@ end_1:
     POP RY
     POP RX
     POP RW
-    MOV R0,R2
-    MOV R2,R0
-    LIMM RW,epilogue_0
-    JMP RW
+    MOV RY,R2
+    MOV R2,RY
+    LIMM RZ,epilogue_0
+    JMP RZ
 epilogue_0:
     ADDI SP, SP, 1
     POP R4
@@ -64,25 +64,25 @@ isOdd:
     CMP RW,RX
     LIMM RY,then_5
     JE RY
-    LIMM R0,end_4
-    JMP R0
+    LIMM RZ,end_4
+    JMP RZ
 then_5:
-    LI RW,0
-    MOV R2,RW
-    LIMM RX,epilogue_3
-    JMP RX
+    LI R0,0
+    MOV R2,R0
+    LIMM RW,epilogue_3
+    JMP RW
 end_4:
-    LOADI RY, RZ, -1
-    PUSH RY
-    LI R0,1
-    POP RW
-    SUB RX,RW,R0
+    LOADI RX, RZ, -1
+    PUSH RX
+    LI RY,1
+    POP RZ
+    SUB R0,RZ,RY
     PUSH RW
     PUSH RX
     PUSH RY
     PUSH R0
     PUSH R1
-    MOV RW,RX
+    MOV RW,R0
     LIMM R1,isEven
     CALL R1
     POP R1
@@ -90,10 +90,10 @@ end_4:
     POP RY
     POP RX
     POP RW
-    MOV R0,R2
-    MOV R2,R0
-    LIMM RW,epilogue_3
-    JMP RW
+    MOV RY,R2
+    MOV R2,RY
+    LIMM RZ,epilogue_3
+    JMP RZ
 epilogue_3:
     ADDI SP, SP, 1
     POP R4

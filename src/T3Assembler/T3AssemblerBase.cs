@@ -45,6 +45,7 @@ namespace T3Assembler
             return sb.ToString();
         }
         protected Int128 ResolveOperandValue(string t){
+            if(t.StartsWith("#"))t=t[1..];
             if(IsRegister(t))return GetRegisterRaw(t);
             if(_constants.TryGetValue(t,out var cv))return cv;
             if(long.TryParse(t,out long v))return v;

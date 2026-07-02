@@ -15,37 +15,37 @@ main:
     LOADI RX, RZ, -1
     PUSH RX
     LI RY,5
+    POP RZ
+    ADD R0,RZ,RY
+    STOREI R0, RZ, -1
+    LOADI RY, RZ, -1
+    PUSH RY
+    LI RZ,3
+    POP RW
+    SUB RX,RW,RZ
+    STOREI RX, RZ, -1
+    LOADI RZ, RZ, -1
+    PUSH RZ
+    LI RW,2
+    POP RY
+    MUL RZ,RY,RW
+    STOREI RZ, RZ, -1
+    LOADI RW, RZ, -1
+    PUSH RW
+    LI RY,4
     POP R0
-    ADD RW,R0,RY
+    DIV RW,R0,RY
     STOREI RW, RZ, -1
     LOADI RY, RZ, -1
     PUSH RY
-    LI R0,3
-    POP RX
-    SUB RY,RX,R0
-    STOREI RY, RZ, -1
-    LOADI R0, RZ, -1
-    PUSH R0
-    LI RX,2
-    POP R0
-    MUL RW,R0,RX
-    STOREI RW, RZ, -1
-    LOADI RX, RZ, -1
-    PUSH RX
     LI R0,4
     POP RX
-    DIV RY,RX,R0
+    ADD RY,RX,R0
     STOREI RY, RZ, -1
     LOADI R0, RZ, -1
-    PUSH R0
-    LI RX,4
-    POP R0
-    ADD RW,R0,RX
-    STOREI RW, RZ, -1
-    LOADI RX, RZ, -1
-    MOV R2,RX
-    LIMM R0,epilogue_0
-    JMP R0
+    MOV R2,R0
+    LIMM RX,epilogue_0
+    JMP RX
 epilogue_0:
     ADDI SP, SP, 1
     POP R4

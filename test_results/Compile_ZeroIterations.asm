@@ -18,22 +18,22 @@ loop_1:
     CMP RX,R2
     LIMM RY,body_2
     JNE RY
-    LIMM R0,wend_3
-    JMP R0
+    LIMM RZ,wend_3
+    JMP RZ
 body_2:
-    LOADI RW, RZ, -1
-    PUSH RW
-    LI RX,1
-    POP RY
-    ADD R0,RY,RX
-    STOREI R0, RZ, -1
-    LIMM RX,loop_1
-    JMP RX
-wend_3:
-    LOADI RY, RZ, -1
-    MOV R2,RY
-    LIMM RW,epilogue_0
+    LOADI R0, RZ, -1
+    PUSH R0
+    LI RW,1
+    POP RX
+    ADD RY,RX,RW
+    STOREI RY, RZ, -1
+    LIMM RW,loop_1
     JMP RW
+wend_3:
+    LOADI RX, RZ, -1
+    MOV R2,RX
+    LIMM RZ,epilogue_0
+    JMP RZ
 epilogue_0:
     ADDI SP, SP, 1
     POP R4

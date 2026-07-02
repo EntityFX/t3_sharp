@@ -22,14 +22,14 @@ main:
 then_2:
     LI RY,1
     MOV R2,RY
-    LIMM R0,epilogue_0
-    JMP R0
+    LIMM RZ,epilogue_0
+    JMP RZ
 end_1:
-    LI RW,1
-    NEG RX,RW
-    MOV R2,RX
-    LIMM RY,epilogue_0
-    JMP RY
+    LI R0,1
+    NEG RW,R0
+    MOV R2,RW
+    LIMM RX,epilogue_0
+    JMP RX
 epilogue_0:
     ADDI SP, SP, 2
     POP R4

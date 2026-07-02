@@ -16,28 +16,29 @@ sum:
     CMP RW,RX
     LIMM RY,then_2
     JLE RY
-    LIMM R0,end_1
-    JMP R0
+    LIMM RZ,end_1
+    JMP RZ
 then_2:
-    LI RW,0
-    MOV R2,RW
-    LIMM RX,epilogue_0
-    JMP RX
+    LI R0,0
+    MOV R2,R0
+    LIMM RW,epilogue_0
+    JMP RW
 end_1:
+    LOADI RX, RZ, -1
+    PUSH RX
+    LI RY,1
+    POP RZ
+    SUB R0,RZ,RY
+    STOREI R0, RZ, -2
     LOADI RY, RZ, -1
     PUSH RY
-    LI R0,1
-    POP RW
-    SUB RX,RW,R0
-    STOREI RX, RZ, -2
-    LOADI R0, RZ, -1
-    PUSH R0
-    LOADI RW, RZ, -2
+    LOADI RZ, RZ, -2
     PUSH RW
     PUSH RX
     PUSH RY
     PUSH R0
     PUSH R1
+    MOV RW,RZ
     LIMM R1,sum
     CALL R1
     POP R1
@@ -45,12 +46,12 @@ end_1:
     POP RY
     POP RX
     POP RW
-    MOV RY,R2
-    POP R0
-    ADD RW,R0,RY
-    MOV R2,RW
-    LIMM RY,epilogue_0
-    JMP RY
+    MOV RW,R2
+    POP RX
+    ADD RY,RX,RW
+    MOV R2,RY
+    LIMM RW,epilogue_0
+    JMP RW
 epilogue_0:
     ADDI SP, SP, 2
     POP R4

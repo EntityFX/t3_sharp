@@ -15,42 +15,42 @@ main:
     LOADI RX, RZ, -1
     LI RY,1
     CMP RX,RY
-    LIMM R0,scase_2
-    JE R0
-    LI RW,2
-    CMP RX,RW
-    LIMM RX,scase_3
-    JE RX
-    LI RY,3
-    CMP RX,RY
-    LIMM R0,scase_4
-    JE R0
-    LIMM RW,scase_5
-    JMP RW
+    LIMM RZ,scase_2
+    JE RZ
+    LI R0,2
+    CMP RX,R0
+    LIMM RW,scase_3
+    JE RW
+    LI RX,3
+    CMP RX,RX
+    LIMM RY,scase_4
+    JE RY
+    LIMM RZ,scase_5
+    JMP RZ
 scase_2:
-    LI RX,10
-    MOV R2,RX
-    LIMM RY,epilogue_0
-    JMP RY
-    LIMM R0,swend_1
-    JMP R0
-scase_3:
-    LI RW,2
-    MOV R2,RW
-    LIMM RX,epilogue_0
-    JMP RX
-    LIMM RY,swend_1
-    JMP RY
-scase_4:
-    LI R0,30
+    LI R0,10
     MOV R2,R0
     LIMM RW,epilogue_0
     JMP RW
     LIMM RX,swend_1
     JMP RX
+scase_3:
+    LI RY,2
+    MOV R2,RY
+    LIMM RZ,epilogue_0
+    JMP RZ
+    LIMM R0,swend_1
+    JMP R0
+scase_4:
+    LI RW,30
+    MOV R2,RW
+    LIMM RX,epilogue_0
+    JMP RX
+    LIMM RY,swend_1
+    JMP RY
 scase_5:
-    LI RY,1
-    NEG R0,RY
+    LI RZ,1
+    NEG R0,RZ
     MOV R2,R0
     LIMM RW,epilogue_0
     JMP RW

@@ -17,40 +17,40 @@ fib:
     STOREI RX, RZ, -4
     LI RY,0
     STOREI RY, RZ, -3
-    LI R0,0
-    STOREI R0, RZ, -2
+    LI RZ,0
+    STOREI RZ, RZ, -2
 loop_1:
-    LOADI RW, RZ, -2
-    LOADI RX, RZ, -1
-    CMP RW,RX
-    LIMM RY,body_2
-    JL RY
-    LIMM R0,wend_3
-    JMP R0
+    LOADI R0, RZ, -2
+    LOADI RW, RZ, -1
+    CMP R0,RW
+    LIMM RX,body_2
+    JL RX
+    LIMM RY,wend_3
+    JMP RY
 body_2:
-    LOADI RW, RZ, -5
-    PUSH RW
-    LOADI RX, RZ, -4
-    POP RY
-    ADD R0,RY,RX
-    STOREI R0, RZ, -3
-    LOADI RX, RZ, -4
-    STOREI RX, RZ, -5
-    LOADI RY, RZ, -3
-    STOREI RY, RZ, -4
-    LOADI RW, RZ, -2
-    PUSH RW
-    LI RX,1
-    POP RY
-    ADD R0,RY,RX
-    STOREI R0, RZ, -2
-    LIMM RX,loop_1
-    JMP RX
+    LOADI RZ, RZ, -5
+    PUSH RZ
+    LOADI R0, RZ, -4
+    POP RW
+    ADD RX,RW,R0
+    STOREI RX, RZ, -3
+    LOADI R0, RZ, -4
+    STOREI R0, RZ, -5
+    LOADI RW, RZ, -3
+    STOREI RW, RZ, -4
+    LOADI RY, RZ, -2
+    PUSH RY
+    LI RZ,1
+    POP R0
+    ADD RW,R0,RZ
+    STOREI RW, RZ, -2
+    LIMM RZ,loop_1
+    JMP RZ
 wend_3:
-    LOADI RY, RZ, -5
-    MOV R2,RY
-    LIMM RW,epilogue_0
-    JMP RW
+    LOADI R0, RZ, -5
+    MOV R2,R0
+    LIMM RX,epilogue_0
+    JMP RX
 epilogue_0:
     ADDI SP, SP, 5
     POP R4

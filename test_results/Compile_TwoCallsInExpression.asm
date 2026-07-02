@@ -16,8 +16,8 @@ add:
     PUSH RW
     LOADI RX, RZ, -1
     POP RY
-    ADD R0,RY,RX
-    MOV R2,R0
+    ADD RZ,RY,RX
+    MOV R2,RZ
     LIMM RX,epilogue_0
     JMP RX
 epilogue_0:
@@ -47,15 +47,15 @@ main:
     POP RW
     MOV RY,R2
     PUSH RY
-    LI R0,5
-    LI RW,6
+    LI RZ,5
+    LI R0,6
     PUSH RW
     PUSH RX
     PUSH RY
     PUSH R0
     PUSH R1
-    MOV RX,RW
-    MOV RW,R0
+    MOV RW,RZ
+    MOV RX,R0
     LIMM R1,add
     CALL R1
     POP R1
@@ -63,12 +63,12 @@ main:
     POP RY
     POP RX
     POP RW
-    MOV RX,R2
-    POP RY
-    ADD R0,RY,RX
-    MOV R2,R0
-    LIMM RX,epilogue_1
-    JMP RX
+    MOV RW,R2
+    POP RX
+    ADD RY,RX,RW
+    MOV R2,RY
+    LIMM RW,epilogue_1
+    JMP RW
 epilogue_1:
     POP R4
     POP R3

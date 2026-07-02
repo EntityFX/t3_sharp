@@ -24,24 +24,24 @@ main:
     LI R4, 6
     SUB R4, RZ, R4
     ADD R4,R4,RY
-    POP R0
-    STOREI R0, R4, 0
+    POP RZ
+    STOREI RZ, R4, 0
     LI RY,0
-    LI R0, 6
-    SUB R0, RZ, R0
-    ADD R0,R0,RY
-    STOREI R0, RZ, -1
+    LI RZ, 6
+    SUB RZ, RZ, RZ
+    ADD RZ,RZ,RY
+    STOREI RZ, RZ, -1
+    LOADI R0, RZ, -1
+    PUSH R0
+    LI RW,1
+    POP RX
+    ADD RY,RX,RW
+    STOREI RY, RZ, -1
     LOADI RW, RZ, -1
-    PUSH RW
-    LI RX,1
-    POP RY
-    ADD R0,RY,RX
-    STOREI R0, RZ, -1
-    LOADI RX, RZ, -1
-    LOADI RY,RX, 0
-    MOV R2,RY
-    LIMM RW,epilogue_0
-    JMP RW
+    LOADI RX,RW, 0
+    MOV R2,RX
+    LIMM RZ,epilogue_0
+    JMP RZ
 epilogue_0:
     ADDI SP, SP, 6
     POP R4

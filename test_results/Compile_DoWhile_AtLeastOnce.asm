@@ -16,19 +16,19 @@ loop_1:
     LOADI RX, RZ, -1
     PUSH RX
     LI RY,1
-    POP R0
-    ADD RW,R0,RY
-    STOREI RW, RZ, -1
+    POP RZ
+    ADD R0,RZ,RY
+    STOREI R0, RZ, -1
     LI RY,0
     LI R2,0
     CMP RY,R2
-    LIMM R0,loop_1
-    JNE R0
+    LIMM RZ,loop_1
+    JNE RZ
 wend_2:
-    LOADI RX, RZ, -1
-    MOV R2,RX
-    LIMM RY,epilogue_0
-    JMP RY
+    LOADI RW, RZ, -1
+    MOV R2,RW
+    LIMM RX,epilogue_0
+    JMP RX
 epilogue_0:
     ADDI SP, SP, 1
     POP R4

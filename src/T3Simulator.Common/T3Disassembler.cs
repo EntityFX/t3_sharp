@@ -92,13 +92,12 @@ namespace T3Simulator.Common
             }
             else if (instr.Fmt == 0) // R-type or S-type
             {
-                if (instr.Opcode.IsSType()) // S-type: Rd, [Rb + #off]
+                if (instr.Opcode.IsSType()) // S-type: Rd, Rb  or  Rd, Rb, #off
                 {
                     sb.Append(' ').Append(GetRegName(instr.RegGroup, instr.Op1));
-                    sb.Append(", [").Append(GetRegName(0, instr.Op2));
+                    sb.Append(", ").Append(GetRegName(0, instr.Op2));
                     if (instr.Immediate != 0)
-                        sb.Append(" + #").Append(instr.Immediate);
-                    sb.Append(']');
+                        sb.Append(", #").Append(instr.Immediate);
                 }
                 else // R-type: Op1, Op2, Op3
                 {

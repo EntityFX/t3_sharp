@@ -16,44 +16,25 @@ fib:
     CMP RW,RX
     LIMM RY,then_2
     JLE RY
-    LIMM R0,end_1
-    JMP R0
+    LIMM RZ,end_1
+    JMP RZ
 then_2:
-    LOADI RW, RZ, -1
-    MOV R2,RW
-    LIMM RX,epilogue_0
-    JMP RX
+    LOADI R0, RZ, -1
+    MOV R2,R0
+    LIMM RW,epilogue_0
+    JMP RW
 end_1:
-    LOADI RY, RZ, -1
-    PUSH RY
-    LI R0,1
-    POP RW
-    SUB RX,RW,R0
+    LOADI RX, RZ, -1
+    PUSH RX
+    LI RY,1
+    POP RZ
+    SUB R0,RZ,RY
     PUSH RW
     PUSH RX
     PUSH RY
     PUSH R0
     PUSH R1
-    MOV RW,RX
-    LIMM R1,fib
-    CALL R1
-    POP R1
-    POP R0
-    POP RY
-    POP RX
-    POP RW
-    MOV R0,R2
-    PUSH R0
-    LOADI RW, RZ, -1
-    PUSH RW
-    LI RY,2
-    POP R0
-    SUB RW,R0,RY
-    PUSH RW
-    PUSH RX
-    PUSH RY
-    PUSH R0
-    PUSH R1
+    MOV RW,R0
     LIMM R1,fib
     CALL R1
     POP R1
@@ -62,11 +43,31 @@ end_1:
     POP RX
     POP RW
     MOV RY,R2
+    PUSH RY
+    LOADI RZ, RZ, -1
+    PUSH RZ
+    LI RW,2
+    POP RX
+    SUB RY,RX,RW
+    PUSH RW
+    PUSH RX
+    PUSH RY
+    PUSH R0
+    PUSH R1
+    MOV RW,RY
+    LIMM R1,fib
+    CALL R1
+    POP R1
     POP R0
-    ADD RX,R0,RY
-    MOV R2,RX
-    LIMM RY,epilogue_0
-    JMP RY
+    POP RY
+    POP RX
+    POP RW
+    MOV RW,R2
+    POP RX
+    ADD RZ,RX,RW
+    MOV R2,RZ
+    LIMM RW,epilogue_0
+    JMP RW
 epilogue_0:
     ADDI SP, SP, 1
     POP R4

@@ -17,30 +17,30 @@ loop_1:
     LOADI RX, RZ, -1
     LI RY,1
     CMP RX,RY
-    LIMM R0,body_2
-    JG R0
-    LIMM RW,wend_3
-    JMP RW
+    LIMM RZ,body_2
+    JG RZ
+    LIMM R0,wend_3
+    JMP R0
 body_2:
-    LOADI RX, RZ, -2
+    LOADI RW, RZ, -2
+    PUSH RW
+    LOADI RX, RZ, -1
+    POP RY
+    MUL RZ,RY,RX
+    STOREI RZ, RZ, -2
+    LOADI RX, RZ, -1
     PUSH RX
-    LOADI RY, RZ, -1
+    LI RY,1
     POP R0
-    MUL RW,R0,RY
-    STOREI RW, RZ, -2
-    LOADI RY, RZ, -1
-    PUSH RY
-    LI R0,1
-    POP RX
-    SUB RY,RX,R0
-    STOREI RY, RZ, -1
-    LIMM R0,loop_1
-    JMP R0
+    SUB RW,R0,RY
+    STOREI RW, RZ, -1
+    LIMM RY,loop_1
+    JMP RY
 wend_3:
-    LOADI RX, RZ, -2
-    MOV R2,RX
-    LIMM R0,epilogue_0
-    JMP R0
+    LOADI R0, RZ, -2
+    MOV R2,R0
+    LIMM RX,epilogue_0
+    JMP RX
 epilogue_0:
     ADDI SP, SP, 2
     POP R4

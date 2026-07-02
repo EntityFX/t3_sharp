@@ -17,26 +17,26 @@ main:
 loop_1:
     LOADI RY, RZ, -2
     PUSH RY
+    LOADI RZ, RZ, -1
+    POP R0
+    ADD RW,R0,RZ
+    STOREI RW, RZ, -2
+    LOADI RZ, RZ, -1
+    PUSH RZ
+    LI R0,1
+    POP RX
+    ADD RY,RX,R0
+    STOREI RY, RZ, -1
     LOADI R0, RZ, -1
-    POP RW
-    ADD RX,RW,R0
-    STOREI RX, RZ, -2
-    LOADI R0, RZ, -1
-    PUSH R0
-    LI RW,1
-    POP RY
-    ADD R0,RY,RW
-    STOREI R0, RZ, -1
-    LOADI RW, RZ, -1
-    LI RY,10
-    CMP RW,RY
-    LIMM RW,loop_1
-    JLE RW
+    LI RX,10
+    CMP R0,RX
+    LIMM RZ,loop_1
+    JLE RZ
 wend_2:
-    LOADI RX, RZ, -2
-    MOV R2,RX
-    LIMM RY,epilogue_0
-    JMP RY
+    LOADI R0, RZ, -2
+    MOV R2,R0
+    LIMM RW,epilogue_0
+    JMP RW
 epilogue_0:
     ADDI SP, SP, 2
     POP R4

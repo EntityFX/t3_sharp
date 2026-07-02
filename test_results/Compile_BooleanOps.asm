@@ -15,23 +15,23 @@ main:
     LI RX,-1
     STOREI RX, RZ, -1
     LOADI RY, RZ, -2
-    LI R0,1
-    CMP RY,R0
-    LIMM RW,then_2
-    JE RW
-    LIMM RX,end_1
-    JMP RX
+    LI RZ,1
+    CMP RY,RZ
+    LIMM R0,then_2
+    JE R0
+    LIMM RW,end_1
+    JMP RW
 then_2:
-    LI RY,1
-    MOV R2,RY
-    LIMM R0,epilogue_0
-    JMP R0
-end_1:
-    LI RW,1
-    NEG RX,RW
+    LI RX,1
     MOV R2,RX
     LIMM RY,epilogue_0
     JMP RY
+end_1:
+    LI RZ,1
+    NEG R0,RZ
+    MOV R2,R0
+    LIMM RW,epilogue_0
+    JMP RW
 epilogue_0:
     ADDI SP, SP, 2
     POP R4

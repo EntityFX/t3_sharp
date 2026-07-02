@@ -15,20 +15,20 @@ main:
     LOADI RX, RZ, -1
     LI RY,5
     CMP RX,RY
-    LIMM R0,then_2
-    JG R0
-    LI RW,1
-    NEG RX,RW
-    MOV R2,RX
-    LIMM RY,epilogue_0
-    JMP RY
-    LIMM R0,end_1
-    JMP R0
-then_2:
-    LI RW,1
+    LIMM RZ,then_2
+    JG RZ
+    LI R0,1
+    NEG RW,R0
     MOV R2,RW
     LIMM RX,epilogue_0
     JMP RX
+    LIMM RY,end_1
+    JMP RY
+then_2:
+    LI RZ,1
+    MOV R2,RZ
+    LIMM R0,epilogue_0
+    JMP R0
 end_1:
 epilogue_0:
     ADDI SP, SP, 1

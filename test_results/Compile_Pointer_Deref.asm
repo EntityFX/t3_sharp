@@ -16,10 +16,10 @@ main:
     SUB RX, RZ, RX
     STOREI RX, RZ, -1
     LOADI RY, RZ, -1
-    LOADI R0,RY, 0
-    MOV R2,R0
-    LIMM RW,epilogue_0
-    JMP RW
+    LOADI RZ,RY, 0
+    MOV R2,RZ
+    LIMM R0,epilogue_0
+    JMP R0
 epilogue_0:
     ADDI SP, SP, 2
     POP R4

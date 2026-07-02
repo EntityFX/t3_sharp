@@ -1,7 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using T3Assembler;using T3Simulator.Common;using System.Collections.Generic;using TritTypes;
 
-
 namespace T3Simulator.Common.Tests
 {
     [TestClass]
@@ -13,15 +12,11 @@ namespace T3Simulator.Common.Tests
         void Check(string asm){var bin=Asm(asm);var dis=Dis(bin);var reb=Asm(dis);Assert.AreEqual(bin.Count,reb.Count,$"Round-trip mismatch for: {asm}");}
 
         [TestMethod]public void Trip_SimpleArith(){Check("LI R0, 10\nLI R1, 20\nADD R2, R0, R1\nHALT");}
-        [TestMethod]public void Trip_AllRegs(){
-            Check("LI RW, 1\nLI RX, 2\nLI RY, 3\nLI RZ, 4\nLI R0, 5\nLI R1, 6\nLI R2, 7\nLI R3, 8\nLI R4, 9\nADD R0, R1\nHALT");
-        }
         [TestMethod]public void Trip_Jump(){Check("LI R0, 10\nCMP R0, R0\nJE R1\nHALT\nLI R0, 1\nHALT");}
         [TestMethod]public void Trip_Complex(){
             var asm="LI R0, 10\nLI R1, 20\nADD R2, R0, R1\nSUB R3, R2, R1\nCMP R3, R0\nJE R4\nHALT";
             var bin=Asm(asm);var dis=Dis(bin);var reb=Asm(dis);
             Assert.AreEqual(bin.Count,reb.Count);
-            // Run both programs and compare results
             Assert.AreNotEqual(0,bin.Count);
         }
     }

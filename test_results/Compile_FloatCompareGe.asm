@@ -18,24 +18,24 @@ main:
     STOREI RX, RZ, -1
     LOADI RY, RZ, -2
     FLW RY,RY
-    LOADI R0, RZ, -1
-    FLW R0,R0
-    FCMP RY,R0
-    LIMM R0,then_4
-    JGE R0
+    LOADI RZ, RZ, -1
+    FLW RZ,RZ
+    FCMP RY,RZ
+    LIMM RZ,then_4
+    JGE RZ
     LIMM RY,end_3
     JMP RY
 then_4:
-    LI RW,1
-    MOV R2,RW
-    LIMM RX,epilogue_0
-    JMP RX
-end_3:
-    LI RY,1
-    NEG R0,RY
+    LI R0,1
     MOV R2,R0
     LIMM RW,epilogue_0
     JMP RW
+end_3:
+    LI RX,1
+    NEG RY,RX
+    MOV R2,RY
+    LIMM RZ,epilogue_0
+    JMP RZ
 epilogue_0:
     ADDI SP, SP, 2
     POP R4
