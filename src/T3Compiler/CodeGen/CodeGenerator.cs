@@ -28,7 +28,7 @@ namespace T3Compiler.CodeGen
             foreach(var ed in _program.Enums){int cur=0;foreach(var m in ed.Members){int v=m.Value??cur;_enumConstants[m.Name]=v;cur=v+1;}}
             foreach(var g in _program.Globals){_globalLabels[g.Name]=g.Name;int sz=1;if(g.Type.Dims.Count>0)sz=g.Type.Dims.Aggregate(1,(a,b)=>a*b);_globalSlots[g.Name]=sz;}
             EmitCode("; T→T3");EmitCode("__entry:");
-            EmitCode($"    S.LIMM HP,{ProcessorBase<Word18>.HeapStart}");
+            EmitCode($"    S.LIMM HP,699050");
             EmitCode("    LIMM R1,main");EmitCode("    CALL R1");EmitCode("    HALT");
             foreach(var f in _program.Functions)GenFunc(f);
             _output.Append(_codeOutput.ToString());

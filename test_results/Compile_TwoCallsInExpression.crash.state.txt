@@ -1,0 +1,65 @@
+Exception: Memory read out of bounds: address 0x7A662F (memory size 0x100000)
+   at T3Simulator.Common.Memory`1.Read(Int64 address) in c:\projects\t3_sharp\src\T3Simulator.Common\Memory.cs:line 51
+   at T3Simulator.Common.ProcessorBase`1.ReadWord(Int64 address) in c:\projects\t3_sharp\src\T3Simulator.Common\ProcessorBase.cs:line 162
+   at T3Simulator.InOrder.T3InOrderProcessor`1.Step() in c:\projects\t3_sharp\src\T3Simulator.InOrder\T3InOrderProcessor.cs:line 55
+   at T3Simulator.Common.ProcessorBase`1.Run() in c:\projects\t3_sharp\src\T3Simulator.Common\ProcessorBase.cs:line 97
+   at T3Simulator.InOrder.Tests.TLangCompilerTests.Run(List`1 words, String testName, Boolean enableTrace) in c:\projects\t3_sharp\tests\T3Simulator.InOrder.Tests\TLangCompilerTests.cs:line 87
+
+--- Processor State ---
+PC: 8021551  SP: 284  FP: 0  HP: 699050  CD: 0  WD: 0
+Cycles: 5241479, Instructions: 3040058
+GP Registers:
+  R0: 3
+  R1: 23
+  R2: 3
+  R3: 26
+  R4: 0
+  R5: 6
+  R6: 26
+  R7: 3
+  R8: 0
+FPU Registers:
+  F0: TritTypes.T3Double
+  F1: TritTypes.T3Double
+  F2: TritTypes.T3Double
+  F3: TritTypes.T3Double
+  F4: TritTypes.T3Double
+  F5: TritTypes.T3Double
+  F6: TritTypes.T3Double
+  F7: TritTypes.T3Double
+  F8: TritTypes.T3Double
+PR: 000000000000000000
+Memory (around SP):
+  [0268]: 6526993
+  [0269]: 8318254
+  [0270]: 8021551
+  [0271]: 291
+  [0272]: 5600178
+  [0273]: 8175371
+  [0274]: 8176100
+  [0275]: 8021551
+  [0276]: 280
+  [0277]: 5580495
+  [0278]: 6567196
+  [0279]: 6566467
+  [0280]: 3
+  [0281]: 3
+  [0282]: 8021551
+  [0283]: 0
+  [0284]: 8021551
+  [0285]: 4
+  [0286]: 38
+  [0287]: 293
+  [0288]: 27
+  [0289]: 0
+  [0290]: 3
+  [0291]: 4
+  [0292]: 3
+  [0293]: 5
+  [0294]: 3
+  [0295]: 4
+  [0296]: 38
+  [0297]: 303
+  [0298]: 27
+  [0299]: 0
+  [0300]: 3

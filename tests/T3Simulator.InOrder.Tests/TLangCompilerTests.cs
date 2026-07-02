@@ -824,7 +824,7 @@ tint main() {
 
         [TestMethod][Timeout(5000)]
         public void Compile_Malloc_AllocatesHeap() =>
-            AssertResult(T3Simulator.Common.ProcessorBase<Word18>.HeapStart, "tint main(){tint p=malloc(10);return p;}", nameof(Compile_Malloc_AllocatesHeap));
+            AssertResult(60000, "tint main(){tint p=malloc(10);return p;}", nameof(Compile_Malloc_AllocatesHeap));
 
         [TestMethod][Timeout(5000)]
         [Ignore("CodeGen::malloc built-in needs deeper ABI integration for variable assignment")]

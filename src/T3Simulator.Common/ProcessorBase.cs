@@ -34,7 +34,8 @@ namespace T3Simulator.Common
 
         public const int HeapFractionNumerator = 2;
         public const int HeapFractionDenominator = 3;
-        public const long HeapStart = 1048576L * HeapFractionNumerator / HeapFractionDenominator;
+        
+        public readonly long HeapStart;
         private readonly long _initialSp;
 
         public long CycleCount => _cycleCount;
@@ -49,6 +50,7 @@ namespace T3Simulator.Common
             IsHalted = false;
 
             long memSize = 1048576;
+            HeapStart = memSize * HeapFractionNumerator / HeapFractionDenominator;
             Memory = new Memory<TWord>(memSize);
             DeviceManager = new DeviceManager<TWord>();
 

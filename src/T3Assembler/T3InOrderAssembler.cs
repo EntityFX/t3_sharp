@@ -164,11 +164,7 @@ namespace T3Assembler
                 return new List<Int128>{EncI(pred,regGroup,Opcode.MOV,op1,(long)v)};
             }
 
-            // --- I-type (immediate or last operand is numeric) ---
-            if(isImm || (ip.Length>=3 && !IsRegister(ip[ip.Length-1])))
-                return new List<Int128>{EncI(pred,regGroup,op,op1,(long)ResolveOperandValue(ip[ip.Length-1]))};
-
-            // --- S-type (LD/ST) ---
+            // --- S-type (LD/ST) — MUST be checked before I-type ---
             if(op==Opcode.LD||op==Opcode.ST){
                 int baseR=op2!=0?op2:(op1!=0?3:0);
                 long off=ip.Length>3&&!IsRegister(ip[ip.Length-1])?(long)ResolveOperandValue(ip[ip.Length-1]):0;
@@ -178,6 +174,10 @@ namespace T3Assembler
                 }
                 return new List<Int128>{EncS(pred,regGroup,op,op1,baseR,off)};
             }
+
+            // --- I-type (immediate or last operand is numeric) ---
+            if(isImm || (ip.Length>=3 && !IsRegister(ip[ip.Length-1])))
+                return new List<Int128>{EncI(pred,regGroup,op,op1,(long)ResolveOperandValue(ip[ip.Length-1]))};
 
             // Default: R-type (3 registers)
             return new List<Int128>{EncR(pred,regGroup,op,op1,op2,op3)};

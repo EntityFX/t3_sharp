@@ -235,7 +235,7 @@ namespace T3Simulator.InOrder
                         // Special-register arithmetic (SP, FP, HP)
                         if (rg == +1)
                         {
-                            long sa = GetSpecialReg(instr.Op2 + 4);
+                            long sa = fmt == 0 ? GetSpecialReg(instr.Op2 + 4) : GetSpecialReg(instr.Op1 + 4);
                             long sb = fmt == 0 ? GetSpecialReg(instr.Op3 + 4) : instr.Immediate;
                             long sr = instr.Opcode switch
                             {
