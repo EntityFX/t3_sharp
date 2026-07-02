@@ -1,0 +1,58 @@
+--- Processor State ---
+PC: 33  SP: 1048551  FP: 1048573  HP: 699050  CD: 0  WD: 0
+Cycles: 43, Instructions: 30
+GP Registers:
+  R0: 1
+  R1: 2
+  R2: 3
+  R3: 2
+  R4: 3
+  R5: 6
+  R6: 0
+  R7: 0
+  R8: -16
+FPU Registers:
+  F0: TritTypes.T3Double
+  F1: TritTypes.T3Double
+  F2: TritTypes.T3Double
+  F3: TritTypes.T3Double
+  F4: TritTypes.T3Double
+  F5: TritTypes.T3Double
+  F6: TritTypes.T3Double
+  F7: TritTypes.T3Double
+  F8: TritTypes.T3Double
+PR: 000000000000000000
+Memory (around SP):
+  [1048535]: 0
+  [1048536]: 0
+  [1048537]: 0
+  [1048538]: 0
+  [1048539]: 0
+  [1048540]: 0
+  [1048541]: 0
+  [1048542]: 0
+  [1048543]: 0
+  [1048544]: 0
+  [1048545]: 0
+  [1048546]: 0
+  [1048547]: 0
+  [1048548]: 0
+  [1048549]: 0
+  [1048550]: 3
+  [1048551]: 0
+  [1048552]: 0
+  [1048553]: 1
+  [1048554]: 2
+  [1048555]: 0
+  [1048556]: 0
+  [1048557]: 0
+  [1048558]: 0
+  [1048559]: 0
+  [1048560]: 0
+  [1048561]: 0
+  [1048562]: 0
+  [1048563]: 0
+  [1048564]: 0
+  [1048565]: 0
+  [1048566]: 0
+  [1048567]: 0

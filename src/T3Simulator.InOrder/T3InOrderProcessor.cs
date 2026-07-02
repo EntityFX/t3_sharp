@@ -236,7 +236,7 @@ namespace T3Simulator.InOrder
                         if (rg == +1)
                         {
                             long sa = fmt == 0 ? GetSpecialReg(instr.Op2 + 4) : GetSpecialReg(instr.Op1 + 4);
-                            long sb = fmt == 0 ? GetSpecialReg(instr.Op3 + 4) : instr.Immediate;
+                            long sb = fmt == 0 ? ToLong(GetRegValue(0, instr.Op3)) : instr.Immediate;
                             long sr = instr.Opcode switch
                             {
                                 Opcode.ADD => sa + sb,

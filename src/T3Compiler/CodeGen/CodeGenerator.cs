@@ -47,12 +47,12 @@ namespace T3Compiler.CodeGen
             EmitCode($"{f.Name}:");
             EmitCode("    PUSH R3");EmitCode("    PUSH R4");EmitCode("    S.MOV RZ, FP");
             int localSize=0;foreach(var sz in _varSizes.Values)localSize+=sz;_currentLocalSize=localSize;
-            if(localSize>0){if(localSize<=364)EmitCode($"    S.SUB SP, SP, {localSize}");else{int r=AllocR();EmitCode($"    LIMM {RegName(r)},{localSize}");EmitCode($"    S.SUB SP, SP, {RegName(r)}");FreeR(r);}}
+            if(localSize>0){int r=AllocR();EmitCode($"    LIMM {RegName(r)},{localSize}");EmitCode($"    S.SUB SP, SP, {RegName(r)}");FreeR(r);}
             int[] argRegs={0,1,2,4};int nParams=f.Parameters.Count;
             for(int i=0;i<4&&i<nParams;i++)StoreV(f.Parameters[i].Name,argRegs[i],0);
             if(nParams>4){for(int i=4;i<nParams;i++){int so=(i-4)+4;int t=AllocR();if(so>=-13&&so<=13)EmitCode($"    LD {RegName(t)}, RZ, {so}");else{int or=Imm(so),ar=AllocR();EmitCode($"    ADD {RegName(ar)}, RZ, {RegName(or)}");EmitCode($"    LD {RegName(t)}, {RegName(ar)}, 0");FreeR(or);FreeR(ar);}StoreV(f.Parameters[i].Name,t,0);FreeR(t);}}
             foreach(var s in f.Body.Body)GenStmt(s);
-            EmitCode($"{_epilogueLabel}:");if(localSize>0){if(localSize<=364)EmitCode($"    S.ADD SP, SP, {localSize}");else{int r=AllocR();EmitCode($"    LIMM {RegName(r)},{localSize}");EmitCode($"    S.ADD SP, SP, {RegName(r)}");FreeR(r);}}
+            EmitCode($"{_epilogueLabel}:");if(localSize>0){int r=AllocR();EmitCode($"    LIMM {RegName(r)},{localSize}");EmitCode($"    S.ADD SP, SP, {RegName(r)}");FreeR(r);}
             EmitCode("    POP R4");EmitCode("    POP R3");EmitCode("    RET");
         }
 
