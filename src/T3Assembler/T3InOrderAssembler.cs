@@ -72,12 +72,21 @@ namespace T3Assembler
             int rg=IsFPU(rawMn)?-1:IsSpecial(rawMn)?+1:0;
             if(mn=="LIMM")return 2;
             if(IsJumpMnemonic(mn)&&ip.Length>1&&!IsRegister(ip[1]))return 3;
+            if(op==Opcode.MOV && ip.Length>=3 && IsRegister(ip[2]) && !IsRegister(ip[ip.Length-1])){
+                string val=ip[ip.Length-1];
+                if(!long.TryParse(val,out _)&&!val.StartsWith("0t")&&!val.StartsWith("0y")&&!val.StartsWith("0n"))return 2;
+                try{long rv=(long)ResolveOperandValue(val);if(rv>364||rv<-364)return 2;}catch{return 2;}
+                return 1;
+            }
             if((mn=="LI"||mn=="MOV")&&ip.Length>2){
                 string val=ip[ip.Length-1];
                 if(val.StartsWith("#")||val.StartsWith("##"))return val.StartsWith("##")?2:1;
                 if(!long.TryParse(val,out _)&&!val.StartsWith("0t")&&!val.StartsWith("0y")&&!val.StartsWith("0n"))return 2;
                 try{long rv=(long)ResolveOperandValue(val);if(rv>364||rv<-364)return 2;}catch{return 2;}
                 return 1;
+            }
+            if(ip.Length>=4 && IsRegister(ip[2]) && !IsRegister(ip[ip.Length-1])){
+                try{long rv=(long)ResolveOperandValue(ip[ip.Length-1]);if(rv>364||rv<-364)return 3;return 1;}catch{return 1;}
             }
             return 1;
         }
