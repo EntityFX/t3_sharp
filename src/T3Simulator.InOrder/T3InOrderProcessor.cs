@@ -224,6 +224,28 @@ namespace T3Simulator.InOrder
                 case Opcode.SHL:
                 case Opcode.SHR:
                     {
+                        if (rg == -1 && fmt == 0) // FPU arithmetic
+                        {
+                            T3Float fa = GetFReg(instr.Op2);
+                            T3Float fb = GetFReg(instr.Op3);
+                            T3Float fr = instr.Opcode switch
+                            {
+                                Opcode.ADD => T3Fpu.Add(fa, fb),
+                                Opcode.SUB => T3Fpu.Sub(fa, fb),
+                                Opcode.MUL => T3Fpu.Mul(fa, fb),
+                                Opcode.DIV => T3Fpu.Div(fa, fb),
+                                _ => fa
+                            };
+                            SetFReg(instr.Op1, fr);
+                            IncrementCycles(instr.Opcode switch
+                            {
+                                Opcode.ADD or Opcode.SUB => 5,
+                                Opcode.MUL => 7,
+                                Opcode.DIV => 15,
+                                _ => 1
+                            });
+                            return false;
+                        }
                         TWord a, b;
                         if (fmt == 0) { a = GetRegValue(rg, instr.Op2); b = GetRegValue(rg, instr.Op3); }
                         else { a = GetRegValue(rg, instr.Op1); b = FromLong(instr.Immediate); }
