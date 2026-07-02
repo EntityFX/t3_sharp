@@ -177,13 +177,20 @@ namespace T3Simulator.InOrder
                         if (rg == +1)
                         {
                             TWord src = GetRegValue(+1, instr.Op2); // read from Special
-                            SetRegisterValue(instr.Op1 + 4, src);   // write to GP
+                            // Write to GP always (dest is GP register like RZ)
+                            SetRegisterValue(instr.Op1 + 4, src);
                         }
                         else
                             SetRegValue(rg, instr.Op1, GetRegValue(rg, instr.Op2));
                     }
                     else
-                        SetRegValue(rg, instr.Op1, FromLong(instr.Immediate));
+                    {
+                        // I-type MOV with RG=+1: write immediate to Special? No—write to GP dest
+                        if (rg == +1)
+                            SetRegisterValue(instr.Op1 + 4, FromLong(instr.Immediate));
+                        else
+                            SetRegValue(rg, instr.Op1, FromLong(instr.Immediate));
+                    }
                     IncrementCycles(1); return false;
 
                 case Opcode.LD:
