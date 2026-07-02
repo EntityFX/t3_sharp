@@ -9,14 +9,14 @@ main:
     PUSH R4
     LIMM R3,2
     S.SUB SP, SP, R3
-    S.MOV RZ, SP
+    S.MOV RZ, FP
     LIMM RW,1000
-    ST RW, RZ, -2
+    ST RW, RZ, -4
     LIMM RX,2000
-    ST RX, RZ, -1
-    LD RY, RZ, -2
+    ST RX, RZ, -3
+    LD RY, RZ, -4
     PUSH RY
-    LD R0, RZ, -1
+    LD R0, RZ, -3
     POP RW
     ADD RX,RW,R0
     MOV R2,RX

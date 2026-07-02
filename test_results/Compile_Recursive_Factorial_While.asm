@@ -9,12 +9,12 @@ fact:
     PUSH R4
     LIMM R3,2
     S.SUB SP, SP, R3
-    S.MOV RZ, SP
-    ST RW, RZ, -1
+    S.MOV RZ, FP
+    ST RW, RZ, -3
     MOV RW,1
-    ST RW, RZ, -2
+    ST RW, RZ, -4
 loop_1:
-    LD RX, RZ, -1
+    LD RX, RZ, -3
     MOV RY,1
     CMP RX,RY
     LIMM R0,body_2
@@ -22,22 +22,22 @@ loop_1:
     LIMM RW,wend_3
     JMP RW
 body_2:
-    LD RX, RZ, -2
+    LD RX, RZ, -4
     PUSH RX
-    LD RY, RZ, -1
+    LD RY, RZ, -3
     POP R0
     MUL RW,R0,RY
-    ST RW, RZ, -2
-    LD RY, RZ, -1
+    ST RW, RZ, -4
+    LD RY, RZ, -3
     PUSH RY
     MOV R0,1
     POP RX
     SUB RY,RX,R0
-    ST RY, RZ, -1
+    ST RY, RZ, -3
     LIMM R0,loop_1
     JMP R0
 wend_3:
-    LD RX, RZ, -2
+    LD RX, RZ, -4
     MOV R2,RX
     LIMM R0,epilogue_0
     JMP R0
@@ -50,7 +50,7 @@ epilogue_0:
 main:
     PUSH R3
     PUSH R4
-    S.MOV RZ, SP
+    S.MOV RZ, FP
     MOV RW,7
     PUSH RW
     PUSH RX

@@ -9,7 +9,7 @@ main:
     PUSH R4
     LIMM R3,7
     S.SUB SP, SP, R3
-    S.MOV RZ, SP
+    S.MOV RZ, FP
     MOV RW,1
     PUSH RW
     MOV RX,0
@@ -51,11 +51,11 @@ main:
     POP RY
     ST RY, R4, 0
     MOV RX,0
-    ST RX, RZ, -2
+    ST RX, RZ, -4
     MOV RY,1
-    ST RY, RZ, -1
+    ST RY, RZ, -3
 loop_1:
-    LD R0, RZ, -2
+    LD R0, RZ, -4
     MOV RW,5
     CMP R0,RW
     LIMM RX,body_2
@@ -63,26 +63,26 @@ loop_1:
     LIMM RY,wend_3
     JMP RY
 body_2:
-    LD R0, RZ, -1
+    LD R0, RZ, -3
     PUSH R0
-    LD RW, RZ, -2
+    LD RW, RZ, -4
     MOV R4,7
     SUB R4, RZ, R4
     ADD R4,R4,RW
     LD RW,R4, 0
     POP RX
     MUL RY,RX,RW
-    ST RY, RZ, -1
-    LD RW, RZ, -2
+    ST RY, RZ, -3
+    LD RW, RZ, -4
     PUSH RW
     MOV RX,1
     POP R0
     ADD RW,R0,RX
-    ST RW, RZ, -2
+    ST RW, RZ, -4
     LIMM RX,loop_1
     JMP RX
 wend_3:
-    LD R0, RZ, -1
+    LD R0, RZ, -3
     MOV R2,R0
     LIMM RX,epilogue_0
     JMP RX

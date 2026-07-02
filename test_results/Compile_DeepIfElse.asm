@@ -9,30 +9,30 @@ main:
     PUSH R4
     LIMM R3,1
     S.SUB SP, SP, R3
-    S.MOV RZ, SP
+    S.MOV RZ, FP
     MOV RW,5
-    ST RW, RZ, -1
-    LD RX, RZ, -1
+    ST RW, RZ, -3
+    LD RX, RZ, -3
     MOV RY,1
     CMP RX,RY
     LIMM R0,then_2
     JE R0
-    LD RW, RZ, -1
+    LD RW, RZ, -3
     MOV RX,2
     CMP RW,RX
     LIMM RY,then_4
     JE RY
-    LD R0, RZ, -1
+    LD R0, RZ, -3
     MOV RW,3
     CMP R0,RW
     LIMM RX,then_6
     JE RX
-    LD RY, RZ, -1
+    LD RY, RZ, -3
     MOV R0,4
     CMP RY,R0
     LIMM RW,then_8
     JE RW
-    LD RX, RZ, -1
+    LD RX, RZ, -3
     MOV RY,5
     CMP RX,RY
     LIMM R0,then_10

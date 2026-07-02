@@ -132,9 +132,10 @@ namespace T3Simulator.InOrder
             FRegisters[idx] = value;
         }
 
+        // Assembler encodes: FP=-4, HP=-3, SP=-2, CD=-1, PR=0, WD=+1
         private long GetSpecialReg(int raw) => raw switch
         {
-            -3 => FP, -2 => HP, -1 => SP, -4 => CD, -5 => (long)PR.ToLong(), +1 => WD,
+            -4 => FP, -3 => HP, -2 => SP, -1 => CD, 0 => (long)PR.ToLong(), +1 => WD,
             _ => throw new IndexOutOfRangeException($"Special raw {raw}")
         };
 
@@ -142,11 +143,11 @@ namespace T3Simulator.InOrder
         {
             switch (raw)
             {
-                case -3: FP = value; break;
-                case -2: HP = value; break;
-                case -1: SP = value; break;
-                case -4: CD = (int)value; break;
-                case -5: PR = FromLong(value); break;
+                case -4: FP = value; break;
+                case -3: HP = value; break;
+                case -2: SP = value; break;
+                case -1: CD = (int)value; break;
+                case  0: PR = FromLong(value); break;
                 case +1: WD = (int)value; break;
                 default: throw new IndexOutOfRangeException($"Special raw {raw}");
             }

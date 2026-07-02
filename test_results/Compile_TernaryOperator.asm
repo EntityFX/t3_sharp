@@ -9,10 +9,10 @@ main:
     PUSH R4
     LIMM R3,2
     S.SUB SP, SP, R3
-    S.MOV RZ, SP
+    S.MOV RZ, FP
     MOV RW,5
-    ST RW, RZ, -2
-    LD RX, RZ, -2
+    ST RW, RZ, -4
+    LD RX, RZ, -4
     PUSH RX
     MOV RY,0
     POP R0
@@ -45,8 +45,8 @@ t_3:
     MOV RX,3
     MOV RY,RX
 d_5:
-    ST RY, RZ, -1
-    LD RY, RZ, -1
+    ST RY, RZ, -3
+    LD RY, RZ, -3
     MOV R2,RY
     LIMM R0,epilogue_0
     JMP R0

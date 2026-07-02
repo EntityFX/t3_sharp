@@ -1,5 +1,4 @@
 tfloat ww = 55.6;
-tint ff = 57;
 
 tint f(tint x){
     return x*2;

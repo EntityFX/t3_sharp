@@ -9,9 +9,9 @@ fib:
     PUSH R4
     LIMM R3,1
     S.SUB SP, SP, R3
-    S.MOV RZ, SP
-    ST RW, RZ, -1
-    LD RW, RZ, -1
+    S.MOV RZ, FP
+    ST RW, RZ, -3
+    LD RW, RZ, -3
     MOV RX,1
     CMP RW,RX
     LIMM RY,then_2
@@ -19,12 +19,12 @@ fib:
     LIMM R0,end_1
     JMP R0
 then_2:
-    LD RW, RZ, -1
+    LD RW, RZ, -3
     MOV R2,RW
     LIMM RX,epilogue_0
     JMP RX
 end_1:
-    LD RY, RZ, -1
+    LD RY, RZ, -3
     PUSH RY
     MOV R0,1
     POP RW
@@ -44,7 +44,7 @@ end_1:
     POP RW
     MOV R0,R2
     PUSH R0
-    LD RW, RZ, -1
+    LD RW, RZ, -3
     PUSH RW
     MOV RY,2
     POP R0
@@ -76,7 +76,7 @@ epilogue_0:
 main:
     PUSH R3
     PUSH R4
-    S.MOV RZ, SP
+    S.MOV RZ, FP
     MOV RW,6
     PUSH RW
     PUSH RX

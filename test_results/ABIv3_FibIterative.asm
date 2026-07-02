@@ -9,45 +9,45 @@ fib:
     PUSH R4
     LIMM R3,5
     S.SUB SP, SP, R3
-    S.MOV RZ, SP
-    ST RW, RZ, -1
+    S.MOV RZ, FP
+    ST RW, RZ, -3
     MOV RW,0
-    ST RW, RZ, -5
+    ST RW, RZ, -7
     MOV RX,1
-    ST RX, RZ, -4
+    ST RX, RZ, -6
     MOV RY,0
-    ST RY, RZ, -3
+    ST RY, RZ, -5
     MOV R0,0
-    ST R0, RZ, -2
+    ST R0, RZ, -4
 loop_1:
-    LD RW, RZ, -2
-    LD RX, RZ, -1
+    LD RW, RZ, -4
+    LD RX, RZ, -3
     CMP RW,RX
     LIMM RY,body_2
     JL RY
     LIMM R0,wend_3
     JMP R0
 body_2:
-    LD RW, RZ, -5
+    LD RW, RZ, -7
     PUSH RW
-    LD RX, RZ, -4
+    LD RX, RZ, -6
     POP RY
     ADD R0,RY,RX
-    ST R0, RZ, -3
-    LD RX, RZ, -4
-    ST RX, RZ, -5
-    LD RY, RZ, -3
-    ST RY, RZ, -4
-    LD RW, RZ, -2
+    ST R0, RZ, -5
+    LD RX, RZ, -6
+    ST RX, RZ, -7
+    LD RY, RZ, -5
+    ST RY, RZ, -6
+    LD RW, RZ, -4
     PUSH RW
     MOV RX,1
     POP RY
     ADD R0,RY,RX
-    ST R0, RZ, -2
+    ST R0, RZ, -4
     LIMM RX,loop_1
     JMP RX
 wend_3:
-    LD RY, RZ, -5
+    LD RY, RZ, -7
     MOV R2,RY
     LIMM RW,epilogue_0
     JMP RW
@@ -60,7 +60,7 @@ epilogue_0:
 main:
     PUSH R3
     PUSH R4
-    S.MOV RZ, SP
+    S.MOV RZ, FP
     MOV RW,10
     PUSH RW
     PUSH RX

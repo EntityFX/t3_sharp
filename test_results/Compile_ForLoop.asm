@@ -9,13 +9,13 @@ main:
     PUSH R4
     LIMM R3,2
     S.SUB SP, SP, R3
-    S.MOV RZ, SP
+    S.MOV RZ, FP
     MOV RW,0
-    ST RW, RZ, -2
+    ST RW, RZ, -4
     MOV RX,1
-    ST RX, RZ, -1
+    ST RX, RZ, -3
 floop_1:
-    LD RY, RZ, -1
+    LD RY, RZ, -3
     MOV R0,10
     CMP RY,R0
     LIMM RW,fbody_2
@@ -23,22 +23,22 @@ floop_1:
     LIMM RX,fend_3
     JMP RX
 fbody_2:
-    LD RY, RZ, -2
+    LD RY, RZ, -4
     PUSH RY
-    LD R0, RZ, -1
+    LD R0, RZ, -3
     POP RW
     ADD RX,RW,R0
-    ST RX, RZ, -2
-    LD R0, RZ, -1
+    ST RX, RZ, -4
+    LD R0, RZ, -3
     PUSH R0
     MOV RW,1
     POP RY
     ADD R0,RY,RW
-    ST R0, RZ, -1
+    ST R0, RZ, -3
     LIMM RW,floop_1
     JMP RW
 fend_3:
-    LD RY, RZ, -2
+    LD RY, RZ, -4
     MOV R2,RY
     LIMM RW,epilogue_0
     JMP RW

@@ -9,10 +9,10 @@ main:
     PUSH R4
     LIMM R3,1
     S.SUB SP, SP, R3
-    S.MOV RZ, SP
+    S.MOV RZ, FP
     MOV RW,100
-    ST RW, RZ, -1
-    LD RX, RZ, -1
+    ST RW, RZ, -3
+    LD RX, RZ, -3
     MOV RY,1
     CMP RX,RY
     LIMM R0,scase_2

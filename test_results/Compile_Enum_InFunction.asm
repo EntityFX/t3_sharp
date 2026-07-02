@@ -9,9 +9,9 @@ get_val:
     PUSH R4
     LIMM R3,1
     S.SUB SP, SP, R3
-    S.MOV RZ, SP
-    ST RW, RZ, -1
-    LD RW, RZ, -1
+    S.MOV RZ, FP
+    ST RW, RZ, -3
+    LD RW, RZ, -3
     MOV R2,RW
     LIMM RX,epilogue_0
     JMP RX
@@ -24,7 +24,7 @@ epilogue_0:
 main:
     PUSH R3
     PUSH R4
-    S.MOV RZ, SP
+    S.MOV RZ, FP
     MOV RW,1
     PUSH RW
     PUSH RX

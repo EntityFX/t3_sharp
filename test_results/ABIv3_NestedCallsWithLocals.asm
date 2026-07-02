@@ -9,12 +9,12 @@ add:
     PUSH R4
     LIMM R3,2
     S.SUB SP, SP, R3
-    S.MOV RZ, SP
-    ST RW, RZ, -2
-    ST RX, RZ, -1
-    LD RW, RZ, -2
+    S.MOV RZ, FP
+    ST RW, RZ, -4
+    ST RX, RZ, -3
+    LD RW, RZ, -4
     PUSH RW
-    LD RX, RZ, -1
+    LD RX, RZ, -3
     POP RY
     ADD R0,RY,RX
     MOV R2,R0
@@ -31,12 +31,12 @@ mul:
     PUSH R4
     LIMM R3,2
     S.SUB SP, SP, R3
-    S.MOV RZ, SP
-    ST RW, RZ, -2
-    ST RX, RZ, -1
-    LD RW, RZ, -2
+    S.MOV RZ, FP
+    ST RW, RZ, -4
+    ST RX, RZ, -3
+    LD RW, RZ, -4
     PUSH RW
-    LD RX, RZ, -1
+    LD RX, RZ, -3
     POP RY
     MUL R0,RY,RX
     MOV R2,R0
@@ -53,7 +53,7 @@ main:
     PUSH R4
     LIMM R3,4
     S.SUB SP, SP, R3
-    S.MOV RZ, SP
+    S.MOV RZ, FP
     MOV RW,3
     MOV RX,4
     PUSH RW
@@ -69,7 +69,7 @@ main:
     POP RX
     POP RW
     MOV RY,R2
-    ST RY, RZ, -4
+    ST RY, RZ, -6
     MOV R0,5
     MOV RW,6
     PUSH RW
@@ -87,7 +87,7 @@ main:
     POP RX
     POP RW
     MOV RX,R2
-    ST RX, RZ, -3
+    ST RX, RZ, -5
     MOV RY,2
     MOV R0,3
     PUSH RW
@@ -105,7 +105,7 @@ main:
     POP RX
     POP RW
     MOV RW,R2
-    ST RW, RZ, -2
+    ST RW, RZ, -4
     MOV RX,4
     MOV RY,5
     PUSH RW
@@ -123,10 +123,10 @@ main:
     POP RX
     POP RW
     MOV R0,R2
-    ST R0, RZ, -1
-    LD RW, RZ, -4
+    ST R0, RZ, -3
+    LD RW, RZ, -6
     PUSH RW
-    LD RX, RZ, -3
+    LD RX, RZ, -5
     POP RY
     ADD R0,RY,RX
     MOV R2,R0

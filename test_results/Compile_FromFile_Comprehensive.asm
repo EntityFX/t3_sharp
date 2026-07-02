@@ -9,12 +9,12 @@ factorial_goto:
     PUSH R4
     LIMM R3,2
     S.SUB SP, SP, R3
-    S.MOV RZ, SP
-    ST RW, RZ, -1
+    S.MOV RZ, FP
+    ST RW, RZ, -3
     MOV RW,1
-    ST RW, RZ, -2
+    ST RW, RZ, -4
 __glbl_loop_start:
-    LD RX, RZ, -1
+    LD RX, RZ, -3
     MOV RY,1
     CMP RX,RY
     LIMM R0,then_2
@@ -25,22 +25,22 @@ then_2:
     LIMM RX,__glbl_done
     JMP RX
 end_1:
-    LD RY, RZ, -2
+    LD RY, RZ, -4
     PUSH RY
-    LD R0, RZ, -1
+    LD R0, RZ, -3
     POP RW
     MUL RX,RW,R0
-    ST RX, RZ, -2
-    LD R0, RZ, -1
+    ST RX, RZ, -4
+    LD R0, RZ, -3
     PUSH R0
     MOV RW,1
     POP RY
     SUB R0,RY,RW
-    ST R0, RZ, -1
+    ST R0, RZ, -3
     LIMM RW,__glbl_loop_start
     JMP RW
 __glbl_done:
-    LD RY, RZ, -2
+    LD RY, RZ, -4
     MOV R2,RY
     LIMM RW,epilogue_0
     JMP RW
@@ -55,10 +55,10 @@ main:
     PUSH R4
     LIMM R3,9
     S.SUB SP, SP, R3
-    S.MOV RZ, SP
+    S.MOV RZ, FP
     MOV RW,1
-    ST RW, RZ, -9
-    LD RX, RZ, -9
+    ST RW, RZ, -11
+    LD RX, RZ, -11
     MOV RY,1
     CMP RX,RY
     LIMM R0,then_5
@@ -67,7 +67,7 @@ main:
     JMP RW
 then_5:
     MOV RX,2
-    ST RX, RZ, -9
+    ST RX, RZ, -11
 end_4:
     MOV RY,42
     MOV R4,8
@@ -76,7 +76,7 @@ end_4:
     MOV R4,8
     SUB R4, RZ, R4
     LD R0,R4, 0
-    ST R0, RZ, -6
+    ST R0, RZ, -8
     MOV RW,5
     PUSH RW
     PUSH RX
@@ -91,13 +91,13 @@ end_4:
     POP RX
     POP RW
     MOV RX,R2
-    ST RX, RZ, -5
+    ST RX, RZ, -7
     MOV RY,0
-    ST RY, RZ, -4
+    ST RY, RZ, -6
     MOV R0,0
-    ST R0, RZ, -3
+    ST R0, RZ, -5
 loop_6:
-    LD RW, RZ, -3
+    LD RW, RZ, -5
     MOV RX,5
     CMP RW,RX
     LIMM RY,then_9
@@ -108,18 +108,18 @@ then_9:
     LIMM RW,wend_7
     JMP RW
 end_8:
-    LD RX, RZ, -4
+    LD RX, RZ, -6
     PUSH RX
-    LD RY, RZ, -3
+    LD RY, RZ, -5
     POP R0
     ADD RW,R0,RY
-    ST RW, RZ, -4
-    LD RY, RZ, -3
+    ST RW, RZ, -6
+    LD RY, RZ, -5
     PUSH RY
     MOV R0,1
     POP RX
     ADD RY,RX,R0
-    ST RY, RZ, -3
+    ST RY, RZ, -5
     MOV R0,1
     MOV R2,0
     CMP R0,R2
@@ -162,17 +162,17 @@ wend_7:
     ADD RX,RW,RX
     POP RY
     ST RY, RX, 0
-    LD R0, RZ, -9
+    LD R0, RZ, -11
     PUSH R0
-    LD RX, RZ, -6
+    LD RX, RZ, -8
     POP RW
     ADD RY,RW,RX
     PUSH RY
-    LD RX, RZ, -5
+    LD RX, RZ, -7
     POP RW
     ADD R0,RW,RX
     PUSH R0
-    LD RX, RZ, -4
+    LD RX, RZ, -6
     POP RW
     ADD RY,RW,RX
     PUSH RY

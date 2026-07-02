@@ -9,40 +9,40 @@ main:
     PUSH R4
     LIMM R3,1
     S.SUB SP, SP, R3
-    S.MOV RZ, SP
+    S.MOV RZ, FP
     MOV RW,10
-    ST RW, RZ, -1
-    LD RX, RZ, -1
+    ST RW, RZ, -3
+    LD RX, RZ, -3
     PUSH RX
     MOV RY,5
     POP R0
     ADD RW,R0,RY
-    ST RW, RZ, -1
-    LD RY, RZ, -1
+    ST RW, RZ, -3
+    LD RY, RZ, -3
     PUSH RY
     MOV R0,3
     POP RX
     SUB RY,RX,R0
-    ST RY, RZ, -1
-    LD R0, RZ, -1
+    ST RY, RZ, -3
+    LD R0, RZ, -3
     PUSH R0
     MOV RX,2
     POP R0
     MUL RW,R0,RX
-    ST RW, RZ, -1
-    LD RX, RZ, -1
+    ST RW, RZ, -3
+    LD RX, RZ, -3
     PUSH RX
     MOV R0,4
     POP RX
     DIV RY,RX,R0
-    ST RY, RZ, -1
-    LD R0, RZ, -1
+    ST RY, RZ, -3
+    LD R0, RZ, -3
     PUSH R0
     MOV RX,4
     POP R0
     ADD RW,R0,RX
-    ST RW, RZ, -1
-    LD RX, RZ, -1
+    ST RW, RZ, -3
+    LD RX, RZ, -3
     MOV R2,RX
     LIMM R0,epilogue_0
     JMP R0

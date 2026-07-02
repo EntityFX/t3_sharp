@@ -9,7 +9,7 @@ main:
     PUSH R4
     LIMM R3,6
     S.SUB SP, SP, R3
-    S.MOV RZ, SP
+    S.MOV RZ, FP
     MOV RW,0
     PUSH RW
     MOV RX,0

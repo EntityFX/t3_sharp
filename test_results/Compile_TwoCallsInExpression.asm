@@ -9,12 +9,12 @@ add:
     PUSH R4
     LIMM R3,2
     S.SUB SP, SP, R3
-    S.MOV RZ, SP
-    ST RW, RZ, -2
-    ST RX, RZ, -1
-    LD RW, RZ, -2
+    S.MOV RZ, FP
+    ST RW, RZ, -4
+    ST RX, RZ, -3
+    LD RW, RZ, -4
     PUSH RW
-    LD RX, RZ, -1
+    LD RX, RZ, -3
     POP RY
     ADD R0,RY,RX
     MOV R2,R0
@@ -29,7 +29,7 @@ epilogue_0:
 main:
     PUSH R3
     PUSH R4
-    S.MOV RZ, SP
+    S.MOV RZ, FP
     MOV RW,3
     MOV RX,4
     PUSH RW

@@ -9,12 +9,12 @@ main:
     PUSH R4
     LIMM R3,1
     S.SUB SP, SP, R3
-    S.MOV RZ, SP
+    S.MOV RZ, FP
     MOV RW,10
     S.MOV RX, HP
     S.ADD HP, HP, RW
-    ST RX, RZ, -1
-    LD RY, RZ, -1
+    ST RX, RZ, -3
+    LD RY, RZ, -3
     MOV R2,RY
     LIMM R0,epilogue_0
     JMP R0

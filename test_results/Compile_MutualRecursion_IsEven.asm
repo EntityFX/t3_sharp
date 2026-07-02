@@ -9,9 +9,9 @@ isEven:
     PUSH R4
     LIMM R3,1
     S.SUB SP, SP, R3
-    S.MOV RZ, SP
-    ST RW, RZ, -1
-    LD RW, RZ, -1
+    S.MOV RZ, FP
+    ST RW, RZ, -3
+    LD RW, RZ, -3
     MOV RX,0
     CMP RW,RX
     LIMM RY,then_2
@@ -24,7 +24,7 @@ then_2:
     LIMM RX,epilogue_0
     JMP RX
 end_1:
-    LD RY, RZ, -1
+    LD RY, RZ, -3
     PUSH RY
     MOV R0,1
     POP RW
@@ -57,9 +57,9 @@ isOdd:
     PUSH R4
     LIMM R3,1
     S.SUB SP, SP, R3
-    S.MOV RZ, SP
-    ST RW, RZ, -1
-    LD RW, RZ, -1
+    S.MOV RZ, FP
+    ST RW, RZ, -3
+    LD RW, RZ, -3
     MOV RX,0
     CMP RW,RX
     LIMM RY,then_5
@@ -72,7 +72,7 @@ then_5:
     LIMM RX,epilogue_3
     JMP RX
 end_4:
-    LD RY, RZ, -1
+    LD RY, RZ, -3
     PUSH RY
     MOV R0,1
     POP RW
@@ -103,7 +103,7 @@ epilogue_3:
 main:
     PUSH R3
     PUSH R4
-    S.MOV RZ, SP
+    S.MOV RZ, FP
     MOV RW,10
     PUSH RW
     PUSH RX
