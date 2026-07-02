@@ -173,7 +173,15 @@ namespace T3Simulator.InOrder
 
                 case Opcode.MOV:
                     if (fmt == 0)
-                        SetRegValue(rg, instr.Op1, GetRegValue(rg, instr.Op2));
+                    {
+                        if (rg == +1)
+                        {
+                            TWord src = GetRegValue(+1, instr.Op2); // read from Special
+                            SetRegisterValue(instr.Op1 + 4, src);   // write to GP
+                        }
+                        else
+                            SetRegValue(rg, instr.Op1, GetRegValue(rg, instr.Op2));
+                    }
                     else
                         SetRegValue(rg, instr.Op1, FromLong(instr.Immediate));
                     IncrementCycles(1); return false;
@@ -224,6 +232,23 @@ namespace T3Simulator.InOrder
                 case Opcode.SHL:
                 case Opcode.SHR:
                     {
+                        // Special-register arithmetic (SP, FP, HP)
+                        if (rg == +1)
+                        {
+                            long a = GetSpecialReg(instr.Op2 + 4);
+                            long b = fmt == 0 ? GetSpecialReg(instr.Op3 + 4) : instr.Immediate;
+                            long res = instr.Opcode switch
+                            {
+                                Opcode.ADD => a + b,
+                                Opcode.SUB => a - b,
+                                Opcode.MUL => a * b,
+                                Opcode.DIV => b != 0 ? a / b : 0,
+                                _ => a
+                            };
+                            SetSpecialReg(instr.Op1 + 4, res);
+                            IncrementCycles(1);
+                            return false;
+                        }
                         if (rg == -1 && fmt == 0) // FPU arithmetic
                         {
                             T3Float fa = GetFReg(instr.Op2);

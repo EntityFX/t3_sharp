@@ -7,7 +7,7 @@ __entry:
 main:
     PUSH R3
     PUSH R4
-    MOV RZ, FP
+    S.MOV RZ, FP
     SUB SP, SP, 1
     MOV RW,42
     ST RW, RZ, -1

@@ -7,7 +7,7 @@ __entry:
 add:
     PUSH R3
     PUSH R4
-    MOV RZ, FP
+    S.MOV RZ, FP
     SUB SP, SP, 2
     ST RW, RZ, -2
     ST RX, RZ, -1
@@ -27,7 +27,7 @@ epilogue_0:
 mul:
     PUSH R3
     PUSH R4
-    MOV RZ, FP
+    S.MOV RZ, FP
     SUB SP, SP, 2
     ST RW, RZ, -2
     ST RX, RZ, -1
@@ -47,7 +47,7 @@ epilogue_1:
 main:
     PUSH R3
     PUSH R4
-    MOV RZ, FP
+    S.MOV RZ, FP
     SUB SP, SP, 4
     MOV RW,3
     MOV RX,4

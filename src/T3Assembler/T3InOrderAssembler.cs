@@ -72,7 +72,6 @@ namespace T3Assembler
             int rg=IsFPU(rawMn)?-1:IsSpecial(rawMn)?+1:0;
             if(mn=="LIMM")return 2;
             if(IsJumpMnemonic(mn)&&ip.Length>1&&!IsRegister(ip[1]))return 3;
-            // LI aliased to MOV: determine if I-type (immediate) or LIMM
             if((mn=="LI"||mn=="MOV")&&ip.Length>2){
                 string val=ip[ip.Length-1];
                 if(val.StartsWith("#")||val.StartsWith("##"))return val.StartsWith("##")?2:1;
@@ -99,8 +98,18 @@ namespace T3Assembler
             var ip=pl.Split(new[]{' ','\t',','},StringSplitOptions.RemoveEmptyEntries);if(ip.Length==0)throw new Exception("Empty");
 
             string rawMn=ip[0];string mn=StripPrefix(rawMn).ToUpper();
-            int regGroup=IsFPU(rawMn)?-1:IsSpecial(rawMn)?+1:0;
             Opcode op=GetOpcode(rawMn);
+
+            // RegGroup: prefix has priority; otherwise scan ALL operands for highest group
+            int regGroup=IsFPU(rawMn)?-1:IsSpecial(rawMn)?+1:0;
+            for(int k=1; k<ip.Length; k++){
+                if(IsRegister(ip[k])){
+                    string rn=ip[k].ToUpper();
+                    int rg=GetRegGroup(rn);
+                    if(rg==+1 && regGroup!=+1){regGroup=+1;}
+                    else if(rg==-1 && regGroup==0){regGroup=-1;}
+                }
+            }
 
             // Parse operands
             int op1=0,op2=0,op3=0;long imm=0;bool isImm=false;
@@ -156,15 +165,13 @@ namespace T3Assembler
             }
 
             // --- I-type (immediate or last operand is numeric) ---
-            if(isImm || (ip.Length==3 && op2!=0 && !IsRegister(ip[2])))
-                return new List<Int128>{EncI(pred,regGroup,op,op1,ip.Length>=3?(long)ResolveOperandValue(ip[2]):imm)};
+            if(isImm || (ip.Length>=3 && !IsRegister(ip[ip.Length-1])))
+                return new List<Int128>{EncI(pred,regGroup,op,op1,(long)ResolveOperandValue(ip[ip.Length-1]))};
 
             // --- S-type (LD/ST) ---
             if(op==Opcode.LD||op==Opcode.ST){
                 int baseR=op2!=0?op2:(op1!=0?3:0);
                 long off=ip.Length>3&&!IsRegister(ip[ip.Length-1])?(long)ResolveOperandValue(ip[ip.Length-1]):0;
-                // Determine imm from last operand if it looks like offset syntax [R + #N]
-                // Simplified: last non-register operand is offset
                 if(ip.Length>=3){
                     string last=ip[ip.Length-1];
                     if(!IsRegister(last)&&!last.StartsWith("#"))off=(long)ResolveOperandValue(last);
@@ -178,7 +185,6 @@ namespace T3Assembler
 
         bool IsJumpMnemonic(string m)=>m is "JMP" or "JE" or "JNE" or "JL" or "JG" or "JM" or "JLE" or "JGE" or "CALL";
 
-        // ---- Encoder wrappers (ISA v5: pred, regGroup, fmt, opcode, args) ----
         static Int128 EncR(int pred,int rg,Opcode op,int o1,int o2,int o3)=>InstructionEncoder.EncodeR(pred,rg,0,(int)op,o1,o2,o3);
         static Int128 EncI(int pred,int rg,Opcode op,int o1,long imm)=>InstructionEncoder.EncodeI(pred,rg,+1,(int)op,o1,imm);
         static Int128 EncJ(int pred,int rg,Opcode op,int reg)=>InstructionEncoder.EncodeJ(pred,rg,-1,(int)op,reg);

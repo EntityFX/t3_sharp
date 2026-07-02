@@ -7,7 +7,7 @@ __entry:
 factorial_goto:
     PUSH R3
     PUSH R4
-    MOV RZ, FP
+    S.MOV RZ, FP
     SUB SP, SP, 2
     ST RW, RZ, -1
     MOV RW,1
@@ -51,7 +51,7 @@ epilogue_0:
 main:
     PUSH R3
     PUSH R4
-    MOV RZ, FP
+    S.MOV RZ, FP
     SUB SP, SP, 9
     MOV RW,1
     ST RW, RZ, -9

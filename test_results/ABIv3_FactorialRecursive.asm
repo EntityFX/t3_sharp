@@ -7,7 +7,7 @@ __entry:
 fact:
     PUSH R3
     PUSH R4
-    MOV RZ, FP
+    S.MOV RZ, FP
     SUB SP, SP, 1
     ST RW, RZ, -1
     LD RW, RZ, -1
@@ -56,7 +56,7 @@ epilogue_0:
 main:
     PUSH R3
     PUSH R4
-    MOV RZ, FP
+    S.MOV RZ, FP
     MOV RW,5
     PUSH RW
     PUSH RX

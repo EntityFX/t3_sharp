@@ -7,7 +7,7 @@ __entry:
 gcd:
     PUSH R3
     PUSH R4
-    MOV RZ, FP
+    S.MOV RZ, FP
     SUB SP, SP, 2
     ST RW, RZ, -2
     ST RX, RZ, -1
@@ -57,7 +57,7 @@ epilogue_0:
 lcm:
     PUSH R3
     PUSH R4
-    MOV RZ, FP
+    S.MOV RZ, FP
     SUB SP, SP, 2
     ST RW, RZ, -2
     ST RX, RZ, -1
@@ -97,7 +97,7 @@ epilogue_3:
 fib:
     PUSH R3
     PUSH R4
-    MOV RZ, FP
+    S.MOV RZ, FP
     SUB SP, SP, 1
     ST RW, RZ, -1
     LD RW, RZ, -1
@@ -165,7 +165,7 @@ epilogue_4:
 fact:
     PUSH R3
     PUSH R4
-    MOV RZ, FP
+    S.MOV RZ, FP
     SUB SP, SP, 1
     ST RW, RZ, -1
     LD RW, RZ, -1
@@ -214,7 +214,7 @@ epilogue_7:
 gcd:
     PUSH R3
     PUSH R4
-    MOV RZ, FP
+    S.MOV RZ, FP
     SUB SP, SP, 2
     ST RW, RZ, -2
     ST RX, RZ, -1
@@ -264,7 +264,7 @@ epilogue_10:
 lcm:
     PUSH R3
     PUSH R4
-    MOV RZ, FP
+    S.MOV RZ, FP
     SUB SP, SP, 2
     ST RW, RZ, -2
     ST RX, RZ, -1
@@ -304,7 +304,7 @@ epilogue_13:
 fib:
     PUSH R3
     PUSH R4
-    MOV RZ, FP
+    S.MOV RZ, FP
     SUB SP, SP, 1
     ST RW, RZ, -1
     LD RW, RZ, -1
@@ -372,7 +372,7 @@ epilogue_14:
 fact:
     PUSH R3
     PUSH R4
-    MOV RZ, FP
+    S.MOV RZ, FP
     SUB SP, SP, 1
     ST RW, RZ, -1
     LD RW, RZ, -1
@@ -421,7 +421,7 @@ epilogue_17:
 sieve:
     PUSH R3
     PUSH R4
-    MOV RZ, FP
+    S.MOV RZ, FP
     SUB SP, SP, 3
     ST RW, RZ, -1
     MOV RW,2
@@ -574,7 +574,7 @@ epilogue_20:
 isPrime:
     PUSH R3
     PUSH R4
-    MOV RZ, FP
+    S.MOV RZ, FP
     SUB SP, SP, 2
     ST RW, RZ, -1
     LD RW, RZ, -1
@@ -643,7 +643,7 @@ epilogue_37:
 sumPrimes:
     PUSH R3
     PUSH R4
-    MOV RZ, FP
+    S.MOV RZ, FP
     SUB SP, SP, 3
     ST RW, RZ, -1
     MOV RW,0
@@ -709,7 +709,7 @@ epilogue_45:
 main:
     PUSH R3
     PUSH R4
-    MOV RZ, FP
+    S.MOV RZ, FP
     SUB SP, SP, 3
     MOV RW,50
     PUSH RW

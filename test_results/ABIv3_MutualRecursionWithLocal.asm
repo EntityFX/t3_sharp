@@ -7,7 +7,7 @@ __entry:
 isEven:
     PUSH R3
     PUSH R4
-    MOV RZ, FP
+    S.MOV RZ, FP
     SUB SP, SP, 2
     ST RW, RZ, -1
     LD RW, RZ, -1
@@ -55,7 +55,7 @@ epilogue_0:
 isOdd:
     PUSH R3
     PUSH R4
-    MOV RZ, FP
+    S.MOV RZ, FP
     SUB SP, SP, 2
     ST RW, RZ, -1
     LD RW, RZ, -1
@@ -103,7 +103,7 @@ epilogue_3:
 main:
     PUSH R3
     PUSH R4
-    MOV RZ, FP
+    S.MOV RZ, FP
     MOV RW,10
     PUSH RW
     PUSH RX
