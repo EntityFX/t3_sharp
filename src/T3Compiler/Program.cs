@@ -29,6 +29,7 @@ namespace T3Compiler
             bool assemble = false;
             bool emitObj = false;
             bool compileOnly = false; // -c flag
+            bool ast = false;
 
             // Parse arguments
             for (int i = 0; i < args.Length; i++)
@@ -49,6 +50,8 @@ namespace T3Compiler
                     outputFile = args[++i];
                 else if (arg == "--assemble")
                     assemble = true;
+                else if (arg == "--ast")
+                    ast = true;
                 else if (arg == "--emit-obj")
                     emitObj = true;
                 else if (arg == "-c")
@@ -104,6 +107,13 @@ namespace T3Compiler
                 var gen = new CodeGenerator(program);
                 string asmCode = gen.Generate();
 
+                if (ast && program != null)
+                {
+                    var astPath = Path.ChangeExtension(inputFile, ".ast");
+                    var astDump = AstDumper.Dump(program);
+                    File.WriteAllText(astPath, astDump);
+                }
+
                 // 5. Output
                 if (emitObj || compileOnly)
                 {
@@ -154,6 +164,7 @@ namespace T3Compiler
             Console.WriteLine("  -D <name>[=value] Define preprocessor macro");
             Console.WriteLine("  -o <file>         Output file (default: source.asm or source.o)");
             Console.WriteLine("  --assemble        Also assemble to binary (.bin)");
+            Console.WriteLine("  --ast             Output program ast (.ast)");
             Console.WriteLine("  --emit-obj        Compile to object file (.o)");
             Console.WriteLine("  -c                Compile to object file only (.o)");
         }

@@ -112,16 +112,18 @@ namespace T3Compiler.Parser
                 if (forStmt.Init != null)
                 {
                     sb.AppendLine($"{pad}  Init:");
-                    DumpStatement(sb, forStmt.Init, indent + 1);
+                    DumpStatement(sb, forStmt.Init, indent + 2);
                 }
                 else
                 {
                     sb.AppendLine($"{pad}  Init: null");
                 }
-                sb.AppendLine($"{pad}  Condition: {(forStmt.Condition != null ? DumpExpression(forStmt.Condition, indent + 1) : "true")}");
-                sb.AppendLine($"{pad}  Step: {(forStmt.Step != null ? DumpExpression(forStmt.Step, indent + 1) : "null")}");
+                sb.AppendLine($"{pad}  Condition:");
+                sb.AppendLine($"{pad}    {(forStmt.Condition != null ? DumpExpression(forStmt.Condition, indent + 1) : "true")}");
+                sb.AppendLine($"{pad}  Step:");
+                sb.AppendLine($"{pad}    {(forStmt.Step != null ? DumpExpression(forStmt.Step, indent + 1) : "null")}");
                 sb.AppendLine($"{pad}  Body:");
-                DumpStatement(sb, forStmt.Body, indent + 1);
+                DumpStatement(sb, forStmt.Body, indent + 2);
             }
             else if (stmt is BreakStmt)
             {
@@ -192,6 +194,10 @@ namespace T3Compiler.Parser
             if (node is Assignment assign)
             {
                 return $"Assignment: {assign.Operator} ({DumpExpression(assign.Target, indent)} = {DumpExpression(assign.Value, indent)})";
+            }
+            if (node is AssignmentList assignmentList)
+            {
+                return $"AssignmentList: {string.Join(", ", assignmentList.Assignments.Select(i => DumpExpression(i, indent)))})";
             }
             if (node is FunctionCall funcCall)
             {
