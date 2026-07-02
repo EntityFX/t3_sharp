@@ -5,36 +5,34 @@ __entry:
     CALL R1
     HALT
 main:
-    PUSH RZ
     PUSH R3
     PUSH R4
-    MOV RZ, SP
-    SUBI SP, SP, 2
-    LOADI RW, RZ, -2
-    FLW RW,RW
-    LOADI RX, RZ, -1
-    FLW RX,RX
-    FCMP RW,RX
+    MOV RZ, FP
+    SUB SP, SP, 2
+    LD RW, RZ, -2
+    F.LD RW,RW
+    LD RX, RZ, -1
+    F.LD RX,RX
+    F.CMP RW,RX
     LIMM RX,then_2
     JE RX
     LIMM RW,end_1
     JMP RW
 then_2:
-    LI RY,1
+    MOV RY,1
     MOV R2,RY
     LIMM RZ,epilogue_0
     JMP RZ
 end_1:
-    LI R0,1
+    MOV R0,1
     NEG RW,R0
     MOV R2,RW
     LIMM RX,epilogue_0
     JMP RX
 epilogue_0:
-    ADDI SP, SP, 2
+    ADD SP, SP, 2
     POP R4
     POP R3
-    POP RZ
     RET
 
 ; --- Global Variables ---

@@ -5,256 +5,254 @@ __entry:
     CALL R1
     HALT
 main:
-    PUSH RZ
     PUSH R3
     PUSH R4
-    MOV RZ, SP
-    SUBI SP, SP, 6
-    LI RW,0
+    MOV RZ, FP
+    SUB SP, SP, 6
+    MOV RW,0
     PUSH RW
-    LI RX, 0
+    MOV RX,0
     PUSH RX
-    LI RY,0
-    LI RZ,3
-    MUL R0, RY, RZ
+    MOV RY,0
+    MOV RZ,3
+    MUL R0,RY,RZ
     POP RW
-    ADD RX, RW, R0
+    ADD RX,RW,R0
     PUSH RX
-    LI RW,0
-    LI R0,1
-    MUL RZ, RW, R0
+    MOV RW,0
+    MOV R0,1
+    MUL RZ,RW,R0
     POP RY
-    ADD R0, RY, RZ
-    LI R4, 6
+    ADD R0,RY,RZ
+    MOV R4,6
     SUB R4, RZ, R4
     ADD R4,R4,R0
     POP RY
-    STOREI RY, R4, 0
-    LI R0,1
+    ST RY, R4, 0
+    MOV R0,1
     PUSH R0
-    LI RY, 0
+    MOV RY,0
     PUSH RY
-    LI RZ,0
-    LI R0,3
-    MUL RW, RZ, R0
+    MOV RZ,0
+    MOV R0,3
+    MUL RW,RZ,R0
     POP RX
-    ADD RY, RX, RW
+    ADD RY,RX,RW
     PUSH RY
-    LI RX,1
-    LI RW,1
-    MUL R0, RX, RW
+    MOV RX,1
+    MOV RW,1
+    MUL R0,RX,RW
     POP RZ
-    ADD RW, RZ, R0
-    LI R4, 6
+    ADD RW,RZ,R0
+    MOV R4,6
     SUB R4, RZ, R4
     ADD R4,R4,RW
     POP RZ
-    STOREI RZ, R4, 0
-    LI RW,2
+    ST RZ, R4, 0
+    MOV RW,2
     PUSH RW
-    LI RZ, 0
+    MOV RZ,0
     PUSH RZ
-    LI R0,0
-    LI RW,3
-    MUL RX, R0, RW
+    MOV R0,0
+    MOV RW,3
+    MUL RX,R0,RW
     POP RY
-    ADD RZ, RY, RX
+    ADD RZ,RY,RX
     PUSH RZ
-    LI RY,2
-    LI RX,1
-    MUL RW, RY, RX
+    MOV RY,2
+    MOV RX,1
+    MUL RW,RY,RX
     POP R0
-    ADD RX, R0, RW
-    LI R4, 6
+    ADD RX,R0,RW
+    MOV R4,6
     SUB R4, RZ, R4
     ADD R4,R4,RX
     POP R0
-    STOREI R0, R4, 0
-    LI RX,10
+    ST R0, R4, 0
+    MOV RX,10
     PUSH RX
-    LI R0, 0
+    MOV R0,0
     PUSH R0
-    LI RW,1
-    LI RX,3
-    MUL RY, RW, RX
+    MOV RW,1
+    MOV RX,3
+    MUL RY,RW,RX
     POP RZ
-    ADD R0, RZ, RY
+    ADD R0,RZ,RY
     PUSH R0
-    LI RZ,0
-    LI RY,1
-    MUL RX, RZ, RY
+    MOV RZ,0
+    MOV RY,1
+    MUL RX,RZ,RY
     POP RW
-    ADD RY, RW, RX
-    LI R4, 6
+    ADD RY,RW,RX
+    MOV R4,6
     SUB R4, RZ, R4
     ADD R4,R4,RY
     POP RW
-    STOREI RW, R4, 0
-    LI RY,11
+    ST RW, R4, 0
+    MOV RY,11
     PUSH RY
-    LI RW, 0
+    MOV RW,0
     PUSH RW
-    LI RX,1
-    LI RY,3
-    MUL RZ, RX, RY
+    MOV RX,1
+    MOV RY,3
+    MUL RZ,RX,RY
     POP R0
-    ADD RW, R0, RZ
+    ADD RW,R0,RZ
     PUSH RW
-    LI R0,1
-    LI RZ,1
-    MUL RY, R0, RZ
+    MOV R0,1
+    MOV RZ,1
+    MUL RY,R0,RZ
     POP RX
-    ADD RZ, RX, RY
-    LI R4, 6
+    ADD RZ,RX,RY
+    MOV R4,6
     SUB R4, RZ, R4
     ADD R4,R4,RZ
     POP RX
-    STOREI RX, R4, 0
-    LI RZ,12
+    ST RX, R4, 0
+    MOV RZ,12
     PUSH RZ
-    LI RX, 0
+    MOV RX,0
     PUSH RX
-    LI RY,1
-    LI RZ,3
-    MUL R0, RY, RZ
+    MOV RY,1
+    MOV RZ,3
+    MUL R0,RY,RZ
     POP RW
-    ADD RX, RW, R0
+    ADD RX,RW,R0
     PUSH RX
-    LI RW,2
-    LI R0,1
-    MUL RZ, RW, R0
+    MOV RW,2
+    MOV R0,1
+    MUL RZ,RW,R0
     POP RY
-    ADD R0, RY, RZ
-    LI R4, 6
+    ADD R0,RY,RZ
+    MOV R4,6
     SUB R4, RZ, R4
     ADD R4,R4,R0
     POP RY
-    STOREI RY, R4, 0
-    LI R0, 0
+    ST RY, R4, 0
+    MOV R0,0
     PUSH R0
-    LI RY,0
-    LI RZ,3
-    MUL R0, RY, RZ
+    MOV RY,0
+    MOV RZ,3
+    MUL R0,RY,RZ
     POP RW
-    ADD RX, RW, R0
+    ADD RX,RW,R0
     PUSH RX
-    LI RW,0
-    LI R0,1
-    MUL RZ, RW, R0
+    MOV RW,0
+    MOV R0,1
+    MUL RZ,RW,R0
     POP RY
-    ADD R0, RY, RZ
-    LI R4, 6
+    ADD R0,RY,RZ
+    MOV R4,6
     SUB R4, RZ, R4
     ADD R4,R4,R0
-    LOADI R0,R4, 0
+    LD R0,R4, 0
     PUSH R0
-    LI RY, 0
+    MOV RY,0
     PUSH RY
-    LI RZ,0
-    LI R0,3
-    MUL RW, RZ, R0
+    MOV RZ,0
+    MOV R0,3
+    MUL RW,RZ,R0
     POP RX
-    ADD RY, RX, RW
+    ADD RY,RX,RW
     PUSH RY
-    LI RX,1
-    LI RW,1
-    MUL R0, RX, RW
+    MOV RX,1
+    MOV RW,1
+    MUL R0,RX,RW
     POP RZ
-    ADD RW, RZ, R0
-    LI R4, 6
+    ADD RW,RZ,R0
+    MOV R4,6
     SUB R4, RZ, R4
     ADD R4,R4,RW
-    LOADI RW,R4, 0
+    LD RW,R4, 0
     POP RZ
     ADD R0,RZ,RW
     PUSH R0
-    LI RW, 0
+    MOV RW,0
     PUSH RW
-    LI RZ,0
-    LI RW,3
-    MUL RX, RZ, RW
+    MOV RZ,0
+    MOV RW,3
+    MUL RX,RZ,RW
     POP RY
-    ADD RZ, RY, RX
+    ADD RZ,RY,RX
     PUSH RZ
-    LI RY,2
-    LI RX,1
-    MUL RW, RY, RX
+    MOV RY,2
+    MOV RX,1
+    MUL RW,RY,RX
     POP RZ
-    ADD R0, RZ, RW
-    LI R4, 6
+    ADD R0,RZ,RW
+    MOV R4,6
     SUB R4, RZ, R4
     ADD R4,R4,R0
-    LOADI R0,R4, 0
+    LD R0,R4, 0
     POP RZ
     ADD RW,RZ,R0
     PUSH RW
-    LI R0, 0
+    MOV R0,0
     PUSH R0
-    LI RZ,1
-    LI RX,3
-    MUL RY, RZ, RX
+    MOV RZ,1
+    MOV RX,3
+    MUL RY,RZ,RX
     POP RW
-    ADD RX, RW, RY
+    ADD RX,RW,RY
     PUSH RX
-    LI RW,0
-    LI RY,1
-    MUL RX, RW, RY
+    MOV RW,0
+    MOV RY,1
+    MUL RX,RW,RY
     POP RZ
-    ADD RY, RZ, RX
-    LI R4, 6
+    ADD RY,RZ,RX
+    MOV R4,6
     SUB R4, RZ, R4
     ADD R4,R4,RY
-    LOADI RY,R4, 0
+    LD RY,R4, 0
     POP RZ
     ADD RX,RZ,RY
     PUSH RX
-    LI RY, 0
+    MOV RY,0
     PUSH RY
-    LI RZ,1
-    LI RY,3
-    MUL RW, RZ, RY
+    MOV RZ,1
+    MOV RY,3
+    MUL RW,RZ,RY
     POP RZ
-    ADD R0, RZ, RW
+    ADD R0,RZ,RW
     PUSH R0
-    LI RZ,1
-    LI RW,1
-    MUL RY, RZ, RW
+    MOV RZ,1
+    MOV RW,1
+    MUL RY,RZ,RW
     POP RZ
-    ADD RW, RZ, RY
-    LI R4, 6
+    ADD RW,RZ,RY
+    MOV R4,6
     SUB R4, RZ, R4
     ADD R4,R4,RW
-    LOADI RW,R4, 0
+    LD RW,R4, 0
     POP RZ
     ADD RY,RZ,RW
     PUSH RY
-    LI RW, 0
+    MOV RW,0
     PUSH RW
-    LI RZ,1
-    LI RW,3
-    MUL RX, RZ, RW
+    MOV RZ,1
+    MOV RW,3
+    MUL RX,RZ,RW
     POP RY
-    ADD RZ, RY, RX
+    ADD RZ,RY,RX
     PUSH RZ
-    LI RY,2
-    LI RX,1
-    MUL RW, RY, RX
+    MOV RY,2
+    MOV RX,1
+    MUL RW,RY,RX
     POP RZ
-    ADD R0, RZ, RW
-    LI R4, 6
+    ADD R0,RZ,RW
+    MOV R4,6
     SUB R4, RZ, R4
     ADD R4,R4,R0
-    LOADI R0,R4, 0
+    LD R0,R4, 0
     POP RZ
     ADD RW,RZ,R0
     MOV R2,RW
     LIMM R0,epilogue_0
     JMP R0
 epilogue_0:
-    ADDI SP, SP, 6
+    ADD SP, SP, 6
     POP R4
     POP R3
-    POP RZ
     RET
 
 ; --- Global Variables ---

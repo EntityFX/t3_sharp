@@ -208,6 +208,7 @@ namespace T3Simulator.InOrder
 
                 case Opcode.POP:
                     if (fmt == 0) SetRegValue(rg, instr.Op1, ReadWord(SP));
+                    else SetRegValue(rg, instr.Op1, ReadWord(SP + instr.Immediate));
                     SP++;
                     IncrementCycles(2); return false;
 
