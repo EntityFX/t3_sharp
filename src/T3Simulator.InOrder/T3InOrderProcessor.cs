@@ -180,7 +180,7 @@ namespace T3Simulator.InOrder
 
                 case Opcode.LD:
                     {
-                        long baseAddr = ToLong(GetRegValue(rg, instr.Op2)) + instr.Immediate;
+                        long baseAddr = ToLong(GetRegValue(0, instr.Op2)) + instr.Immediate;
                         TWord memVal = ReadWord(baseAddr);
                         if (rg == -1)
                             SetFReg(instr.Op1, T3Float.FromWord18((Word18)(object)memVal));
@@ -191,7 +191,7 @@ namespace T3Simulator.InOrder
 
                 case Opcode.ST:
                     {
-                        long baseAddr = ToLong(GetRegValue(rg, instr.Op2)) + instr.Immediate;
+                        long baseAddr = ToLong(GetRegValue(0, instr.Op2)) + instr.Immediate;
                         if (rg == -1)
                             WriteWord(baseAddr, (TWord)(object)GetFReg(instr.Op1).ToWord18());
                         else
