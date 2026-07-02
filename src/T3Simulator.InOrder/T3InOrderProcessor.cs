@@ -345,8 +345,8 @@ namespace T3Simulator.InOrder
                         IncrementCycles(3); return false;
                     }
 
-                case Opcode.ITF: // Int→Float (cross-group: Rop2 → Fop1)
-                    SetFReg(instr.Op1, T3Fpu.FromInt(ToLong(GetRegValue(rg, instr.Op2))));
+                case Opcode.ITF: // Int→Float (cross-group: always read Op2 from GP)
+                    SetFReg(instr.Op1, T3Fpu.FromInt(ToLong(GetRegValue(0, instr.Op2))));
                     IncrementCycles(3); return false;
 
                 case Opcode.CLASS:
