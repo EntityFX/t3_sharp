@@ -1,7 +1,0 @@
---- AST Dump ---
-Function: main
-  Return Type: tint
-  Body:
-    CompoundStmt:
-      VarDecl: p : tint = FunctionCall: malloc (IntegerLiteral: 10 )
-      ReturnStmt: Identifier: p

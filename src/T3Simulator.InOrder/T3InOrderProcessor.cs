@@ -93,8 +93,8 @@ namespace T3Simulator.InOrder
                 case -1: // FPU
                     if (idx < 0 || idx >= 9) throw new IndexOutOfRangeException($"FPU idx {idx}");
                     return (TWord)(object)FRegisters[idx].ToWord18();
-                case +1: // Special
-                    return FromLong(GetSpecialReg(idx));
+                case +1: // Special (raw assembler value, no +4 offset)
+                    return FromLong(GetSpecialReg(opRaw));
                 default: // GP
                     return GetRegisterValue(idx);
             }
@@ -109,8 +109,8 @@ namespace T3Simulator.InOrder
                     if (idx < 0 || idx >= 9) throw new IndexOutOfRangeException($"FPU idx {idx}");
                     FRegisters[idx] = T3Float.FromWord18((Word18)(object)value);
                     break;
-                case +1:
-                    SetSpecialReg(idx, ToLong(value));
+                case +1: // Special: raw assembler value (no +4)
+                    SetSpecialReg(opRaw, ToLong(value));
                     break;
                 default:
                     SetRegisterValue(idx, value);
@@ -132,23 +132,23 @@ namespace T3Simulator.InOrder
             FRegisters[idx] = value;
         }
 
-        private long GetSpecialReg(int idx) => idx switch
+        private long GetSpecialReg(int raw) => raw switch
         {
-            0 => FP, 1 => HP, 2 => SP, 3 => CD, 4 => (long)PR.ToLong(), 5 => WD,
-            _ => throw new IndexOutOfRangeException($"Special idx {idx}")
+            -3 => FP, -2 => HP, -1 => SP, -4 => CD, -5 => (long)PR.ToLong(), +1 => WD,
+            _ => throw new IndexOutOfRangeException($"Special raw {raw}")
         };
 
-        private void SetSpecialReg(int idx, long value)
+        private void SetSpecialReg(int raw, long value)
         {
-            switch (idx)
+            switch (raw)
             {
-                case 0: FP = value; break;
-                case 1: HP = value; break;
-                case 2: SP = value; break;
-                case 3: CD = (int)value; break;
-                case 4: PR = FromLong(value); break;
-                case 5: WD = (int)value; break;
-                default: throw new IndexOutOfRangeException($"Special idx {idx}");
+                case -3: FP = value; break;
+                case -2: HP = value; break;
+                case -1: SP = value; break;
+                case -4: CD = (int)value; break;
+                case -5: PR = FromLong(value); break;
+                case +1: WD = (int)value; break;
+                default: throw new IndexOutOfRangeException($"Special raw {raw}");
             }
         }
 
@@ -242,7 +242,7 @@ namespace T3Simulator.InOrder
                         // Special-register arithmetic (SP, FP, HP)
                         if (rg == +1)
                         {
-                            long sa = fmt == 0 ? GetSpecialReg(instr.Op2 + 4) : GetSpecialReg(instr.Op1 + 4);
+                            long sa = fmt == 0 ? GetSpecialReg(instr.Op2) : GetSpecialReg(instr.Op1);
                             long sb = fmt == 0 ? ToLong(GetRegValue(0, instr.Op3)) : instr.Immediate;
                             long sr = instr.Opcode switch
                             {
@@ -252,7 +252,7 @@ namespace T3Simulator.InOrder
                                 Opcode.DIV => sb != 0 ? sa / sb : 0,
                                 _ => sa
                             };
-                            SetSpecialReg(instr.Op1 + 4, sr);
+                            SetSpecialReg(instr.Op1, sr);
                             IncrementCycles(1);
                             return false;
                         }

@@ -1,8 +1,0 @@
---- AST Dump ---
-Function: main
-  Return Type: tint
-  Body:
-    CompoundStmt:
-      VarDecl: a : tint = IntegerLiteral: 1000
-      VarDecl: b : tint = IntegerLiteral: 2000
-      ReturnStmt: BinaryOp: + (Identifier: a Identifier: b)

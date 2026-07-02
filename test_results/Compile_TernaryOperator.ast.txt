@@ -1,8 +1,0 @@
---- AST Dump ---
-Function: main
-  Return Type: tint
-  Body:
-    CompoundStmt:
-      VarDecl: x : tint = IntegerLiteral: 5
-      VarDecl: r : tint = TernaryExpr: BinaryOp: > (Identifier: x IntegerLiteral: 0) ? IntegerLiteral: 3 : IntegerLiteral: 0 : UnaryOp: - (IntegerLiteral: 3)
-      ReturnStmt: Identifier: r

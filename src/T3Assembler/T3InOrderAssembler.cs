@@ -69,24 +69,19 @@ namespace T3Assembler
             if(line.Contains(".word")){var p=line.Split(new[]{' ','\t',','},StringSplitOptions.RemoveEmptyEntries);if(p.Length>0){string last=p[p.Length-1];if(last.StartsWith("\""))return last.Length-2+1;return 1;}}
             var ip=line.Split(new[]{' ','\t',','},StringSplitOptions.RemoveEmptyEntries);if(ip.Length==0)return 0;
             string rawMn=ip[0];string mn=StripPrefix(rawMn).ToUpper();
-            int rg=IsFPU(rawMn)?-1:IsSpecial(rawMn)?+1:0;
             if(mn=="LIMM")return 2;
             if(IsJumpMnemonic(mn)&&ip.Length>1&&!IsRegister(ip[1]))return 3;
-            if(op==Opcode.MOV && ip.Length>=3 && IsRegister(ip[2]) && !IsRegister(ip[ip.Length-1])){
-                string val=ip[ip.Length-1];
-                if(!long.TryParse(val,out _)&&!val.StartsWith("0t")&&!val.StartsWith("0y")&&!val.StartsWith("0n"))return 2;
-                try{long rv=(long)ResolveOperandValue(val);if(rv>364||rv<-364)return 2;}catch{return 2;}
+            // MOV Rx, N with N>364: LIMM + MOV = 3 words
+            if(ip.Length>=3 && ip[0].ToUpper()=="MOV" && IsRegister(ip[1]) && IsRegister(ip[2]) && !IsRegister(ip[ip.Length-1])){
+                try{long rv=(long)ResolveOperandValue(ip[ip.Length-1]);if(rv>364||rv<-364)return 3;}catch{return 1;}
                 return 1;
             }
-            if((mn=="LI"||mn=="MOV")&&ip.Length>2){
-                string val=ip[ip.Length-1];
-                if(val.StartsWith("#")||val.StartsWith("##"))return val.StartsWith("##")?2:1;
-                if(!long.TryParse(val,out _)&&!val.StartsWith("0t")&&!val.StartsWith("0y")&&!val.StartsWith("0n"))return 2;
-                try{long rv=(long)ResolveOperandValue(val);if(rv>364||rv<-364)return 2;}catch{return 2;}
+            // I-type with 4 args: LIMM Rx, N + OP SP, SP, Rx = 3 words
+            if(ip.Length>=4){
+                string last=ip[ip.Length-1];
+                if(last.StartsWith("#"))return 1;
+                try{long rv=(long)ResolveOperandValue(last);if(rv>364||rv<-364)return 3;}catch{return 1;}
                 return 1;
-            }
-            if(ip.Length>=4 && IsRegister(ip[2]) && !IsRegister(ip[ip.Length-1])){
-                try{long rv=(long)ResolveOperandValue(ip[ip.Length-1]);if(rv>364||rv<-364)return 3;return 1;}catch{return 1;}
             }
             return 1;
         }
@@ -109,7 +104,6 @@ namespace T3Assembler
             string rawMn=ip[0];string mn=StripPrefix(rawMn).ToUpper();
             Opcode op=GetOpcode(mn);
 
-            // RegGroup: prefix has priority; otherwise scan ALL operands for highest group
             int regGroup=IsFPU(rawMn)?-1:IsSpecial(rawMn)?+1:0;
             for(int k=1; k<ip.Length; k++){
                 if(IsRegister(ip[k])){
@@ -120,20 +114,15 @@ namespace T3Assembler
                 }
             }
 
-            // Parse operands
             int op1=0,op2=0,op3=0;long imm=0;bool isImm=false;
             if(ip.Length>1){if(IsRegister(ip[1]))op1=GetRegisterRaw(ip[1]);else if(long.TryParse(ip[1],out long i1))op1=(int)i1;}
             if(ip.Length>2){if(IsRegister(ip[2]))op2=GetRegisterRaw(ip[2]);else if(long.TryParse(ip[2],out long i2))op2=(int)i2;}
             if(ip.Length>3){if(IsRegister(ip[3]))op3=GetRegisterRaw(ip[3]);else if(long.TryParse(ip[3],out long i3))op3=(int)i3;}
 
-            // Detect I-type: last operand is #imm
             if(ip.Length>=2){
-                string last=ip[ip.Length-1];
-                isImm=last.StartsWith("#");
-                if(isImm)imm=(long)ResolveOperandValue(last[1..]);
+                string last=ip[ip.Length-1];isImm=last.StartsWith("#");if(isImm)imm=(long)ResolveOperandValue(last[1..]);
             }
 
-            // --- LIMM ---
             if(mn=="LIMM"){
                 string valStr=ip[2];
                 if(obj!=null&&(!long.TryParse(valStr,out _)&&!valStr.StartsWith("0t")&&!valStr.StartsWith("0y")&&!valStr.StartsWith("0n"))){
@@ -146,7 +135,6 @@ namespace T3Assembler
                 return new List<Int128>{EncI(pred,regGroup,Opcode.LIMM,op1,0),(Int128)ResolveOperandValue(valStr)};
             }
 
-            // --- Jumps ---
             if(IsJumpMnemonic(mn)){
                 string opn=ip.Length>1?ip[1]:"0";
                 if(!IsRegister(opn)){
@@ -161,7 +149,6 @@ namespace T3Assembler
                 return new List<Int128>{EncJ(pred,regGroup,op,GetRegisterRaw(opn))};
             }
 
-            // --- MOV with immediate (was LI) ---
             if(op==Opcode.MOV && ip.Length>=2 && !IsRegister(ip[1])){
                 string valStr=ip[1];Int128 v=ResolveOperandValue(valStr);
                 if((long)v>364||(long)v<-364)return new List<Int128>{EncI(pred,regGroup,Opcode.LIMM,op1,0),(Int128)v};
@@ -173,22 +160,16 @@ namespace T3Assembler
                 return new List<Int128>{EncI(pred,regGroup,Opcode.MOV,op1,(long)v)};
             }
 
-            // --- S-type (LD/ST) — MUST be checked before I-type ---
             if(op==Opcode.LD||op==Opcode.ST){
                 int baseR=op2!=0?op2:(op1!=0?3:0);
                 long off=ip.Length>3&&!IsRegister(ip[ip.Length-1])?(long)ResolveOperandValue(ip[ip.Length-1]):0;
-                if(ip.Length>=3){
-                    string last=ip[ip.Length-1];
-                    if(!IsRegister(last)&&!last.StartsWith("#"))off=(long)ResolveOperandValue(last);
-                }
+                if(ip.Length>=3){string last=ip[ip.Length-1];if(!IsRegister(last)&&!last.StartsWith("#"))off=(long)ResolveOperandValue(last);}
                 return new List<Int128>{EncS(pred,regGroup,op,op1,baseR,off)};
             }
 
-            // --- I-type (immediate or last operand is numeric) ---
             if(isImm || (ip.Length>=3 && !IsRegister(ip[ip.Length-1])))
                 return new List<Int128>{EncI(pred,regGroup,op,op1,(long)ResolveOperandValue(ip[ip.Length-1]))};
 
-            // Default: R-type (3 registers)
             return new List<Int128>{EncR(pred,regGroup,op,op1,op2,op3)};
         }
 

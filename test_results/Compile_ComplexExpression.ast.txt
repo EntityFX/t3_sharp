@@ -1,6 +1,0 @@
---- AST Dump ---
-Function: main
-  Return Type: tint
-  Body:
-    CompoundStmt:
-      ReturnStmt: BinaryOp: + (BinaryOp: - (BinaryOp: * (BinaryOp: + (IntegerLiteral: 2 IntegerLiteral: 3) IntegerLiteral: 4) BinaryOp: / (IntegerLiteral: 6 IntegerLiteral: 2)) IntegerLiteral: 10)

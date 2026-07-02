@@ -7,8 +7,9 @@ __entry:
 main:
     PUSH R3
     PUSH R4
-    S.MOV RZ, FP
-    S.SUB SP, SP, 16
+    LIMM RW,16
+    S.SUB SP, SP, RW
+    S.MOV RZ, SP
     MOV RW,1
     PUSH RW
     MOV RX,0
@@ -218,7 +219,8 @@ wend_3:
     LIMM RW,epilogue_0
     JMP RW
 epilogue_0:
-    S.ADD SP, SP, 16
+    LIMM RX,16
+    S.ADD SP, SP, RX
     POP R4
     POP R3
     RET
