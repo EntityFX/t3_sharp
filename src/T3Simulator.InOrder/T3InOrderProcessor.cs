@@ -235,17 +235,17 @@ namespace T3Simulator.InOrder
                         // Special-register arithmetic (SP, FP, HP)
                         if (rg == +1)
                         {
-                            long a = GetSpecialReg(instr.Op2 + 4);
-                            long b = fmt == 0 ? GetSpecialReg(instr.Op3 + 4) : instr.Immediate;
-                            long res = instr.Opcode switch
+                            long sa = GetSpecialReg(instr.Op2 + 4);
+                            long sb = fmt == 0 ? GetSpecialReg(instr.Op3 + 4) : instr.Immediate;
+                            long sr = instr.Opcode switch
                             {
-                                Opcode.ADD => a + b,
-                                Opcode.SUB => a - b,
-                                Opcode.MUL => a * b,
-                                Opcode.DIV => b != 0 ? a / b : 0,
-                                _ => a
+                                Opcode.ADD => sa + sb,
+                                Opcode.SUB => sa - sb,
+                                Opcode.MUL => sa * sb,
+                                Opcode.DIV => sb != 0 ? sa / sb : 0,
+                                _ => sa
                             };
-                            SetSpecialReg(instr.Op1 + 4, res);
+                            SetSpecialReg(instr.Op1 + 4, sr);
                             IncrementCycles(1);
                             return false;
                         }
@@ -271,25 +271,25 @@ namespace T3Simulator.InOrder
                             });
                             return false;
                         }
-                        TWord a, b;
-                        if (fmt == 0) { a = GetRegValue(rg, instr.Op2); b = GetRegValue(rg, instr.Op3); }
-                        else { a = GetRegValue(rg, instr.Op1); b = FromLong(instr.Immediate); }
-                        TWord res;
+                        TWord ga, gb;
+                        if (fmt == 0) { ga = GetRegValue(rg, instr.Op2); gb = GetRegValue(rg, instr.Op3); }
+                        else { ga = GetRegValue(rg, instr.Op1); gb = FromLong(instr.Immediate); }
+                        TWord gres;
                         if (instr.Opcode == Opcode.SHL || instr.Opcode == Opcode.SHR)
                         {
-                            if (fmt == 0) res = instr.Opcode == Opcode.SHL
-                                ? T3Alu.ShiftLeft(a, (int)b.ToInt128())
-                                : T3Alu.ShiftRight(a, (int)b.ToInt128());
-                            else res = instr.Opcode == Opcode.SHL
-                                ? T3Alu.ShiftLeft(a, (int)instr.Immediate)
-                                : T3Alu.ShiftRight(a, (int)instr.Immediate);
+                            if (fmt == 0) gres = instr.Opcode == Opcode.SHL
+                                ? T3Alu.ShiftLeft(ga, (int)gb.ToInt128())
+                                : T3Alu.ShiftRight(ga, (int)gb.ToInt128());
+                            else gres = instr.Opcode == Opcode.SHL
+                                ? T3Alu.ShiftLeft(ga, (int)instr.Immediate)
+                                : T3Alu.ShiftRight(ga, (int)instr.Immediate);
                         }
                         else
                         {
-                            res = T3Alu.Execute(instr.Opcode, a, b, Config);
+                            gres = T3Alu.Execute(instr.Opcode, ga, gb, Config);
                         }
-                        if (fmt == 0) SetRegValue(rg, instr.Op1, res);
-                        else SetRegValue(rg, instr.Op1, res);
+                        if (fmt == 0) SetRegValue(rg, instr.Op1, gres);
+                        else SetRegValue(rg, instr.Op1, gres);
                         IncrementCycles(instr.Opcode switch
                         {
                             Opcode.ADD or Opcode.SUB => 1,

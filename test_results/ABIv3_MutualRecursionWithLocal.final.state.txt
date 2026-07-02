@@ -3,7 +3,7 @@ PC: 115  SP: 1048573  FP: 1048573  HP: 699050  CD: 0  WD: 0
 Cycles: 7, Instructions: 4
 GP Registers:
   R0: 0
-  R1: 699050
+  R1: 0
   R2: 0
   R3: 0
   R4: 0

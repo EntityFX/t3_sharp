@@ -1,6 +1,6 @@
 ; T→T3
 __entry:
-    LIMM HP,699050
+    S.LIMM HP,699050
     LIMM R1,main
     CALL R1
     HALT
@@ -8,7 +8,7 @@ factorial_goto:
     PUSH R3
     PUSH R4
     S.MOV RZ, FP
-    SUB SP, SP, 2
+    S.SUB SP, SP, 2
     ST RW, RZ, -1
     MOV RW,1
     ST RW, RZ, -2
@@ -44,7 +44,7 @@ __glbl_done:
     LIMM RY,epilogue_0
     JMP RY
 epilogue_0:
-    ADD SP, SP, 2
+    S.ADD SP, SP, 2
     POP R4
     POP R3
     RET
@@ -52,7 +52,7 @@ main:
     PUSH R3
     PUSH R4
     S.MOV RZ, FP
-    SUB SP, SP, 9
+    S.SUB SP, SP, 9
     MOV RW,1
     ST RW, RZ, -9
     LD RX, RZ, -9
@@ -219,7 +219,7 @@ wend_7:
     LIMM RZ,epilogue_3
     JMP RZ
 epilogue_3:
-    ADD SP, SP, 9
+    S.ADD SP, SP, 9
     POP R4
     POP R3
     RET

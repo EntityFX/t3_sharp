@@ -1,6 +1,6 @@
 ; T→T3
 __entry:
-    LIMM HP,699050
+    S.LIMM HP,699050
     LIMM R1,main
     CALL R1
     HALT
@@ -8,7 +8,7 @@ main:
     PUSH R3
     PUSH R4
     S.MOV RZ, FP
-    SUB SP, SP, 1
+    S.SUB SP, SP, 1
     MOV RW,2
     ST RW, RZ, -1
     LD RX, RZ, -1
@@ -16,7 +16,7 @@ main:
     LIMM RY,epilogue_0
     JMP RY
 epilogue_0:
-    ADD SP, SP, 1
+    S.ADD SP, SP, 1
     POP R4
     POP R3
     RET

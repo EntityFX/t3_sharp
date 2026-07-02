@@ -98,7 +98,7 @@ namespace T3Assembler
             var ip=pl.Split(new[]{' ','\t',','},StringSplitOptions.RemoveEmptyEntries);if(ip.Length==0)throw new Exception("Empty");
 
             string rawMn=ip[0];string mn=StripPrefix(rawMn).ToUpper();
-            Opcode op=GetOpcode(rawMn);
+            Opcode op=GetOpcode(mn);
 
             // RegGroup: prefix has priority; otherwise scan ALL operands for highest group
             int regGroup=IsFPU(rawMn)?-1:IsSpecial(rawMn)?+1:0;

@@ -1,6 +1,6 @@
 ; T→T3
 __entry:
-    LIMM HP,699050
+    S.LIMM HP,699050
     LIMM R1,main
     CALL R1
     HALT
@@ -8,7 +8,7 @@ gcd:
     PUSH R3
     PUSH R4
     S.MOV RZ, FP
-    SUB SP, SP, 2
+    S.SUB SP, SP, 2
     ST RW, RZ, -2
     ST RX, RZ, -1
     LD RW, RZ, -1
@@ -50,7 +50,7 @@ end_1:
     LIMM R0,epilogue_0
     JMP R0
 epilogue_0:
-    ADD SP, SP, 2
+    S.ADD SP, SP, 2
     POP R4
     POP R3
     RET
@@ -58,7 +58,7 @@ lcm:
     PUSH R3
     PUSH R4
     S.MOV RZ, FP
-    SUB SP, SP, 2
+    S.SUB SP, SP, 2
     ST RW, RZ, -2
     ST RX, RZ, -1
     LD RW, RZ, -2
@@ -90,7 +90,7 @@ lcm:
     LIMM R0,epilogue_3
     JMP R0
 epilogue_3:
-    ADD SP, SP, 2
+    S.ADD SP, SP, 2
     POP R4
     POP R3
     RET
@@ -98,7 +98,7 @@ fib:
     PUSH R3
     PUSH R4
     S.MOV RZ, FP
-    SUB SP, SP, 1
+    S.SUB SP, SP, 1
     ST RW, RZ, -1
     LD RW, RZ, -1
     MOV RX,1
@@ -158,7 +158,7 @@ end_5:
     LIMM RW,epilogue_4
     JMP RW
 epilogue_4:
-    ADD SP, SP, 1
+    S.ADD SP, SP, 1
     POP R4
     POP R3
     RET
@@ -166,7 +166,7 @@ fact:
     PUSH R3
     PUSH R4
     S.MOV RZ, FP
-    SUB SP, SP, 1
+    S.SUB SP, SP, 1
     ST RW, RZ, -1
     LD RW, RZ, -1
     MOV RX,1
@@ -207,7 +207,7 @@ end_8:
     LIMM RZ,epilogue_7
     JMP RZ
 epilogue_7:
-    ADD SP, SP, 1
+    S.ADD SP, SP, 1
     POP R4
     POP R3
     RET
@@ -215,7 +215,7 @@ gcd:
     PUSH R3
     PUSH R4
     S.MOV RZ, FP
-    SUB SP, SP, 2
+    S.SUB SP, SP, 2
     ST RW, RZ, -2
     ST RX, RZ, -1
     LD RW, RZ, -1
@@ -257,7 +257,7 @@ end_11:
     LIMM R0,epilogue_10
     JMP R0
 epilogue_10:
-    ADD SP, SP, 2
+    S.ADD SP, SP, 2
     POP R4
     POP R3
     RET
@@ -265,7 +265,7 @@ lcm:
     PUSH R3
     PUSH R4
     S.MOV RZ, FP
-    SUB SP, SP, 2
+    S.SUB SP, SP, 2
     ST RW, RZ, -2
     ST RX, RZ, -1
     LD RW, RZ, -2
@@ -297,7 +297,7 @@ lcm:
     LIMM R0,epilogue_13
     JMP R0
 epilogue_13:
-    ADD SP, SP, 2
+    S.ADD SP, SP, 2
     POP R4
     POP R3
     RET
@@ -305,7 +305,7 @@ fib:
     PUSH R3
     PUSH R4
     S.MOV RZ, FP
-    SUB SP, SP, 1
+    S.SUB SP, SP, 1
     ST RW, RZ, -1
     LD RW, RZ, -1
     MOV RX,1
@@ -365,7 +365,7 @@ end_15:
     LIMM RW,epilogue_14
     JMP RW
 epilogue_14:
-    ADD SP, SP, 1
+    S.ADD SP, SP, 1
     POP R4
     POP R3
     RET
@@ -373,7 +373,7 @@ fact:
     PUSH R3
     PUSH R4
     S.MOV RZ, FP
-    SUB SP, SP, 1
+    S.SUB SP, SP, 1
     ST RW, RZ, -1
     LD RW, RZ, -1
     MOV RX,1
@@ -414,7 +414,7 @@ end_18:
     LIMM RZ,epilogue_17
     JMP RZ
 epilogue_17:
-    ADD SP, SP, 1
+    S.ADD SP, SP, 1
     POP R4
     POP R3
     RET
@@ -422,7 +422,7 @@ sieve:
     PUSH R3
     PUSH R4
     S.MOV RZ, FP
-    SUB SP, SP, 3
+    S.SUB SP, SP, 3
     ST RW, RZ, -1
     MOV RW,2
     ST RW, RZ, -3
@@ -567,7 +567,7 @@ wend_34:
     LIMM RZ,epilogue_20
     JMP RZ
 epilogue_20:
-    ADD SP, SP, 3
+    S.ADD SP, SP, 3
     POP R4
     POP R3
     RET
@@ -575,7 +575,7 @@ isPrime:
     PUSH R3
     PUSH R4
     S.MOV RZ, FP
-    SUB SP, SP, 2
+    S.SUB SP, SP, 2
     ST RW, RZ, -1
     LD RW, RZ, -1
     MOV RX,2
@@ -636,7 +636,7 @@ wend_42:
     LIMM RZ,epilogue_37
     JMP RZ
 epilogue_37:
-    ADD SP, SP, 2
+    S.ADD SP, SP, 2
     POP R4
     POP R3
     RET
@@ -644,7 +644,7 @@ sumPrimes:
     PUSH R3
     PUSH R4
     S.MOV RZ, FP
-    SUB SP, SP, 3
+    S.SUB SP, SP, 3
     ST RW, RZ, -1
     MOV RW,0
     ST RW, RZ, -3
@@ -702,7 +702,7 @@ wend_48:
     LIMM RY,epilogue_45
     JMP RY
 epilogue_45:
-    ADD SP, SP, 3
+    S.ADD SP, SP, 3
     POP R4
     POP R3
     RET
@@ -710,7 +710,7 @@ main:
     PUSH R3
     PUSH R4
     S.MOV RZ, FP
-    SUB SP, SP, 3
+    S.SUB SP, SP, 3
     MOV RW,50
     PUSH RW
     PUSH RX
@@ -772,7 +772,7 @@ main:
     LIMM RZ,epilogue_51
     JMP RZ
 epilogue_51:
-    ADD SP, SP, 3
+    S.ADD SP, SP, 3
     POP R4
     POP R3
     RET
