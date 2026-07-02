@@ -3,15 +3,8 @@ using TritTypes;
 
 namespace T3Simulator.Common
 {
-    /// <summary>
-    /// Shared ALU logic for T3 processors.
-    /// Provides core arithmetic and logical operations for T3 words.
-    /// </summary>
     public static class T3Alu
     {
-        /// <summary>
-        /// Executes a basic arithmetic operation.
-        /// </summary>
         public static TWord Execute<TWord>(Opcode op, TWord a, TWord b, T3Config config) where TWord : IT3Word<TWord>
         {
             dynamic da = a;
@@ -25,10 +18,9 @@ namespace T3Simulator.Common
                 case Opcode.MOD: return (TWord)(object)(da % db);
                 case Opcode.NEG: return (TWord)(object)(-da);
                 case Opcode.MOV: return b;
-                case Opcode.LI: return b;
                 
                 case Opcode.AND: return (TWord)TritAndInternal(a, b);
-                case Opcode.OR: return (TWord)TritOrInternal(a, b);
+                case Opcode.OR:  return (TWord)TritOrInternal(a, b);
                 case Opcode.XOR: return (TWord)TritXorInternal(a, b);
                 
                 case Opcode.SHL:
@@ -37,14 +29,10 @@ namespace T3Simulator.Common
                     return (TWord)(object)(da >> (int)db.ToLong());
                 
                 default:
-                    throw new NotSupportedException($"ALU does not support opcode {op}. Use specialized handlers for Control Flow/Memory.");
+                    throw new NotSupportedException($"ALU does not support opcode {op}. Use specialized handlers.");
             }
         }
 
-        /// <summary>
-        /// Compares two values and returns the sign of (a - b).
-        /// Result: 1 if a > b, -1 if a < b, 0 if a == b.
-        /// </summary>
         public static int Compare<TWord>(TWord a, TWord b) where TWord : IT3Word<TWord>
         {
             return (a, b) switch
@@ -55,21 +43,9 @@ namespace T3Simulator.Common
             };
         }
 
-        // Specialized methods for clarity and direct access
-        public static TWord TritAnd<TWord>(TWord a, TWord b) where TWord : IT3Word<TWord>
-        {
-            return (TWord)TritAndInternal(a, b);
-        }
-
-        public static TWord TritOr<TWord>(TWord a, TWord b) where TWord : IT3Word<TWord>
-        {
-            return (TWord)TritOrInternal(a, b);
-        }
-
-        public static TWord TritXor<TWord>(TWord a, TWord b) where TWord : IT3Word<TWord>
-        {
-            return (TWord)TritXorInternal(a, b);
-        }
+        public static TWord TritAnd<TWord>(TWord a, TWord b) where TWord : IT3Word<TWord> => (TWord)TritAndInternal(a, b);
+        public static TWord TritOr<TWord>(TWord a, TWord b)  where TWord : IT3Word<TWord> => (TWord)TritOrInternal(a, b);
+        public static TWord TritXor<TWord>(TWord a, TWord b) where TWord : IT3Word<TWord> => (TWord)TritXorInternal(a, b);
 
         public static TWord ShiftLeft<TWord>(TWord a, int shift) where TWord : IT3Word<TWord>
         {

@@ -24,7 +24,9 @@ namespace T3Simulator.Common
                     string immVal = "[next]";
                     if (index + 1 < codeList.Count)
                         immVal = codeList[index + 1].ToLong().ToString();
-                    lines.Add($"{pc:X8}: LIMM {GetRegName(instr.PhysOp1)}, {immVal}");
+                    string prefix = GetGroupPrefix(instr.RegGroup);
+                    string reg = GetRegName(instr.RegGroup, instr.Op1);
+                    lines.Add($"{pc:X8}: {prefix}LIMM {reg}, {immVal}");
                     pc += 2; index += 2;
                 }
                 else
@@ -36,13 +38,41 @@ namespace T3Simulator.Common
             return lines;
         }
 
-        static string GetRegName(int index)
+        static string GetGroupPrefix(int regGroup) => regGroup switch
         {
-            return index switch
+            -1 => "F.",
+            +1 => "S.",
+            _  => ""
+        };
+
+        static string GetRegName(int regGroup, int op)
+        {
+            // Convert balanced trit (-4..+4) to index (0..8)
+            int idx = op + 4;
+            if (regGroup == -1) // FPU
+            {
+                return idx switch
+                {
+                    0 => "FW", 1 => "FX", 2 => "FY", 3 => "FZ",
+                    4 => "F0", 5 => "F1", 6 => "F2", 7 => "F3", 8 => "F4",
+                    _ => $"F{idx}"
+                };
+            }
+            if (regGroup == +1) // Special
+            {
+                return idx switch
+                {
+                    0 => "FP", 1 => "HP", 2 => "SP",
+                    3 => "CD", 4 => "PR", 5 => "WD",
+                    _ => $"S{idx}"
+                };
+            }
+            // GP
+            return idx switch
             {
                 0 => "RW", 1 => "RX", 2 => "RY", 3 => "RZ",
                 4 => "R0", 5 => "R1", 6 => "R2", 7 => "R3", 8 => "R4",
-                _ => $"R{index}"
+                _ => $"R{idx}"
             };
         }
 
@@ -50,54 +80,87 @@ namespace T3Simulator.Common
         {
             var sb = new StringBuilder();
             if (instr.Predicate > 0) sb.Append($"(p{instr.Predicate}) ");
-            string mnemonic = GetMnemonic(instr.Opcode);
-            sb.Append(mnemonic);
 
-            if (mnemonic is "HALT" or "RET" or "NOP") { }
-            else if (mnemonic == "LI") sb.Append($" {GetRegName(instr.PhysOp1)}, {instr.Immediate}");
-            else if (mnemonic == "NEG") sb.Append($" {GetRegName(instr.PhysOp1)}");
-            else if (mnemonic is "MOV" or "CMP")
+            string prefix = GetGroupPrefix(instr.RegGroup);
+            string mnemonic = GetMnemonic(instr.Opcode);
+            sb.Append(prefix).Append(mnemonic);
+
+            if (instr.Opcode.IsZeroOperand()) { /* HALT, NOP, RET */ }
+            else if (instr.Fmt == -1) // J-type: [Reg]
             {
-                if (instr.Op3 != 0)
-                    sb.Append($" {GetRegName(instr.PhysOp1)}, {GetRegName(instr.PhysOp2)}, {GetRegName(instr.PhysOp3)}");
-                else
-                    sb.Append($" {GetRegName(instr.PhysOp1)}, {GetRegName(instr.PhysOp2)}");
+                sb.Append(' ').Append(GetRegName(instr.RegGroup, instr.Op1));
             }
-            else if (mnemonic is "ADD" or "SUB" or "MUL" or "DIV" or "MOD" or "AND" or "OR" or "XOR" or "SHL" or "SHR")
+            else if (instr.Fmt == 0) // R-type or S-type
             {
-                sb.Append($" {GetRegName(instr.PhysOp1)}, {GetRegName(instr.PhysOp2)}, {GetRegName(instr.PhysOp3)}");
+                if (instr.Opcode.IsSType()) // S-type: Rd, [Rb + #off]
+                {
+                    sb.Append(' ').Append(GetRegName(instr.RegGroup, instr.Op1));
+                    sb.Append(", [").Append(GetRegName(0, instr.Op2));
+                    if (instr.Immediate != 0)
+                        sb.Append(" + #").Append(instr.Immediate);
+                    sb.Append(']');
+                }
+                else // R-type: Op1, Op2, Op3
+                {
+                    sb.Append(' ').Append(GetRegName(instr.RegGroup, instr.Op1));
+                    if (instr.Opcode == Opcode.MOV && instr.Op3 == 0)
+                        sb.Append(", ").Append(GetRegName(instr.RegGroup, instr.Op2));
+                    else if (instr.Opcode == Opcode.NEG || instr.Opcode == Opcode.ABS)
+                        sb.Append(", ").Append(GetRegName(instr.RegGroup, instr.Op2));
+                    else
+                        sb.Append(", ").Append(GetRegName(instr.RegGroup, instr.Op2))
+                          .Append(", ").Append(GetRegName(instr.RegGroup, instr.Op3));
+                }
             }
-            else if (mnemonic is "LOAD" or "STORE") sb.Append($" {GetRegName(instr.PhysOp1)}, {GetRegName(instr.PhysOp2)}");
-            else if (mnemonic is "JMP" or "JE" or "JNE" or "JL" or "JG" or "JM" or "JLE" or "JGE" or "CALL")
-                sb.Append(instr.Immediate == 0 ? $" {GetRegName(instr.PhysOp1)}" : $" {instr.Immediate}");
-            else if (mnemonic is "PUSH" or "POP") sb.Append($" {GetRegName(instr.PhysOp1)}");
-            else if (mnemonic is "IN" or "OUT") sb.Append($" {GetRegName(instr.PhysOp1)}, {GetRegName(instr.PhysOp2)}");
-            else if (mnemonic is "INI" or "OUTI" or "PUSHI" or "POPI") sb.Append($" {GetRegName(instr.PhysOp1)}, {instr.Immediate}");
-            else sb.Append($" {GetRegName(instr.PhysOp1)}, {GetRegName(instr.PhysOp2)}");
+            else if (instr.Fmt == +1) // I-type: Op1, #imm
+            {
+                sb.Append(' ').Append(GetRegName(instr.RegGroup, instr.Op1));
+                sb.Append(", #").Append(instr.Immediate);
+            }
 
             return sb.ToString().TrimEnd();
         }
 
         static string GetMnemonic(Opcode op) => op switch
         {
-            Opcode.HALT => "HALT", Opcode.LOAD => "LOAD", Opcode.LOADI => "LOADI", Opcode.STORE => "STORE", Opcode.STOREI => "STOREI",
-            Opcode.MOV => "MOV", Opcode.MOVI => "MOVI", Opcode.LI => "LI", Opcode.LIMM => "LIMM",
-            Opcode.ADD => "ADD", Opcode.ADDI => "ADDI", Opcode.SUB => "SUB", Opcode.SUBI => "SUBI",
-            Opcode.MUL => "MUL", Opcode.MULI => "MULI", Opcode.DIV => "DIV", Opcode.DIVI => "DIVI",
-            Opcode.MOD => "MOD", Opcode.MODI => "MODI", Opcode.NEG => "NEG", Opcode.NEGI => "NEGI",
-            Opcode.AND => "AND", Opcode.ANDI => "ANDI", Opcode.OR => "OR", Opcode.ORI => "ORI",
-            Opcode.XOR => "XOR", Opcode.XORI => "XORI", Opcode.SHL => "SHL", Opcode.SHLI => "SHLI",
-            Opcode.SHR => "SHR", Opcode.SHRI => "SHRI", Opcode.CMP => "CMP", Opcode.CMPI => "CMPI",
-            Opcode.JMP => "JMP", Opcode.JE => "JE", Opcode.JNE => "JNE", Opcode.JL => "JL",
-            Opcode.JG => "JG", Opcode.JLE => "JLE", Opcode.JGE => "JGE", Opcode.JM => "JM",
-            Opcode.CALL => "CALL", Opcode.RET => "RET", Opcode.PUSH => "PUSH", Opcode.POP => "POP",
-            Opcode.IN => "IN", Opcode.OUT => "OUT", Opcode.INI => "INI", Opcode.OUTI => "OUTI",
-            Opcode.FADD => "FADD", Opcode.FSUB => "FSUB", Opcode.FMUL => "FMUL", Opcode.FDIV => "FDIV",
-            Opcode.FSQRT => "FSQRT", Opcode.FABS => "FABS", Opcode.FNEG => "FNEG", Opcode.FCMP => "FCMP",
-            Opcode.FTOI => "FTOI", Opcode.ITOF => "ITOF", Opcode.FTOF => "FTOF",
-            Opcode.FLW => "FLW", Opcode.FSW => "FSW", Opcode.FMOV => "FMOV",
-            Opcode.FCLASS => "FCLASS", Opcode.FSWAP => "FSWAP", Opcode.FZERO => "FZERO",
-            Opcode.PUSHI => "PUSHI", Opcode.POPI => "POPI",
+            Opcode.HALT  => "HALT",
+            Opcode.NOP   => "NOP",
+            Opcode.LIMM  => "LIMM",
+            Opcode.MOV   => "MOV",
+            Opcode.LD    => "LD",
+            Opcode.ST    => "ST",
+            Opcode.PUSH  => "PUSH",
+            Opcode.POP   => "POP",
+            Opcode.ADD   => "ADD",
+            Opcode.SUB   => "SUB",
+            Opcode.MUL   => "MUL",
+            Opcode.DIV   => "DIV",
+            Opcode.MOD   => "MOD",
+            Opcode.NEG   => "NEG",
+            Opcode.ABS   => "ABS",
+            Opcode.CMP   => "CMP",
+            Opcode.AND   => "AND",
+            Opcode.OR    => "OR",
+            Opcode.XOR   => "XOR",
+            Opcode.SHL   => "SHL",
+            Opcode.SHR   => "SHR",
+            Opcode.JMP   => "JMP",
+            Opcode.JE    => "JE",
+            Opcode.JNE   => "JNE",
+            Opcode.JL    => "JL",
+            Opcode.JG    => "JG",
+            Opcode.JLE   => "JLE",
+            Opcode.JGE   => "JGE",
+            Opcode.JM    => "JM",
+            Opcode.CALL  => "CALL",
+            Opcode.RET   => "RET",
+            Opcode.IN    => "IN",
+            Opcode.OUT   => "OUT",
+            Opcode.SQRT  => "SQRT",
+            Opcode.FTI   => "FTI",
+            Opcode.ITF   => "ITF",
+            Opcode.CLASS => "CLASS",
+            Opcode.SWAP  => "SWAP",
             _ => "UNKNOWN"
         };
     }

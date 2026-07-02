@@ -366,8 +366,8 @@ namespace T3Simulator.CLI
 
             Console.WriteLine();
             Console.WriteLine("--- Processor State ---");
-            Console.WriteLine($"PC: 0x{state.PC:X8} | SP: 0x{state.SP:X8} | WP: {state.WP}");
-            Console.WriteLine($"Cond: {state.Cond} | Cycles: {state.CycleCount}");
+            Console.WriteLine($"PC: 0x{state.PC:X8} | SP: 0x{state.SP:X8} | WD: {state.WD}");
+            Console.WriteLine($"CD: {state.CD} | Cycles: {state.CycleCount}");
             Console.WriteLine($"Instructions: {state.InstructionCount} | Stalls: {state.StallCount}");
             Console.WriteLine();
 
@@ -390,7 +390,7 @@ namespace T3Simulator.CLI
                 string valueStr = FormatValue(state.Registers[i], format);
 
                 // Highlight active window registers
-                string prefix = (i >= state.WP && i < state.WP + 9) ? "*" : " ";
+                string prefix = (i >= state.WD && i < state.WD + 9) ? "*" : " ";
                 Console.WriteLine($"  {prefix}{regName} (R{i:D2}): {valueStr}");
             }
         }

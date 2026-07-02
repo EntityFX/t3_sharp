@@ -5,7 +5,8 @@ using TritTypes;
 namespace T3Simulator.Common
 {
     /// <summary>
-    /// Abstract base class for T3 processors.
+    /// Abstract base class for T3 processors — ISA v5.
+    /// Special registers: FP, HP, SP, CD, PR, WD.
     /// </summary>
     public abstract class ProcessorBase<TWord> : IT3Processor<TWord> where TWord : IT3Word<TWord>
     {
@@ -18,18 +19,21 @@ namespace T3Simulator.Common
         public T3Config Config { get; }
         public long PC { get; set; }
         public long SP { get; set; }
-        public int WP { get; set; }
-        public int Cond { get; set; }
+
+        // Special registers (accessed via RegGroup=+1)
+        public long FP { get; set; }
+        public long HP { get; set; }
+        public int CD { get; set; }   // Condition flag (-1/0/+1), was Cond
+        public int WD { get; set; }   // Window pointer, was WP
+
         public bool IsHalted { get; set; }
 
         protected long _cycleCount;
         protected long _instructionCount;
         protected long _stallCount;
 
-        /// <summary>Fraction of memory reserved for heap: numerator/denominator (default 2/3).</summary>
         public const int HeapFractionNumerator = 2;
         public const int HeapFractionDenominator = 3;
-        /// <summary>Heap start address = memSize * 2 / 3 ≈ 699,050. Heap grows up, stack grows down.</summary>
         public const long HeapStart = 1048576L * HeapFractionNumerator / HeapFractionDenominator;
         private readonly long _initialSp;
 
@@ -40,41 +44,41 @@ namespace T3Simulator.Common
         protected ProcessorBase(T3Config config)
         {
             Config = config;
-            WP = 0;
+            WD = 0;
             PC = 0;
             IsHalted = false;
 
-            long memSize = 1048576; // 1M words
+            long memSize = 1048576;
             Memory = new Memory<TWord>(memSize);
             DeviceManager = new DeviceManager<TWord>();
 
             _initialSp = memSize - 1;
             SP = _initialSp;
+            FP = _initialSp;
+            HP = HeapStart;
+            CD = 0;
 
-            // Initialize registers to default (0)
             for (int i = 0; i < Registers.Length; i++)
                 Registers[i] = TWord.FromLong(0);
-
             PR = TWord.FromLong(0);
         }
 
         public virtual void Reset()
         {
             PC = 0;
-            WP = 0;
+            WD = 0;
             SP = _initialSp;
+            FP = _initialSp;
+            HP = HeapStart;
+            CD = 0;
             IsHalted = false;
             _cycleCount = 0;
             _instructionCount = 0;
             _stallCount = 0;
 
-            // Reset all registers to 0
             for (int i = 0; i < Registers.Length; i++)
                 Registers[i] = TWord.FromLong(0);
-
             PR = TWord.FromLong(0);
-
-            // Reset FRegisters
             for (int i = 0; i < FRegisters.Length; i++)
                 FRegisters[i] = T3Float.FromDouble(0);
         }
@@ -88,41 +92,31 @@ namespace T3Simulator.Common
 
         public virtual void Run()
         {
-            while (!IsHalted && Step())
-            {
-            }
+            while (!IsHalted && Step()) { }
         }
 
-        /// <summary>
-        /// Run the program N iterations. After each iteration, resets PC but preserves counters.
-        /// Returns true if all iterations completed without error.
-        /// </summary>
         public virtual void RunIterations(int iterations)
         {
             for (int i = 0; i < iterations; i++)
             {
-                // Reset PC and halt flag for next iteration (preserve counters)
                 PC = 0;
                 IsHalted = false;
                 SP = _initialSp;
-                WP = 0;
+                FP = _initialSp;
+                HP = HeapStart;
+                CD = 0;
+                WD = 0;
 
-                // Reset registers
                 for (int j = 0; j < Registers.Length; j++)
                     Registers[j] = TWord.FromLong(0);
                 PR = TWord.FromLong(0);
                 for (int j = 0; j < FRegisters.Length; j++)
                     FRegisters[j] = T3Float.FromDouble(0);
 
-                while (!IsHalted && Step())
-                {
-                }
+                while (!IsHalted && Step()) { }
             }
         }
 
-        /// <summary>
-        /// Reset all counters to zero (cycle, instruction, stall).
-        /// </summary>
         public virtual void ResetCounters()
         {
             _cycleCount = 0;
@@ -130,15 +124,8 @@ namespace T3Simulator.Common
             _stallCount = 0;
         }
 
-        public virtual void SetInputDevice(long port, IDevice<TWord> dev)
-        {
-            DeviceManager.RegisterDevice(port, dev);
-        }
-
-        public virtual void SetOutputDevice(long port, IDevice<TWord> dev)
-        {
-            DeviceManager.RegisterDevice(port, dev);
-        }
+        public virtual void SetInputDevice(long port, IDevice<TWord> dev)  => DeviceManager.RegisterDevice(port, dev);
+        public virtual void SetOutputDevice(long port, IDevice<TWord> dev) => DeviceManager.RegisterDevice(port, dev);
 
         public virtual ProcessorState<TWord> GetState()
         {
@@ -150,8 +137,8 @@ namespace T3Simulator.Common
                 _stallCount,
                 PC,
                 SP,
-                WP,
-                Cond
+                WD,
+                CD
             );
         }
 
@@ -159,15 +146,8 @@ namespace T3Simulator.Common
         protected void IncrementInstructions() => _instructionCount++;
         protected void IncrementStalls() => _stallCount++;
 
-        protected TWord FromLong(long value)
-        {
-            return (TWord)TWord.FromLong(value);
-        }
-
-        protected long ToLong(TWord value)
-        {
-            return (long)value.ToInt128();
-        }
+        protected TWord FromLong(long value) => (TWord)TWord.FromLong(value);
+        protected long ToLong(TWord value) => (long)value.ToInt128();
 
         public TWord ReadWord(long address)
         {
@@ -177,13 +157,11 @@ namespace T3Simulator.Common
             if (address == Memory.AddrStallCount) return FromLong(_stallCount);
             if (address == Memory.AddrTimerCtrl) return FromLong(0);
             if (address == Memory.AddrTimerCmp) return FromLong(0);
-
             return Memory.Read(address);
         }
 
         protected void WriteWord(long address, TWord value)
         {
-            // Writing to CYCLE_LOW resets all counters (per spec)
             if (address == Memory.AddrCycleLow)
             {
                 _cycleCount = 0;
@@ -191,14 +169,10 @@ namespace T3Simulator.Common
                 _stallCount = 0;
                 return;
             }
-            // All other MMIO addresses: ignore writes
             if (Memory.IsMmioAddress(address)) return;
             Memory.Write(address, value);
         }
 
-        /// <summary>
-        /// Read memory value as long for CLI display purposes
-        /// </summary>
         public long GetMemoryValue(long address)
         {
             var word = ReadWord(address);

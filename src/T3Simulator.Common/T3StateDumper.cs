@@ -12,8 +12,8 @@ namespace T3Simulator.Common
             sb.AppendLine("--- T3 Processor State ---");
             sb.AppendLine($"PC: {state.PC}");
             sb.AppendLine($"SP: {state.SP}");
-            sb.AppendLine($"WP: {state.WP}");
-            sb.AppendLine($"Cond: {state.Cond}");
+            sb.AppendLine($"WD: {state.WD}");
+            sb.AppendLine($"CD: {state.CD}");
             sb.AppendLine($"Cycles: {state.CycleCount}");
             sb.AppendLine($"Instructions: {state.InstructionCount}");
             sb.AppendLine($"Stalls: {state.StallCount}");
@@ -40,8 +40,8 @@ namespace T3Simulator.Common
             sb.AppendLine("--- T3 Processor State (Generic) ---");
             sb.AppendLine($"PC: {state.PC}");
             sb.AppendLine($"SP: {state.SP}");
-            sb.AppendLine($"WP: {state.WP}");
-            sb.AppendLine($"Cond: {state.Cond}");
+            sb.AppendLine($"WD: {state.WD}");
+            sb.AppendLine($"CD: {state.CD}");
             sb.AppendLine($"Cycles: {state.CycleCount}");
             sb.AppendLine($"Instructions: {state.InstructionCount}");
             sb.AppendLine($"Stalls: {state.StallCount}");

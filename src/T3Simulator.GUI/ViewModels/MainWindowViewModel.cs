@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -276,13 +276,13 @@ public class MainWindowViewModel : ViewModelBase
             
             // Using ToInt128() safely via cast for PR
             PrFormatted = T3Formatter.FormatValue((long)state.PR.ToInt128(), CurrentFormat);
-            CondFormatted = state.Cond.ToString();
+            CondFormatted = state.CD.ToString();
 
             // Update explicit logical registers
             var logicals = new[] { RegRW, RegRX, RegRY, RegRZ, RegR0, RegR1, RegR2, RegR3, RegR4 };
             for (int i = 0; i < logicals.Length; i++)
             {
-                int physicalIndex = RegisterWindow.GetPhysicalIndex(i, state.WP);
+                int physicalIndex = RegisterWindow.GetPhysicalIndex(i, state.WD);
                 // FIX: Use ToInt128() instead of direct (long) cast
                 long val = (long)state.Registers[physicalIndex].ToInt128();
                 logicals[i].Value = T3Formatter.FormatValue(val, CurrentFormat);

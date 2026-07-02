@@ -26,8 +26,10 @@ namespace T3Compiler.CodeGen
         // Struct size cache for sizeof operator
         readonly Dictionary<string,int> _structSizes = new();
 
-        // ABI v4 register assignments
-        const int FP = 3;    // RZ
+        // ISA v5 register assignments (Special registers: FP, HP, SP in RegGroup +1)
+        const int SP = 9;     // S.SP
+        const int FP = 10;    // S.FP
+        const int HP = 11;    // S.HP
         const int CALLREG = 5; // R1
         const int RETREG = 6;  // R2
         const int ADDRREG = 8; // R4 (callee-saved)
