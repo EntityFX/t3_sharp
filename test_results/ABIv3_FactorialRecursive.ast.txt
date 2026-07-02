@@ -1,0 +1,17 @@
+--- AST Dump ---
+Function: fact
+  Return Type: tint
+  Param: n : tint
+  Body:
+    CompoundStmt:
+      IfStmt:
+        Condition: BinaryOp: <= (Identifier: n IntegerLiteral: 1)
+        Then:
+        CompoundStmt:
+          ReturnStmt: IntegerLiteral: 1
+      ReturnStmt: BinaryOp: * (Identifier: n FunctionCall: fact (BinaryOp: - (Identifier: n IntegerLiteral: 1) ))
+Function: main
+  Return Type: tint
+  Body:
+    CompoundStmt:
+      ReturnStmt: FunctionCall: fact (IntegerLiteral: 5 )

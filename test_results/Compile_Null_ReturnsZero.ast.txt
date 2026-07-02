@@ -1,0 +1,7 @@
+--- AST Dump ---
+Function: main
+  Return Type: tint
+  Body:
+    CompoundStmt:
+      VarDecl: x : tint = UnknownNode
+      ReturnStmt: Identifier: x

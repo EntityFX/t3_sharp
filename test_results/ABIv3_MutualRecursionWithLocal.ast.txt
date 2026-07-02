@@ -1,0 +1,30 @@
+--- AST Dump ---
+Function: isEven
+  Return Type: tint
+  Param: n : tint
+  Body:
+    CompoundStmt:
+      IfStmt:
+        Condition: BinaryOp: == (Identifier: n IntegerLiteral: 0)
+        Then:
+        CompoundStmt:
+          ReturnStmt: IntegerLiteral: 1
+      VarDecl: m : tint = BinaryOp: - (Identifier: n IntegerLiteral: 1)
+      ReturnStmt: FunctionCall: isOdd (Identifier: m )
+Function: isOdd
+  Return Type: tint
+  Param: n : tint
+  Body:
+    CompoundStmt:
+      IfStmt:
+        Condition: BinaryOp: == (Identifier: n IntegerLiteral: 0)
+        Then:
+        CompoundStmt:
+          ReturnStmt: IntegerLiteral: 0
+      VarDecl: m : tint = BinaryOp: - (Identifier: n IntegerLiteral: 1)
+      ReturnStmt: FunctionCall: isEven (Identifier: m )
+Function: main
+  Return Type: tint
+  Body:
+    CompoundStmt:
+      ReturnStmt: FunctionCall: isEven (IntegerLiteral: 10 )

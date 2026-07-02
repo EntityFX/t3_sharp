@@ -7,8 +7,8 @@ __entry:
 main:
     PUSH R3
     PUSH R4
-    LIMM RW,16
-    S.SUB SP, SP, RW
+    LIMM R3,16
+    S.SUB SP, SP, R3
     S.MOV RZ, SP
     MOV RW,1
     PUSH RW
@@ -24,80 +24,80 @@ main:
     MOV R4,16
     SUB R4, RZ, R4
     ADD R4,R4,RY
-    POP RZ
-    ST RZ, R4, 0
-    MOV RY,3
-    PUSH RY
-    MOV RZ,2
-    MOV R4,16
-    SUB R4, RZ, R4
-    ADD R4,R4,RZ
     POP R0
     ST R0, R4, 0
-    MOV RZ,4
-    PUSH RZ
-    MOV R0,3
+    MOV RY,3
+    PUSH RY
+    MOV R0,2
     MOV R4,16
     SUB R4, RZ, R4
     ADD R4,R4,R0
     POP RW
     ST RW, R4, 0
-    MOV R0,5
+    MOV R0,4
     PUSH R0
-    MOV RW,0
-    MOV R4,12
+    MOV RW,3
+    MOV R4,16
     SUB R4, RZ, R4
     ADD R4,R4,RW
     POP RX
     ST RX, R4, 0
-    MOV RW,6
+    MOV RW,5
     PUSH RW
-    MOV RX,1
+    MOV RX,0
     MOV R4,12
     SUB R4, RZ, R4
     ADD R4,R4,RX
     POP RY
     ST RY, R4, 0
-    MOV RX,7
+    MOV RX,6
     PUSH RX
-    MOV RY,2
+    MOV RY,1
     MOV R4,12
     SUB R4, RZ, R4
     ADD R4,R4,RY
-    POP RZ
-    ST RZ, R4, 0
-    MOV RY,8
-    PUSH RY
-    MOV RZ,3
-    MOV R4,12
-    SUB R4, RZ, R4
-    ADD R4,R4,RZ
     POP R0
     ST R0, R4, 0
-    MOV RZ,0
-    ST RZ, RZ, -4
+    MOV RY,7
+    PUSH RY
+    MOV R0,2
+    MOV R4,12
+    SUB R4, RZ, R4
+    ADD R4,R4,R0
+    POP RW
+    ST RW, R4, 0
+    MOV R0,8
+    PUSH R0
+    MOV RW,3
+    MOV R4,12
+    SUB R4, RZ, R4
+    ADD R4,R4,RW
+    POP RX
+    ST RX, R4, 0
+    MOV RW,0
+    ST RW, RZ, -4
 loop_1:
-    LD R0, RZ, -4
-    MOV RW,2
-    CMP R0,RW
-    LIMM RX,body_2
-    JL RX
-    LIMM RY,wend_3
-    JMP RY
+    LD RX, RZ, -4
+    MOV RY,2
+    CMP RX,RY
+    LIMM R0,body_2
+    JL R0
+    LIMM RW,wend_3
+    JMP RW
 body_2:
-    MOV RZ,0
-    ST RZ, RZ, -3
+    MOV RX,0
+    ST RX, RZ, -3
 loop_4:
-    LD R0, RZ, -3
-    MOV RW,2
-    CMP R0,RW
-    LIMM RX,body_5
-    JL RX
-    LIMM RY,wend_6
-    JMP RY
+    LD RY, RZ, -3
+    MOV R0,2
+    CMP RY,R0
+    LIMM RW,body_5
+    JL RW
+    LIMM RX,wend_6
+    JMP RX
 body_5:
-    MOV RZ,0
-    ST RZ, RZ, -2
+    MOV RY,0
+    ST RY, RZ, -2
     MOV R0,0
     ST R0, RZ, -1
 loop_7:
@@ -106,121 +106,121 @@ loop_7:
     CMP RW,RX
     LIMM RY,body_8
     JL RY
-    LIMM RZ,wend_9
-    JMP RZ
+    LIMM R0,wend_9
+    JMP R0
 body_8:
-    LD R0, RZ, -2
-    PUSH R0
+    LD RW, RZ, -2
+    PUSH RW
+    LD RX, RZ, -4
+    PUSH RX
+    MOV RY,2
+    POP R0
+    MUL RW,R0,RY
+    PUSH RW
+    LD RY, RZ, -1
+    POP R0
+    ADD RX,R0,RY
+    MOV R4,16
+    SUB R4, RZ, R4
+    ADD R4,R4,RX
+    LD RX,R4, 0
+    PUSH RX
+    LD RY, RZ, -1
+    PUSH RY
+    MOV R0,2
+    POP RY
+    MUL RW,RY,R0
+    PUSH RW
+    LD R0, RZ, -3
+    POP RY
+    ADD RX,RY,R0
+    MOV R4,12
+    SUB R4, RZ, R4
+    ADD R4,R4,RX
+    LD RX,R4, 0
+    POP R0
+    MUL RY,R0,RX
+    POP RX
+    ADD R0,RX,RY
+    ST R0, RZ, -2
+    LD RY, RZ, -1
+    PUSH RY
+    MOV RX,1
+    POP RY
+    ADD R0,RY,RX
+    ST R0, RZ, -1
+    LIMM RX,loop_7
+    JMP RX
+wend_9:
+    LD RY, RZ, -2
+    PUSH RY
     LD RW, RZ, -4
     PUSH RW
     MOV RX,2
     POP RY
-    MUL RZ,RY,RX
-    PUSH RZ
-    LD RX, RZ, -1
+    MUL R0,RY,RX
+    PUSH R0
+    LD RX, RZ, -3
+    POP RY
+    ADD RW,RY,RX
+    MOV R4,8
+    SUB R4, RZ, R4
+    ADD R4,R4,RW
+    POP RX
+    ST RX, R4, 0
+    LD RW, RZ, -3
+    PUSH RW
+    MOV RX,1
     POP RY
     ADD R0,RY,RX
-    MOV R4,16
+    ST R0, RZ, -3
+    LIMM RX,loop_4
+    JMP RX
+wend_6:
+    LD RY, RZ, -4
+    PUSH RY
+    MOV RW,1
+    POP RX
+    ADD RY,RX,RW
+    ST RY, RZ, -4
+    LIMM RW,loop_1
+    JMP RW
+wend_3:
+    MOV RX,0
+    MOV R4,8
+    SUB R4, RZ, R4
+    ADD R4,R4,RX
+    LD RX,R4, 0
+    PUSH RX
+    MOV R0,1
+    MOV R4,8
     SUB R4, RZ, R4
     ADD R4,R4,R0
     LD R0,R4, 0
-    PUSH R0
-    LD RX, RZ, -1
-    PUSH RX
-    MOV RY,2
     POP RW
-    MUL RX,RW,RY
+    ADD RX,RW,R0
     PUSH RX
-    LD RY, RZ, -3
+    MOV R0,2
+    MOV R4,8
+    SUB R4, RZ, R4
+    ADD R4,R4,R0
+    LD R0,R4, 0
     POP RW
-    ADD RZ,RW,RY
-    MOV R4,12
-    SUB R4, RZ, R4
-    ADD R4,R4,RZ
-    LD RZ,R4, 0
-    POP RY
-    MUL RW,RY,RZ
-    POP RZ
-    ADD RY,RZ,RW
-    ST RY, RZ, -2
-    LD RW, RZ, -1
-    PUSH RW
-    MOV RZ,1
-    POP R0
-    ADD RW,R0,RZ
-    ST RW, RZ, -1
-    LIMM RZ,loop_7
-    JMP RZ
-wend_9:
-    LD R0, RZ, -2
-    PUSH R0
-    LD RX, RZ, -4
-    PUSH RX
-    MOV RY,2
-    POP RZ
-    MUL R0,RZ,RY
-    PUSH R0
-    LD RY, RZ, -3
-    POP RZ
-    ADD RW,RZ,RY
-    MOV R4,8
-    SUB R4, RZ, R4
-    ADD R4,R4,RW
-    POP RY
-    ST RY, R4, 0
-    LD RW, RZ, -3
-    PUSH RW
-    MOV RY,1
-    POP RZ
-    ADD RX,RZ,RY
-    ST RX, RZ, -3
-    LIMM RY,loop_4
-    JMP RY
-wend_6:
-    LD RZ, RZ, -4
-    PUSH RZ
-    MOV RY,1
-    POP RZ
-    ADD R0,RZ,RY
-    ST R0, RZ, -4
-    LIMM RY,loop_1
-    JMP RY
-wend_3:
-    MOV RZ,0
-    MOV R4,8
-    SUB R4, RZ, R4
-    ADD R4,R4,RZ
-    LD RZ,R4, 0
-    PUSH RZ
-    MOV RW,1
-    MOV R4,8
-    SUB R4, RZ, R4
-    ADD R4,R4,RW
-    LD RW,R4, 0
-    POP RX
-    ADD RY,RX,RW
+    ADD RY,RW,R0
     PUSH RY
-    MOV RW,2
+    MOV R0,3
     MOV R4,8
     SUB R4, RZ, R4
-    ADD R4,R4,RW
-    LD RW,R4, 0
-    POP RX
-    ADD RZ,RX,RW
-    PUSH RZ
-    MOV RW,3
-    MOV R4,8
-    SUB R4, RZ, R4
-    ADD R4,R4,RW
-    LD RW,R4, 0
-    POP RX
-    ADD R0,RX,RW
-    MOV R2,R0
-    LIMM RW,epilogue_0
-    JMP RW
+    ADD R4,R4,R0
+    LD R0,R4, 0
+    POP RW
+    ADD RX,RW,R0
+    MOV R2,RX
+    LIMM R0,epilogue_0
+    JMP R0
 epilogue_0:
-    LIMM RX,16
-    S.ADD SP, SP, RX
+    LIMM RW,16
+    S.ADD SP, SP, RW
     POP R4
     POP R3
     RET
@@ -236,14 +236,16 @@ strlen:
     PUSH RZ
     PUSH R3
     PUSH R4
-    LI R2, 0
+    MOV R2, 0
 strlen_loop:
-    LOADI R1, RW, 0
-    CMPI R1, 0
+    LD R1, RW, 0
+    MOV R0, 0
+    CMP R1, R0
     JE strlen_end
-    ADDI R2, 1
-    ADDI RW, 1
-    JMP strlen_loop
+    ADD R2, R2, 1
+    ADD RW, RW, 1
+    LIMM R0, strlen_loop
+    JMP R0
 strlen_end:
     POP R4
     POP R3
@@ -253,7 +255,8 @@ putchar:
     PUSH RZ
     PUSH R3
     PUSH R4
-    OUTI RW, 0
+    MOV R0, 0
+    OUT RW, R0
     POP R4
     POP R3
     POP RZ
@@ -262,7 +265,8 @@ getchar:
     PUSH RZ
     PUSH R3
     PUSH R4
-    INI R2, 0
+    MOV R0, 0
+    IN R2, R0
     POP R4
     POP R3
     POP RZ
@@ -271,24 +275,29 @@ print_int:
     PUSH RZ
     PUSH R3
     PUSH R4
-    LI R2, 0
-    LI R3, 0
-    LI R4, 0
-    CMPI RW, 0
+    MOV R2, 0
+    MOV R3, 0
+    MOV R4, 0
+    MOV R0, 0
+    CMP RW, R0
     JGE pi_pos
-    LI R1, 45
-    OUT R1, 0
+    MOV R1, 45
+    MOV R0, 0
+    OUT R1, R0
     NEG RW, RW
 pi_pos:
-    LI R2, 10
+    MOV R2, 10
     DIV R3, RW, R2
-    CMPI R3, 0
+    MOV R0, 0
+    CMP R3, R0
     JE pi_one
     DIV R3, RW, R2
-    CMPI R3, 0
+    MOV R0, 0
+    CMP R3, R0
     JE pi_two
     DIV R3, RW, R2
-    CMPI R3, 0
+    MOV R0, 0
+    CMP R3, R0
     JE pi_three
 pi_three:
     MOD R3, RW, R2
@@ -304,9 +313,11 @@ pi_one:
     DIV RW, RW, R2
 pi_emit:
     POP R3
-    ADDI R3, 48
-    OUTI R3, 0
-    CMPI RW, 0
+    ADD R3, R3, 48
+    MOV R0, 0
+    OUT R3, R0
+    MOV R0, 0
+    CMP RW, R0
     JNE pi_emit
     POP R4
     POP R3
@@ -317,12 +328,15 @@ print_str:
     PUSH R3
     PUSH R4
 ps_loop:
-    LOADI R3, RW, 0
-    CMPI R3, 0
+    LD R3, RW, 0
+    MOV R0, 0
+    CMP R3, R0
     JE ps_end
-    OUTI R3, 0
-    ADDI RW, 1
-    JMP ps_loop
+    MOV R0, 0
+    OUT R3, R0
+    ADD RW, RW, 1
+    LIMM R0, ps_loop
+    JMP R0
 ps_end:
     POP R4
     POP R3
@@ -334,8 +348,9 @@ puts:
     PUSH R4
     LIMM R1, print_str
     CALL R1
-    LI R1, 10
-    OUT R1, 0
+    MOV R1, 10
+    MOV R0, 0
+    OUT R1, R0
     POP R4
     POP R3
     POP RZ
@@ -344,10 +359,12 @@ abs:
     PUSH RZ
     PUSH R3
     PUSH R4
-    CMPI RW, 0
+    MOV R0, 0
+    CMP RW, R0
     JGE abs_end
     NEG RW, RW
 abs_end:
+    MOV R0, 0
     MOV R2, RW
     POP R4
     POP R3
@@ -360,7 +377,8 @@ min:
     CMP RW, RX
     JLE min_rw
     MOV R2, RX
-    JMP min_end
+    LIMM R0, min_end
+    JMP R0
 min_rw:
     MOV R2, RW
 min_end:
@@ -375,7 +393,8 @@ max:
     CMP RW, RX
     JGE max_rw
     MOV R2, RX
-    JMP max_end
+    LIMM R0, max_end
+    JMP R0
 max_rw:
     MOV R2, RW
 max_end:
@@ -388,25 +407,29 @@ t_strcmp:
     PUSH R3
     PUSH R4
 tsc_loop:
-    LOADI R3, RW, 0
-    LOADI R4, RX, 0
+    LD R3, RW, 0
+    LD R4, RX, 0
     CMP R3, R4
     JNE tsc_diff
-    CMPI R3, 0
+    MOV R0, 0
+    CMP R3, R0
     JE tsc_eq
-    ADDI RW, 1
-    ADDI RX, 1
-    JMP tsc_loop
+    ADD RW, RW, 1
+    ADD RX, RX, 1
+    LIMM R0, tsc_loop
+    JMP R0
 tsc_diff:
     CMP R3, R4
     JL tsc_lt
-    LI R2, 1
-    JMP tsc_end
+    MOV R2, 1
+    LIMM R0, tsc_end
+    JMP R0
 tsc_lt:
-    LI R2, -1
-    JMP tsc_end
+    MOV R2, -1
+    LIMM R0, tsc_end
+    JMP R0
 tsc_eq:
-    LI R2, 0
+    MOV R2, 0
 tsc_end:
     POP R4
     POP R3
@@ -417,13 +440,15 @@ t_strcpy:
     PUSH R3
     PUSH R4
 tcp_loop:
-    LOADI R3, RX, 0
-    STOREI R3, RW, 0
-    CMPI R3, 0
+    LD R3, RX, 0
+    ST R3, RW, 0
+    MOV R0, 0
+    CMP R3, R0
     JE tcp_end
-    ADDI RW, 1
-    ADDI RX, 1
-    JMP tcp_loop
+    ADD RW, RW, 1
+    ADD RX, RX, 1
+    LIMM R0, tcp_loop
+    JMP R0
 tcp_end:
     POP R4
     POP R3

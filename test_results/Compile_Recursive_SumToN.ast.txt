@@ -1,0 +1,17 @@
+--- AST Dump ---
+Function: sum
+  Return Type: tint
+  Param: n : tint
+  Body:
+    CompoundStmt:
+      IfStmt:
+        Condition: BinaryOp: <= (Identifier: n IntegerLiteral: 0)
+        Then:
+        CompoundStmt:
+          ReturnStmt: IntegerLiteral: 0
+      ReturnStmt: BinaryOp: + (Identifier: n FunctionCall: sum (BinaryOp: - (Identifier: n IntegerLiteral: 1) ))
+Function: main
+  Return Type: tint
+  Body:
+    CompoundStmt:
+      ReturnStmt: FunctionCall: sum (IntegerLiteral: 10 )

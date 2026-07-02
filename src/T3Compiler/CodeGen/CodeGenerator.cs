@@ -47,7 +47,7 @@ namespace T3Compiler.CodeGen
             EmitCode($"{f.Name}:");
             EmitCode("    PUSH R3");EmitCode("    PUSH R4");
             int localSize=0;foreach(var sz in _varSizes.Values)localSize+=sz;_currentLocalSize=localSize;
-            if(localSize>0){int r=AllocR();EmitCode($"    LIMM {RegName(r)},{localSize}");EmitCode($"    S.SUB SP, SP, {RegName(r)}");FreeR(r);}
+            if(localSize>0){EmitCode($"    LIMM R3,{localSize}");EmitCode($"    S.SUB SP, SP, R3");}  // R3 = temp (callee-saved)
             EmitCode("    S.MOV RZ, SP");  // RZ = base of locals (SP after allocation)
             int[] argRegs={0,1,2,4};int nParams=f.Parameters.Count;
             for(int i=0;i<4&&i<nParams;i++)StoreV(f.Parameters[i].Name,argRegs[i],0);
@@ -89,8 +89,9 @@ namespace T3Compiler.CodeGen
         static bool IsCmp(string op)=>op is"=="or"!="or"<"or">"or"<="or">=";
         long ParseInt(string v)=>LiteralParser.ParseInt(v);
         int _nextReg=0;readonly Stack<int> _freeRegs=new();
-        int AllocR(){while(_freeRegs.Count>0){int fr=_freeRegs.Pop();if(fr>=0&&fr<9&&fr!=CALLREG&&fr!=RETREG&&fr!=ADDRREG&&fr!=7)return fr;}while(true){if(_nextReg>=0&&_nextReg<9&&_nextReg!=CALLREG&&_nextReg!=RETREG&&_nextReg!=ADDRREG&&_nextReg!=7)break;_nextReg=(_nextReg+1)%9;}int r=_nextReg;_nextReg=(_nextReg+1)%9;return r;}
-        void FreeR(int r){if(r>=0&&r<9&&r!=CALLREG&&r!=RETREG&&r!=ADDRREG&&r!=7)_freeRegs.Push(r);}
+        const int RESERVED_RZ=3;
+        int AllocR(){while(_freeRegs.Count>0){int fr=_freeRegs.Pop();if(fr>=0&&fr<9&&fr!=CALLREG&&fr!=RETREG&&fr!=ADDRREG&&fr!=7&&fr!=RESERVED_RZ)return fr;}while(true){if(_nextReg>=0&&_nextReg<9&&_nextReg!=CALLREG&&_nextReg!=RETREG&&_nextReg!=ADDRREG&&_nextReg!=7&&_nextReg!=RESERVED_RZ)break;_nextReg=(_nextReg+1)%9;}int r=_nextReg;_nextReg=(_nextReg+1)%9;return r;}
+        void FreeR(int r){if(r>=0&&r<9&&r!=CALLREG&&r!=RETREG&&r!=ADDRREG&&r!=7&&r!=RESERVED_RZ)_freeRegs.Push(r);}
         int Imm(long v){int r=AllocR();if(v>=-364&&v<=364)EmitCode($"    MOV {RegName(r)},{v}");else EmitCode($"    LIMM {RegName(r)},{v}");return r;}
         string Lbl(string pfx)=>$"{pfx}_{_labelCounter++}";
         void Emit(string s="")=>_output.AppendLine(s);

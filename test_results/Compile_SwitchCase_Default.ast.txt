@@ -1,0 +1,17 @@
+--- AST Dump ---
+Function: main
+  Return Type: tint
+  Body:
+    CompoundStmt:
+      VarDecl: x : tint = IntegerLiteral: 100
+      SwitchStmt:
+        Expr: Identifier: x
+        Case:
+          Value: IntegerLiteral: 1
+        ReturnStmt: IntegerLiteral: 10
+        Case:
+          Value: IntegerLiteral: 2
+        ReturnStmt: IntegerLiteral: 20
+        Case:
+          Default
+        ReturnStmt: IntegerLiteral: 99

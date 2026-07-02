@@ -1,0 +1,24 @@
+--- AST Dump ---
+Function: fib
+  Return Type: tint
+  Param: n : tint
+  Body:
+    CompoundStmt:
+      VarDecl: a : tint = IntegerLiteral: 0
+      VarDecl: b : tint = IntegerLiteral: 1
+      VarDecl: c : tint = IntegerLiteral: 0
+      VarDecl: i : tint = IntegerLiteral: 0
+      WhileStmt:
+        Condition: BinaryOp: < (Identifier: i Identifier: n)
+        Body:
+        CompoundStmt:
+          ExprStmt: Assignment: = (Identifier: c = BinaryOp: + (Identifier: a Identifier: b))
+          ExprStmt: Assignment: = (Identifier: a = Identifier: b)
+          ExprStmt: Assignment: = (Identifier: b = Identifier: c)
+          ExprStmt: Assignment: = (Identifier: i = BinaryOp: + (Identifier: i IntegerLiteral: 1))
+      ReturnStmt: Identifier: a
+Function: main
+  Return Type: tint
+  Body:
+    CompoundStmt:
+      ReturnStmt: FunctionCall: fib (IntegerLiteral: 10 )

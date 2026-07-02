@@ -1,0 +1,17 @@
+--- AST Dump ---
+Function: main
+  Return Type: tint
+  Body:
+    CompoundStmt:
+      VarDecl: x : tint = IntegerLiteral: 0
+      WhileStmt:
+        Condition: IntegerLiteral: 1
+        Body:
+        CompoundStmt:
+          ExprStmt: Assignment: = (Identifier: x = BinaryOp: + (Identifier: x IntegerLiteral: 1))
+          IfStmt:
+            Condition: BinaryOp: > (Identifier: x IntegerLiteral: 10)
+            Then:
+            CompoundStmt:
+              BreakStmt
+      ReturnStmt: Identifier: x

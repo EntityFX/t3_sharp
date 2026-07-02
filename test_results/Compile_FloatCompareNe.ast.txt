@@ -1,0 +1,13 @@
+--- AST Dump ---
+Function: main
+  Return Type: tint
+  Body:
+    CompoundStmt:
+      VarDecl: x : tfloat = FloatLiteral: 3.14
+      VarDecl: y : tfloat = FloatLiteral: 2.71
+      IfStmt:
+        Condition: BinaryOp: != (Identifier: x Identifier: y)
+        Then:
+        CompoundStmt:
+          ReturnStmt: IntegerLiteral: 1
+      ReturnStmt: UnaryOp: - (IntegerLiteral: 1)

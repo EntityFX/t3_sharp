@@ -1,0 +1,8 @@
+--- AST Dump ---
+Function: main
+  Return Type: tint
+  Body:
+    CompoundStmt:
+      VarDecl: len1 : tint = FunctionCall: strlen (StringLiteral: Hello )
+      VarDecl: len2 : tint = FunctionCall: strlen (StringLiteral: World! )
+      ReturnStmt: BinaryOp: + (Identifier: len1 Identifier: len2)
