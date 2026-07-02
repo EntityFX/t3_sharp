@@ -5,158 +5,156 @@ __entry:
     CALL R1
     HALT
 main:
-    PUSH RZ
     PUSH R3
     PUSH R4
-    MOV RZ, SP
-    SUBI SP, SP, 34
-    LI RW,2
-    STOREI RW, RZ, -3
+    MOV RZ, FP
+    SUB SP, SP, 34
+    MOV RW,2
+    ST RW, RZ, -3
 loop_1:
-    LOADI RX, RZ, -3
-    LI RY,30
+    LD RX, RZ, -3
+    MOV RY,30
     CMP RX,RY
     LIMM RZ,body_2
     JLE RZ
     LIMM R0,wend_3
     JMP R0
 body_2:
-    LI RW,1
+    MOV RW,1
     PUSH RW
-    LOADI RX, RZ, -3
-    LI R4, 34
+    LD RX, RZ, -3
+    MOV R4,34
     SUB R4, RZ, R4
     ADD R4,R4,RX
     POP RY
-    STOREI RY, R4, 0
-    LOADI RX, RZ, -3
+    ST RY, R4, 0
+    LD RX, RZ, -3
     PUSH RX
-    LI RY,1
+    MOV RY,1
     POP RZ
     ADD R0,RZ,RY
-    STOREI R0, RZ, -3
+    ST R0, RZ, -3
     LIMM RY,loop_1
     JMP RY
 wend_3:
-    LI RZ,2
-    STOREI RZ, RZ, -3
+    MOV RZ,2
+    ST RZ, RZ, -3
 loop_4:
-    LOADI RW, RZ, -3
+    LD RW, RZ, -3
     PUSH RW
-    LOADI RX, RZ, -3
+    LD RX, RZ, -3
     POP RY
     MUL RZ,RY,RX
-    LI RX,30
+    MOV RX,30
     CMP RZ,RX
     LIMM RY,body_5
     JLE RY
     LIMM R0,wend_6
     JMP R0
 body_5:
-    LOADI RW, RZ, -3
-    LI R4, 34
+    LD RW, RZ, -3
+    MOV R4,34
     SUB R4, RZ, R4
     ADD R4,R4,RW
-    LOADI RW,R4, 0
-    LI RX,1
+    LD RW,R4, 0
+    MOV RX,1
     CMP RW,RX
     LIMM RY,then_8
     JE RY
     LIMM RZ,end_7
     JMP RZ
 then_8:
-    LOADI R0, RZ, -3
+    LD R0, RZ, -3
     PUSH R0
-    LOADI RW, RZ, -3
+    LD RW, RZ, -3
     POP RX
     MUL RY,RX,RW
-    STOREI RY, RZ, -2
+    ST RY, RZ, -2
 loop_9:
-    LOADI RW, RZ, -2
-    LI RX,30
+    LD RW, RZ, -2
+    MOV RX,30
     CMP RW,RX
     LIMM RZ,body_10
     JLE RZ
     LIMM R0,wend_11
     JMP R0
 body_10:
-    LI RW,0
+    MOV RW,0
     PUSH RW
-    LOADI RX, RZ, -2
-    LI R4, 34
+    LD RX, RZ, -2
+    MOV R4,34
     SUB R4, RZ, R4
     ADD R4,R4,RX
     POP RY
-    STOREI RY, R4, 0
-    LOADI RX, RZ, -2
+    ST RY, R4, 0
+    LD RX, RZ, -2
     PUSH RX
-    LOADI RY, RZ, -3
+    LD RY, RZ, -3
     POP RZ
     ADD R0,RZ,RY
-    STOREI R0, RZ, -2
+    ST R0, RZ, -2
     LIMM RY,loop_9
     JMP RY
 wend_11:
 end_7:
-    LOADI RZ, RZ, -3
+    LD RZ, RZ, -3
     PUSH RZ
-    LI RW,1
+    MOV RW,1
     POP RX
     ADD RY,RX,RW
-    STOREI RY, RZ, -3
+    ST RY, RZ, -3
     LIMM RW,loop_4
     JMP RW
 wend_6:
-    LI RX,0
-    STOREI RX, RZ, -1
-    LI RZ,2
-    STOREI RZ, RZ, -3
+    MOV RX,0
+    ST RX, RZ, -1
+    MOV RZ,2
+    ST RZ, RZ, -3
 loop_12:
-    LOADI R0, RZ, -3
-    LI RW,30
+    LD R0, RZ, -3
+    MOV RW,30
     CMP R0,RW
     LIMM RX,body_13
     JLE RX
     LIMM RY,wend_14
     JMP RY
 body_13:
-    LOADI RZ, RZ, -3
-    LI R4, 34
+    LD RZ, RZ, -3
+    MOV R4,34
     SUB R4, RZ, R4
     ADD R4,R4,RZ
-    LOADI RZ,R4, 0
-    LI R0,1
+    LD RZ,R4, 0
+    MOV R0,1
     CMP RZ,R0
     LIMM RW,then_16
     JE RW
     LIMM RX,end_15
     JMP RX
 then_16:
-    LOADI RY, RZ, -1
+    LD RY, RZ, -1
     PUSH RY
-    LI RZ,1
+    MOV RZ,1
     POP R0
     ADD RW,R0,RZ
-    STOREI RW, RZ, -1
+    ST RW, RZ, -1
 end_15:
-    LOADI RZ, RZ, -3
+    LD RZ, RZ, -3
     PUSH RZ
-    LI R0,1
+    MOV R0,1
     POP RX
     ADD RY,RX,R0
-    STOREI RY, RZ, -3
+    ST RY, RZ, -3
     LIMM R0,loop_12
     JMP R0
 wend_14:
-    LOADI RX, RZ, -1
+    LD RX, RZ, -1
     MOV R2,RX
     LIMM RZ,epilogue_0
     JMP RZ
 epilogue_0:
-    ADDI SP, SP, 34
+    ADD SP, SP, 34
     POP R4
     POP R3
-    POP RZ
     RET
 
 ; --- Global Variables ---

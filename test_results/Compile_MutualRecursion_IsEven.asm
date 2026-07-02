@@ -5,28 +5,27 @@ __entry:
     CALL R1
     HALT
 isEven:
-    PUSH RZ
     PUSH R3
     PUSH R4
-    MOV RZ, SP
-    SUBI SP, SP, 1
-    STOREI RW, RZ, -1
-    LOADI RW, RZ, -1
-    LI RX,0
+    MOV RZ, FP
+    SUB SP, SP, 1
+    ST RW, RZ, -1
+    LD RW, RZ, -1
+    MOV RX,0
     CMP RW,RX
     LIMM RY,then_2
     JE RY
     LIMM RZ,end_1
     JMP RZ
 then_2:
-    LI R0,1
+    MOV R0,1
     MOV R2,R0
     LIMM RW,epilogue_0
     JMP RW
 end_1:
-    LOADI RX, RZ, -1
+    LD RX, RZ, -1
     PUSH RX
-    LI RY,1
+    MOV RY,1
     POP RZ
     SUB R0,RZ,RY
     PUSH RW
@@ -47,34 +46,32 @@ end_1:
     LIMM RZ,epilogue_0
     JMP RZ
 epilogue_0:
-    ADDI SP, SP, 1
+    ADD SP, SP, 1
     POP R4
     POP R3
-    POP RZ
     RET
 isOdd:
-    PUSH RZ
     PUSH R3
     PUSH R4
-    MOV RZ, SP
-    SUBI SP, SP, 1
-    STOREI RW, RZ, -1
-    LOADI RW, RZ, -1
-    LI RX,0
+    MOV RZ, FP
+    SUB SP, SP, 1
+    ST RW, RZ, -1
+    LD RW, RZ, -1
+    MOV RX,0
     CMP RW,RX
     LIMM RY,then_5
     JE RY
     LIMM RZ,end_4
     JMP RZ
 then_5:
-    LI R0,0
+    MOV R0,0
     MOV R2,R0
     LIMM RW,epilogue_3
     JMP RW
 end_4:
-    LOADI RX, RZ, -1
+    LD RX, RZ, -1
     PUSH RX
-    LI RY,1
+    MOV RY,1
     POP RZ
     SUB R0,RZ,RY
     PUSH RW
@@ -95,17 +92,15 @@ end_4:
     LIMM RZ,epilogue_3
     JMP RZ
 epilogue_3:
-    ADDI SP, SP, 1
+    ADD SP, SP, 1
     POP R4
     POP R3
-    POP RZ
     RET
 main:
-    PUSH RZ
     PUSH R3
     PUSH R4
-    MOV RZ, SP
-    LI RW,10
+    MOV RZ, FP
+    MOV RW,10
     PUSH RW
     PUSH RX
     PUSH RY
@@ -125,7 +120,6 @@ main:
 epilogue_6:
     POP R4
     POP R3
-    POP RZ
     RET
 
 ; --- Global Variables ---

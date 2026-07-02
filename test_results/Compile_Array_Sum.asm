@@ -5,96 +5,94 @@ __entry:
     CALL R1
     HALT
 main:
-    PUSH RZ
     PUSH R3
     PUSH R4
-    MOV RZ, SP
-    SUBI SP, SP, 5
-    LI RW,1
+    MOV RZ, FP
+    SUB SP, SP, 5
+    MOV RW,1
     PUSH RW
-    LI RX,0
-    LI R4, 5
+    MOV RX,0
+    MOV R4,5
     SUB R4, RZ, R4
     ADD R4,R4,RX
     POP RY
-    STOREI RY, R4, 0
-    LI RX,2
+    ST RY, R4, 0
+    MOV RX,2
     PUSH RX
-    LI RY,1
-    LI R4, 5
+    MOV RY,1
+    MOV R4,5
     SUB R4, RZ, R4
     ADD R4,R4,RY
     POP RZ
-    STOREI RZ, R4, 0
-    LI RY,3
+    ST RZ, R4, 0
+    MOV RY,3
     PUSH RY
-    LI RZ,2
-    LI R4, 5
+    MOV RZ,2
+    MOV R4,5
     SUB R4, RZ, R4
     ADD R4,R4,RZ
     POP R0
-    STOREI R0, R4, 0
-    LI RZ,4
+    ST R0, R4, 0
+    MOV RZ,4
     PUSH RZ
-    LI R0,3
-    LI R4, 5
+    MOV R0,3
+    MOV R4,5
     SUB R4, RZ, R4
     ADD R4,R4,R0
     POP RW
-    STOREI RW, R4, 0
-    LI R0,5
+    ST RW, R4, 0
+    MOV R0,5
     PUSH R0
-    LI RW,4
-    LI R4, 5
+    MOV RW,4
+    MOV R4,5
     SUB R4, RZ, R4
     ADD R4,R4,RW
     POP RX
-    STOREI RX, R4, 0
-    LI RW,0
-    LI R4, 5
+    ST RX, R4, 0
+    MOV RW,0
+    MOV R4,5
     SUB R4, RZ, R4
     ADD R4,R4,RW
-    LOADI RW,R4, 0
+    LD RW,R4, 0
     PUSH RW
-    LI RX,1
-    LI R4, 5
+    MOV RX,1
+    MOV R4,5
     SUB R4, RZ, R4
     ADD R4,R4,RX
-    LOADI RX,R4, 0
+    LD RX,R4, 0
     POP RY
     ADD RZ,RY,RX
     PUSH RZ
-    LI RX,2
-    LI R4, 5
+    MOV RX,2
+    MOV R4,5
     SUB R4, RZ, R4
     ADD R4,R4,RX
-    LOADI RX,R4, 0
+    LD RX,R4, 0
     POP RY
     ADD R0,RY,RX
     PUSH R0
-    LI RX,3
-    LI R4, 5
+    MOV RX,3
+    MOV R4,5
     SUB R4, RZ, R4
     ADD R4,R4,RX
-    LOADI RX,R4, 0
+    LD RX,R4, 0
     POP RY
     ADD RW,RY,RX
     PUSH RW
-    LI RX,4
-    LI R4, 5
+    MOV RX,4
+    MOV R4,5
     SUB R4, RZ, R4
     ADD R4,R4,RX
-    LOADI RX,R4, 0
+    LD RX,R4, 0
     POP RY
     ADD RZ,RY,RX
     MOV R2,RZ
     LIMM RX,epilogue_0
     JMP RX
 epilogue_0:
-    ADDI SP, SP, 5
+    ADD SP, SP, 5
     POP R4
     POP R3
-    POP RZ
     RET
 
 ; --- Global Variables ---

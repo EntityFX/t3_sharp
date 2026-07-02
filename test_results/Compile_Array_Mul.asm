@@ -5,92 +5,90 @@ __entry:
     CALL R1
     HALT
 main:
-    PUSH RZ
     PUSH R3
     PUSH R4
-    MOV RZ, SP
-    SUBI SP, SP, 7
-    LI RW,1
+    MOV RZ, FP
+    SUB SP, SP, 7
+    MOV RW,1
     PUSH RW
-    LI RX,0
-    LI R4, 7
+    MOV RX,0
+    MOV R4,7
     SUB R4, RZ, R4
     ADD R4,R4,RX
     POP RY
-    STOREI RY, R4, 0
-    LI RX,2
+    ST RY, R4, 0
+    MOV RX,2
     PUSH RX
-    LI RY,1
-    LI R4, 7
+    MOV RY,1
+    MOV R4,7
     SUB R4, RZ, R4
     ADD R4,R4,RY
     POP RZ
-    STOREI RZ, R4, 0
-    LI RY,3
+    ST RZ, R4, 0
+    MOV RY,3
     PUSH RY
-    LI RZ,2
-    LI R4, 7
+    MOV RZ,2
+    MOV R4,7
     SUB R4, RZ, R4
     ADD R4,R4,RZ
     POP R0
-    STOREI R0, R4, 0
-    LI RZ,4
+    ST R0, R4, 0
+    MOV RZ,4
     PUSH RZ
-    LI R0,3
-    LI R4, 7
+    MOV R0,3
+    MOV R4,7
     SUB R4, RZ, R4
     ADD R4,R4,R0
     POP RW
-    STOREI RW, R4, 0
-    LI R0,5
+    ST RW, R4, 0
+    MOV R0,5
     PUSH R0
-    LI RW,4
-    LI R4, 7
+    MOV RW,4
+    MOV R4,7
     SUB R4, RZ, R4
     ADD R4,R4,RW
     POP RX
-    STOREI RX, R4, 0
-    LI RW,0
-    STOREI RW, RZ, -2
-    LI RX,1
-    STOREI RX, RZ, -1
+    ST RX, R4, 0
+    MOV RW,0
+    ST RW, RZ, -2
+    MOV RX,1
+    ST RX, RZ, -1
 loop_1:
-    LOADI RY, RZ, -2
-    LI RZ,5
+    LD RY, RZ, -2
+    MOV RZ,5
     CMP RY,RZ
     LIMM R0,body_2
     JL R0
     LIMM RW,wend_3
     JMP RW
 body_2:
-    LOADI RX, RZ, -1
+    LD RX, RZ, -1
     PUSH RX
-    LOADI RY, RZ, -2
-    LI R4, 7
+    LD RY, RZ, -2
+    MOV R4,7
     SUB R4, RZ, R4
     ADD R4,R4,RY
-    LOADI RY,R4, 0
+    LD RY,R4, 0
     POP RZ
     MUL R0,RZ,RY
-    STOREI R0, RZ, -1
-    LOADI RY, RZ, -2
+    ST R0, RZ, -1
+    LD RY, RZ, -2
     PUSH RY
-    LI RZ,1
+    MOV RZ,1
     POP RW
     ADD RX,RW,RZ
-    STOREI RX, RZ, -2
+    ST RX, RZ, -2
     LIMM RZ,loop_1
     JMP RZ
 wend_3:
-    LOADI RW, RZ, -1
+    LD RW, RZ, -1
     MOV R2,RW
     LIMM RY,epilogue_0
     JMP RY
 epilogue_0:
-    ADDI SP, SP, 7
+    ADD SP, SP, 7
     POP R4
     POP R3
-    POP RZ
     RET
 
 ; --- Global Variables ---

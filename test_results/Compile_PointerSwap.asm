@@ -5,40 +5,38 @@ __entry:
     CALL R1
     HALT
 main:
-    PUSH RZ
     PUSH R3
     PUSH R4
-    MOV RZ, SP
-    SUBI SP, SP, 5
-    LI RW,5
-    STOREI RW, RZ, -5
-    LI RX,10
-    STOREI RX, RZ, -4
-    LI RY, 5
+    MOV RZ, FP
+    SUB SP, SP, 5
+    MOV RW,5
+    ST RW, RZ, -5
+    MOV RX,10
+    ST RX, RZ, -4
+    MOV RY,5
     SUB RY, RZ, RY
-    STOREI RY, RZ, -3
-    LI RZ, 4
+    ST RY, RZ, -3
+    MOV RZ,4
     SUB RZ, RZ, RZ
-    STOREI RZ, RZ, -2
-    LOADI R0, RZ, -3
-    LOADI RW,R0, 0
-    STOREI RW, RZ, -1
-    LOADI RX, RZ, -2
-    LOADI RY,RX, 0
-    LOADI RZ, RZ, -1
-    LOADI R0, RZ, -5
+    ST RZ, RZ, -2
+    LD R0, RZ, -3
+    LD RW,R0,0
+    ST RW, RZ, -1
+    LD RX, RZ, -2
+    LD RY,RX,0
+    LD RZ, RZ, -1
+    LD R0, RZ, -5
     PUSH R0
-    LOADI RW, RZ, -4
+    LD RW, RZ, -4
     POP RX
     ADD RY,RX,RW
     MOV R2,RY
     LIMM RW,epilogue_0
     JMP RW
 epilogue_0:
-    ADDI SP, SP, 5
+    ADD SP, SP, 5
     POP R4
     POP R3
-    POP RZ
     RET
 
 ; --- Global Variables ---

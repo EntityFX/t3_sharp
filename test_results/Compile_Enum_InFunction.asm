@@ -5,28 +5,25 @@ __entry:
     CALL R1
     HALT
 get_val:
-    PUSH RZ
     PUSH R3
     PUSH R4
-    MOV RZ, SP
-    SUBI SP, SP, 1
-    STOREI RW, RZ, -1
-    LOADI RW, RZ, -1
+    MOV RZ, FP
+    SUB SP, SP, 1
+    ST RW, RZ, -1
+    LD RW, RZ, -1
     MOV R2,RW
     LIMM RX,epilogue_0
     JMP RX
 epilogue_0:
-    ADDI SP, SP, 1
+    ADD SP, SP, 1
     POP R4
     POP R3
-    POP RZ
     RET
 main:
-    PUSH RZ
     PUSH R3
     PUSH R4
-    MOV RZ, SP
-    LI RW,1
+    MOV RZ, FP
+    MOV RW,1
     PUSH RW
     PUSH RX
     PUSH RY
@@ -46,7 +43,6 @@ main:
 epilogue_1:
     POP R4
     POP R3
-    POP RZ
     RET
 
 ; --- Global Variables ---

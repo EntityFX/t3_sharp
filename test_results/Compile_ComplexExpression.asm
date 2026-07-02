@@ -5,21 +5,20 @@ __entry:
     CALL R1
     HALT
 main:
-    PUSH RZ
     PUSH R3
     PUSH R4
-    MOV RZ, SP
-    LI RW,5
+    MOV RZ, FP
+    MOV RW,5
     PUSH RW
-    LI RX,4
+    MOV RX,4
     POP RY
     MUL RZ,RY,RX
     PUSH RZ
-    LI RX,3
+    MOV RX,3
     POP RY
     SUB R0,RY,RX
     PUSH R0
-    LI RX,10
+    MOV RX,10
     POP RY
     ADD RW,RY,RX
     MOV R2,RW
@@ -28,7 +27,6 @@ main:
 epilogue_0:
     POP R4
     POP R3
-    POP RZ
     RET
 
 ; --- Global Variables ---

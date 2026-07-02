@@ -5,18 +5,16 @@ __entry:
     CALL R1
     HALT
 main:
-    PUSH RZ
     PUSH R3
     PUSH R4
-    MOV RZ, SP
-    LI RW,5
+    MOV RZ, FP
+    MOV RW,5
     MOV R2,RW
     LIMM RX,epilogue_0
     JMP RX
 epilogue_0:
     POP R4
     POP R3
-    POP RZ
     RET
 
 ; --- Global Variables ---
