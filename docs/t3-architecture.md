@@ -1,4 +1,4 @@
-# T3 Processor Architecture — v2 (Research Prototype)
+# T3 Processor Architecture — v5 (Research Prototype)
 
 ## Word Types
 
@@ -7,49 +7,69 @@
 - **T3Float**: 18-trit float (6 exponent + 12 mantissa). Bias = 182. Linear encoding: `value = exponent * 3^12 + mantissa`
 - **T3Double**: 36-trit float (8 exponent + 28 mantissa). Bias = 3280.
 
-## Register File (9 registers)
+## Register Files
 
-| Name | Trit val | Phys | FPU | Назначение | Caller-saved |
-|------|----------|------|-----|-----------|--------------|
-| RW | -4 | 0 | FW | Temporary | Yes |
-| RX | -3 | 1 | FX | Temporary | Yes |
-| RY | -2 | 2 | FY | Temporary | Yes |
-| RZ | -1 | 3 | FZ | Frame pointer / Temporary | Yes |
-| R0 | 0 | 4 | F0 | Temporary | Yes |
-| R1 | +1 | 5 | F1 | Call temp | Yes |
-| R2 | +2 | 6 | F2 | Return value | No |
-| R3 | +3 | 7 | F3 | Temporary | Yes |
-| R4 | +4 | 8 | F4 | Address register | Yes |
+### 1. GP Registers (General Purpose)
+| Name | Trit val | Phys | Назначение | Caller-saved |
+|------|----------|------|-----------|--------------|
+| RW | -4 | 0 | Temporary / Arg 0 | Yes |
+| RX | -3 | 1 | Temporary / Arg 1 | Yes |
+| RY | -2 | 2 | Temporary / Arg 2 | Yes |
+| RZ | -1 | 3 | Callee-saved / Frame Base | No |
+| R0 | 0 | 4 | Temporary / Arg 3 | Yes |
+| R1 | +1 | 5 | Call target address | Yes |
+| R2 | +2 | 6 | Return value | Yes |
+| R3 | +3 | 7 | Callee-saved | No |
+| R4 | +4 | 8 | Address register | No |
 
-Special registers: SP (stack pointer), PC (program counter), Cond (1 trit: -1/0/+1), PR (9 trits = 3×3 predicate flags).
+### 2. FPU Registers (Floating Point)
+| Name | Phys | Назначение | Caller-saved |
+|------|------|-----------|--------------|
+| FW | 0 | Temporary | Yes |
+| FX | 1 | Temporary | Yes |
+| FY | 2 | Temporary | Yes |
+| FZ | 3 | Temporary | Yes |
+| F0 | 4 | Temporary | Yes |
+| F1 | 5 | Temporary | Yes |
+| F2 | 6 | Return value | Yes |
+| F3 | 7 | Callee-saved | No |
+| F4 | 8 | Callee-saved | No |
+
+### 3. Special Registers (S-group)
+| Register | Description | Access |
+|----------|-------------|---------|
+| **FP** | Frame Pointer | R/W |
+| **HP** | Heap Pointer | R/W |
+| **SP** | Stack Pointer | R/W |
+| **CD** | Condition Flag (-1/0/+1) | R/W |
+| **PR** | Predicate Register (9 trits) | R/W |
+| **WD** | Window Pointer | R/W |
+| **PC** | Program Counter | R |
 
 *Note: Register windowing is currently a planned architectural feature and not yet integrated into the execution model.*
 
-## Instruction Format
+## Instruction Format (ISA v5)
 
 ```
-[Pred (3)] [Opcode (6)] [Args (9)]
+[Pred(3)] [RegGroup(1)] [Fmt(1)] [Opcode(4)] [Args(9)]
 ```
 
-- R-type: Args = `[Op1(3)] [Op2(3)] [Op3(3)]`
-- I-type: Args = `[Op1(3)] [Imm(6)]`
-- J-type: Args = `[Reg(3)] [000000]`
-
-Registers encoded by trit value (-4..+4). Phys index = trit + 4.
+- **Pred (3)**: Predicate index. 0 = always execute.
+- **RegGroup (1)**: Determines target register file: -1=FPU, 0=GP, +1=Special.
+- **Fmt (1)**: Instruction format: -1=J-type, 0=R/S-type, +1=I-type.
+- **Opcode (4)**: Operation code (0..80).
+- **Args (9)**: Operands, structure depends on Fmt:
+    - **R-type**: `[Op1(3)] [Op2(3)] [Op3(3)]`
+    - **S-type**: `[Op1(3)] [Op2(3)] [Imm(3)]` (used by LD/ST)
+    - **I-type**: `[Op1(3)] [Imm(6)]`
+    - **J-type**: `[Op1(3)] [Padding(6)]`
 
 ### Encoding Details
 
-**Pred field** (positions 15-17, LSB-first): Raw unsigned, 0..13. If pred > 0, instruction executes only if PR[pred-1] == +1.
-
-**Opcode field** (positions 9-14): Raw unsigned, 0..364.
-
-**Args field** (positions 0-8): Raw unsigned, then sub-fields extracted and converted to balanced by subtracting offset:
-- 3-trit sub-field: offset = 13, range ±13
-- 6-trit sub-field (I-type imm): offset = 364, range ±364 (including LI)
-
-**J-type**: Reg in Op1 position (3 trits). Op2 and Op3 are padding (6 trits, always 0). Imm is explicitly set to 0 by the decoder.
-
-**LOADI/STOREI**: Use S-type encoding via `EncodeS(pred, opcode, op1, op2, imm3)` with 3-trit immediate field (±13 range). Decoder treats them as I-type with 3-trit imm field.
+Registers in Args are encoded as balanced ternary (-4..+4). Physical index = value + 4.
+Immediates are encoded as balanced ternary:
+- 3-trit: range ±13
+- 6-trit: range ±364
 
 ### Encoder (InstructionEncoder)
 
@@ -84,11 +104,19 @@ Decoding process:
 
 - 1M words (1,048,576) of Word18/Word54
 - Stack grows downward, SP starts at MemSize-1
-- PUSH: `SP--; Memory[SP] = value`
-- POP: `value = Memory[SP]; SP++`
-- CALL: `SP--; Memory[SP] = PC + 1; PC = target`
-- RET: `PC = Memory[SP]; SP++`
-- MMIO: CYCLE_LOW, CYCLE_HIGH, INST_COUNT, STALL_COUNT
+- **PUSH**: `SP--; Memory[SP] = value`
+- **POP**: `value = Memory[SP]; SP++`
+- **CALL (v5)**: 
+    1. `SP -= 2`
+    2. `Memory[SP+1] = FP` (save old frame pointer)
+    3. `Memory[SP] = PC + 1` (save return address)
+    4. `FP = SP` (set new frame pointer)
+    5. `PC = target`
+- **RET (v5)**:
+    1. `PC = Memory[SP]` (restore return address)
+    2. `FP = Memory[SP+1]` (restore old frame pointer)
+    3. `SP += 2`
+- **MMIO**: CYCLE_LOW, CYCLE_HIGH, INST_COUNT, STALL_COUNT
 
 ## Execution Model (In-Order Prototype)
 
@@ -175,7 +203,7 @@ Word 2: [data (18 trits)]
 
 Processor: `Register[reg] = Memory[PC]; PC++`
 
-## Compiler ABI v4 (T-lang)
+## Compiler ABI v5 (T-lang)
 
 ### Register Model
 
@@ -184,27 +212,29 @@ Processor: `Register[reg] = Memory[PC]; PC++`
 | RW (0) | 0 | Temporary, arg 0 |
 | RX (1) | 1 | Temporary, arg 1 |
 | RY (2) | 2 | Temporary, arg 2 |
-| RZ (3) | 3 | **Frame Pointer** (FP) |
+| RZ (3) | 3 | Callee-saved / Frame Base |
 | R0 (4) | 4 | Temporary, arg 3 |
-| R1 (5) | 5 | Call temp register |
-| R2 (6) | 6 | Return value (NOT saved/restored) |
+| R1 (5) | 5 | Call target address |
+| R2 (6) | 6 | Return value |
 | R3 (7) | 7 | Callee-saved |
 | R4 (8) | 8 | Address register (callee-saved) |
 
-### Prologue
+### Frame Management (Hardware-assisted)
 
+In ISA v5, `CALL` and `RET` automatically manage the Frame Pointer (FP). 
+
+**Prologue:**
 ```asm
-PUSH RZ          ; save old FP
+PUSH RZ          ; save RZ if needed
 PUSH R3          ; callee-saved
 PUSH R4          ; callee-saved
-MOV RZ, SP       ; RZ = FP
-SUBI SP, SP, N   ; allocate local frame (N words)
+; FP is already set to SP by CALL
+S.SUB SP, SP, N   ; allocate local frame (N words)
 ```
 
-### Epilogue
-
+**Epilogue:**
 ```asm
-ADDI SP, SP, N   ; deallocate local frame
+S.ADD SP, SP, N   ; deallocate local frame
 POP R4
 POP R3
 POP RZ
@@ -213,13 +243,13 @@ RET
 
 ### Calling Convention
 
-1. Caller pushes arguments onto stack
-2. `LIMM R1, function` + `CALL R1`
-3. Callee prologue: PUSH RZ/R3/R4, set FP, allocate locals
-4. Callee saves register args 0..3 to local slots
-5. Callee body
-6. Return value in R2
-7. Callee epilogue: deallocate locals, POP R4/R3/RZ, RET
+1. Caller pushes arguments onto stack.
+2. `LIMM R1, function` + `CALL R1`.
+3. Hardware `CALL` saves old FP and sets `FP = SP`.
+4. Callee prologue saves callee-saved registers and allocates locals.
+5. Callee body.
+6. Return value in R2.
+7. Callee epilogue restores registers and `RET` restores old FP.
 
 ### Register Allocation
 

@@ -40,26 +40,21 @@ namespace T3Compiler.CodeGen
             // print_int(value) — print integer to stdout (arg in RW)
             Emit(output, "print_int:");
             Emit(output, "    PUSH RZ"); Emit(output, "    PUSH R3"); Emit(output, "    PUSH R4");
-            Emit(output, "    MOV R2, 0"); Emit(output, "    MOV R3, 0"); Emit(output, "    MOV R4, 0");
             Emit(output, "    MOV R0, 0"); Emit(output, "    CMP RW, R0"); Emit(output, "    JGE pi_pos");
             Emit(output, "    MOV R1, 45"); Emit(output, "    MOV R0, 0"); Emit(output, "    OUT R1, R0"); Emit(output, "    NEG RW, RW");
             Emit(output, "pi_pos:");
             Emit(output, "    MOV R2, 10");
-            Emit(output, "    DIV R3, RW, R2"); Emit(output, "    MOV R0, 0"); Emit(output, "    CMP R3, R0");
-            Emit(output, "    JE pi_one");
-            Emit(output, "    DIV R3, RW, R2"); Emit(output, "    MOV R0, 0"); Emit(output, "    CMP R3, R0");
-            Emit(output, "    JE pi_two");
-            Emit(output, "    DIV R3, RW, R2"); Emit(output, "    MOV R0, 0"); Emit(output, "    CMP R3, R0");
-            Emit(output, "    JE pi_three");
-            Emit(output, "pi_three:"); Emit(output, "    MOD R3, RW, R2"); Emit(output, "    PUSH R3");
+            Emit(output, "    MOV R3, 0");
+            Emit(output, "pi_loop:");
+            Emit(output, "    MOD R4, RW, R2"); Emit(output, "    PUSH R4");
+            Emit(output, "    ADD R3, R3, 1");
             Emit(output, "    DIV RW, RW, R2");
-            Emit(output, "pi_two:"); Emit(output, "    MOD R3, RW, R2"); Emit(output, "    PUSH R3");
-            Emit(output, "    DIV RW, RW, R2");
-            Emit(output, "pi_one:"); Emit(output, "    MOD R3, RW, R2"); Emit(output, "    PUSH R3");
-            Emit(output, "    DIV RW, RW, R2");
+            Emit(output, "    MOV R0, 0"); Emit(output, "    CMP RW, R0"); Emit(output, "    JNE pi_loop");
             Emit(output, "pi_emit:");
-            Emit(output, "    POP R3"); Emit(output, "    ADD R3, R3, 48"); Emit(output, "    MOV R0, 0"); Emit(output, "    OUT R3, R0");
-            Emit(output, "    MOV R0, 0"); Emit(output, "    CMP RW, R0"); Emit(output, "    JNE pi_emit");
+            Emit(output, "    POP R4"); Emit(output, "    ADD R4, R4, 48");
+            Emit(output, "    MOV R0, 0"); Emit(output, "    OUT R4, R0");
+            Emit(output, "    SUB R3, R3, 1");
+            Emit(output, "    MOV R0, 0"); Emit(output, "    CMP R3, R0"); Emit(output, "    JNE pi_emit");
             Emit(output, "    POP R4"); Emit(output, "    POP R3"); Emit(output, "    POP RZ");
             Emit(output, "    RET");
 

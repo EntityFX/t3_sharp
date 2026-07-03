@@ -230,21 +230,20 @@ namespace T3Compiler.Lexer
         {
             char c = Peek();
             char c1 = Peek(1);
-            int len = 2;
+            char c2 = Peek(2);
 
-            // Ternary operators (3-char): ??, :?, :!
-            if (c == '?' && c1 == '?') { AddOp(TokenType.OpTernaryQuestion, 2); return true; }
-            if (c == ':' && c1 == '?') { AddOp(TokenType.OpTernaryMaybe, 2); return true; }
-            if (c == ':' && c1 == '!') { AddOp(TokenType.OpTernaryFalse, 2); return true; }
+            // 3-char operators (must check first to avoid greedy 2-char match)
+            if (c == '<' && c1 == '<' && c2 == '=') { AddOp(TokenType.OpLShiftEq, 3); return true; }
+            if (c == '>' && c1 == '>' && c2 == '=') { AddOp(TokenType.OpRShiftEq, 3); return true; }
 
             // 2-char operators
             var pairs = new (string pair, TokenType type)[]
             {
+                ("??", TokenType.OpTernaryQuestion), (":?", TokenType.OpTernaryMaybe), (":!", TokenType.OpTernaryFalse),
                 ("+=", TokenType.OpPlusEq), ("-=", TokenType.OpMinusEq),
                 ("*=", TokenType.OpStarEq), ("/=", TokenType.OpSlashEq),
                 ("%=", TokenType.OpPercentEq), ("&=", TokenType.OpAmpEq),
                 ("|=", TokenType.OpPipeEq), ("^=", TokenType.OpCaretEq),
-                ("<<=", TokenType.OpLShiftEq), (">>=", TokenType.OpRShiftEq),
                 ("<<", TokenType.OpLShift), (">>", TokenType.OpRShift),
                 ("<=", TokenType.OpLtEq), (">=", TokenType.OpGtEq),
                 ("==", TokenType.OpEqEq), ("!=", TokenType.OpNeq),
@@ -256,7 +255,7 @@ namespace T3Compiler.Lexer
             {
                 if (c == pair[0] && c1 == pair[1])
                 {
-                    AddOp(type, pair.Length);
+                    AddOp(type, 2);
                     return true;
                 }
             }

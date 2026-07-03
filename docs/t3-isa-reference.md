@@ -1,20 +1,22 @@
-# T3 ISA Reference — v2 (Research Prototype)
+# T3 ISA Reference — v5 (Research Prototype)
 
 ## Instruction Format
 
 ```
-[Pred (3)] [Opcode (6)] [Args (9)]
+[Pred (3)] [RegGroup (1)] [Fmt (1)] [Opcode (4)] [Args (9)]
 ```
 
-Все поля хранятся в 18-тритном слове. Поля Pred и Opcode хранятся как raw unsigned (беззнаковые целые). Поля аргументов хранятся как signed balanced ternary (сбалансированные троичные) со смещением.
+Все поля хранятся в 18-тритном слове. Поля Pred, RegGroup, Fmt и Opcode хранятся как raw unsigned (беззнаковые целые). Поля аргументов хранятся как signed balanced ternary (сбалансированные троичные) со смещением.
 
 ### Детали кодирования полей
 
 | Поле | Позиция (LSB) | Ширина (триты) | Тип | Диапазон |
 |------|---------------|----------------|-----|----------|
+| Args | 0 | 9 | Raw unsigned → sub-fields | 0..19682 |
+| Opcode | 9 | 4 | Raw unsigned | 0..80 |
+| Fmt | 13 | 1 | Raw unsigned | -1, 0, +1 |
+| RegGroup | 14 | 1 | Raw unsigned | -1, 0, +1 |
 | Pred | 15 | 3 | Raw unsigned | 0..13 |
-| Opcode | 9 | 6 | Raw unsigned | 0..364 |
-| Args | 0 | 9 | Raw unsigned → sub-fields | 0..9841 |
 
 **Args sub-fields**:
 - **R-type**: `[Op1(3)] [Op2(3)] [Op3(3)]` — каждый balanced, диапазон ±4
@@ -87,41 +89,56 @@ int ExtractBalancedTrit(Int128 value, int position)
 
 ## Регистры
 
-Registers encoded by trit value (-4..+4). Phys index = trit + 4.
+Регистры кодируются значением трита (-4..+4). Физический индекс = трит + 4.
 
-| Name | Trit | Phys | FPU | Назначение | Caller-saved |
-|------|------|------|-----|-----------|--------------|
-| RW | -4 | 0 | FW | Временный | Да |
-| RX | -3 | 1 | FX | Временный | Да |
-| RY | -2 | 2 | FY | Временный | Да |
-| RZ | -1 | 3 | FZ | Временный | Да |
-| R0 | 0 | 4 | F0 | Временный | Да |
-| R1 | +1 | 5 | F1 | Call temp | Да |
-| R2 | +2 | 6 | F2 | Return value | Нет |
-| R3 | +3 | 7 | F3 | Временный | Да |
-| R4 | +4 | 8 | F4 | Address register | Да |
+### GP Регистры (General Purpose)
+| Name | Trit | Phys | Назначение | Caller-saved |
+|------|------|------|-----------|--------------|
+| RW | -4 | 0 | Временный / Arg 0 | Да |
+| RX | -3 | 1 | Временный / Arg 1 | Да |
+| RY | -2 | 2 | Временный / Arg 2 | Да |
+| RZ | -1 | 3 | База кадра / Callee-saved | Нет |
+| R0 | 0 | 4 | Временный / Arg 3 | Да |
+| R1 | +1 | 5 | Адрес вызова | Да |
+| R2 | +2 | 6 | Возвращаемое значение | Да |
+| R3 | +3 | 7 | Callee-saved | Нет |
+| R4 | +4 | 8 | Адресный регистр | Нет |
 
-Специальные регистры:
-- **SP**: Stack Pointer (растёт вниз, инициализируется MemSize-1)
-- **PC**: Program Counter
-- **Cond**: 1 трит (-1/0/+1), результат сравнения
-- **PR**: 9 тритов, 3 группы предикации (p0=триты 0-2, p1=триты 3-5, p2=триты 6-8)
+### FPU Регистры (Floating Point)
+| Name | Phys | Назначение | Caller-saved |
+|------|------|-----------|--------------|
+| FW | 0 | Временный | Да |
+| FX | 1 | Временный | Да |
+| FY | 2 | Временный | Да |
+| FZ | 3 | Временный | Да |
+| F0 | 4 | Временный | Да |
+| F1 | 5 | Временный | Да |
+| F2 | 6 | Возвращаемое значение | Да |
+| F3 | 7 | Callee-saved | Нет |
+| F4 | 8 | Callee-saved | Нет |
 
-## Opcode Table
+### Специальные регистры (S-group)
+- **FP**: Frame Pointer (Указатель кадра)
+- **HP**: Heap Pointer (Указатель кучи)
+- **SP**: Stack Pointer (Указатель стека)
+- **CD**: Condition Flag (Результат сравнения)
+- **PR**: Predicate Register (9 тритов)
+- **WD**: Window Pointer (Указатель окна)
+- **PC**: Program Counter (Счётчик команд)
 
-### System (0-1)
+## Opcode Table (ISA v5)
+
+Благодаря RegGroup, большинство инструкций теперь ортогональны. Префиксы:
+- (без префикса) $\rightarrow$ GP
+- `F.` $\rightarrow$ FPU
+- `S.` $\rightarrow$ Special
+
 | Op | Mnemonic | Type | Description |
 |----|----------|------|-------------|
 | 0 | HALT | – | Stop processor |
 | 1 | NOP | – | No operation |
-
-### Data Movement (2-5)
-| Op | Mnemonic | Type | Description |
-|----|----------|------|-------------|
-| 2 | MOV | R | `op1 = op2` |
-| 3 | MOVI | I | `op1 = imm` |
-| 4 | LI | I | `op1 = imm` |
-| 5 | LIMM | R | `op1 = mem[PC]; PC++` (2-word instruction) |
+| 2 | MOV | R/I | `dst = src` (или `dst = imm`) |
+| 3 | LIMM | R | `dst = mem[PC]; PC++` (2-word) |
 
 ### Arithmetic (10-15 R, 20-25 I)
 | Op | Mnemonic | Type |

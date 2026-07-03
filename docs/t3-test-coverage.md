@@ -1,6 +1,6 @@
 # T3 Test Coverage Report
 
-**Version**: 2.1 | **Date**: 2026-06-30 | **Total Tests**: 412 (Passed: 412, Failed: 0, Skipped: 1)
+**Version**: 3.0 | **Date**: 2026-07-03 | **Total Tests**: 556 (Executable Cases)
 
 ---
 
@@ -8,11 +8,11 @@
 
 | # | Project | Tests | Files | Description |
 |---|---------|-------|-------|-------------|
-| 1 | `TritTypes.Tests` | 126 | 7 | Word18/Word54, T3Float, BalancedTernary, T3Int, Trit, Tryte, TScii |
-| 2 | `T3Simulator.Common.Tests` | 71 | 5 | Assembler/disassembler, ALU, FPU, Memory, Roundtrip |
-| 3 | `T3Simulator.InOrder.Tests` | 147 | 10 | ISA instructions, FPU, T-lang compiler, ABI v3/v4, Matrix, Advanced |
-| 4 | `T3Interpreter.Tests` | 68 | 1 | T-lang interpreter + compiler equivalence tests |
-| | **Total** | **412** | **23** | |
+| 1 | `TritTypes.Tests` | 129 | 7 | Word18/Word54, T3Float, BalancedTernary, T3Int, Trit, Tryte, TScii |
+| 2 | `T3Simulator.Common.Tests` | 70 | 5 | Assembler/disassembler, ALU, FPU, Memory, Roundtrip |
+| 3 | `T3Simulator.InOrder.Tests` | 156 | 10 | ISA instructions, FPU, T-lang compiler, ABI v5, Matrix, Advanced |
+| 4 | `T3Interpreter.Tests` | 195 | 1 | T-lang interpreter + compiler equivalence tests |
+| | **Total** | **550** | **23** | (Approximately 556 executable cases) |
 
 ---
 
@@ -288,6 +288,9 @@ The T3Interpreter provides a reference implementation of the T-lang language, us
 | Equiv_RecursiveFact | 5040 | ✅ |
 | Equiv_DoubleRecursion | 8 | ✅ |
 | Equiv_NestedFunctionCalls_Compiler | 12 | ⚠️ [Ignore] |
+| Equiv_DoubleRecursion_Divergence | - | ❌ |
+| Equiv_FloatRoundTrip | - | ❌ |
+| Equiv_TLongRange | - | ❌ |
 
 ---
 
@@ -341,13 +344,13 @@ dotnet test tests/T3Simulator.InOrder.Tests --filter "Compile_Array"
 
 | Metric | Value |
 |--------|-------|
-| **Total tests** | 412 |
-| **Passed** | 412 (100%) |
-| **Failed** | 0 |
-| **Skipped** | 1 (known ABI limitation) |
+| **Total tests** | 556 (est. executable cases) |
+| **Passed** | ~552 |
+| **Failed** | 4 (RZ regression) |
+| **Skipped** | 2 (Known ABI / Malloc) |
 | **Test files** | 23 across 4 projects |
-| **ISA opcodes tested** | All 83+ opcodes (100%) |
+| **ISA opcodes tested** | All 38 v5 opcodes (100%) |
 | **FPU opcodes tested** | 17/17 (100%) |
 | **T-lang constructs tested** | All major constructs |
-| **Equivalence tests** | 35 (34 passed, 1 skipped) |
+| **Equivalence tests** | 39 (including new divergency tests) |
 | **Known gaps** | 7 (see §6) |

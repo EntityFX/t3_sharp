@@ -1,34 +1,37 @@
-# Справочник ISA процессора T3 — v2 (Исследовательский прототип)
+# Справочник ISA процессора T3 — v5 (Исследовательский прототип)
 
 ## Формат инструкции
 
 ```
-[Pred (3)] [Opcode (6)] [Args (9)]
+[Pred (3)] [RegGroup (1)] [Fmt (1)] [Opcode (4)] [Args (9)]
 ```
 
-Все поля хранятся в 18-тритном слове. Поля Pred и Opcode хранятся как raw unsigned (беззнаковые целые). Поля аргументов хранятся как signed balanced ternary (сбалансированные троичные) со смещением.
+Все поля хранятся в 18-тритном слове. Поля Pred, RegGroup, Fmt и Opcode хранятся как raw unsigned (беззнаковые целые). Поле Args содержит аргументы, которые интерпретируются в зависимости от формата и группы.
 
 ### Детали кодирования полей
 
 | Поле | Позиция (LSB) | Ширина (триты) | Тип | Диапазон |
 |------|---------------|----------------|-----|----------|
 | Pred | 15 | 3 | Raw unsigned | 0..13 |
-| Opcode | 9 | 6 | Raw unsigned | 0..364 |
-| Args | 0 | 9 | Raw unsigned → sub-fields | 0..9841 |
+| RegGroup | 12 | 1 | Raw unsigned | -1 (FPU), 0 (GP), +1 (Special) |
+| Fmt | 11 | 1 | Raw unsigned | -1 (J), 0 (R/S), +1 (I) |
+| Opcode | 7 | 4 | Raw unsigned | 0..80 |
+| Args | 0 | 7 | Raw unsigned → sub-fields | 0..2186 |
 
 **Args sub-fields**:
 - **R-type**: `[Op1(3)] [Op2(3)] [Op3(3)]` — каждый balanced, диапазон ±4 (Phys index = value + 4)
 - **I-type**: `[Op1(3)] [Imm(6)]` — Op1 balanced (±4), Imm balanced (±364)
 - **J-type**: `[Reg(3)] [000000]` — Reg balanced (±4), 6 тритов padding (всегда 0)
+- **S-type**: `[Op1(3)] [Op2(3)] [Imm(3)]` — для LOADI/STOREI
 
 ### Encoder (InstructionEncoder)
 
 ```csharp
 // Все signed значения конвертируются в unsigned через ToUnsignedField:
 // unsigned = signed + offset, где offset = (3^width - 1) / 2
-long EncodeR(int pred, int opcode, int op1, int op2, int op3)
-long EncodeI(int pred, int opcode, int op1, long imm)
-long EncodeJ(int pred, int opcode, int reg)
+long EncodeR(int pred, int regGroup, int fmt, int opcode, int op1, int op2, int op3)
+long EncodeI(int pred, int regGroup, int fmt, int opcode, int op1, long imm)
+long EncodeJ(int pred, int regGroup, int fmt, int opcode, int reg)
 ```
 
 **ToUnsignedField**: `value + offset` где `offset = (3^width - 1) / 2`.
@@ -44,12 +47,15 @@ DecodedInstruction Decode(Word54 word)  // использует Word18.FromWrapp
 
 **Процесс декодирования**:
 1. Извлечь Pred: `ExtractRawField(word, 15, 3)` — raw unsigned
-2. Извлечь Opcode: `ExtractRawField(word, 9, 6)` — raw unsigned
-3. Извлечь Args: `ExtractRawField(word, 0, 9)` — raw unsigned
-4. В зависимости от типа (R/I/J):
-    - **R-type**: Извлечь Op1/Op2/Op3 из Args как raw unsigned (3 трита каждый), затем конвертировать в balanced: `value - 13`
-    - **I-type**: Извлечь Op1 (3 трита) и Imm (6 тритов) из Args, конвертировать в balanced: Op1 -= 13, Imm -= 364
-    - **J-type**: Извлечь Reg (3 трита) из Args, конвертировать в balanced: Reg -= 13. Imm = 0 (padding)
+2. Извлечь RegGroup: `ExtractRawField(word, 12, 1)` — raw unsigned
+3. Извлечь Fmt: `ExtractRawField(word, 11, 1)` — raw unsigned
+4. Извлечь Opcode: `ExtractRawField(word, 7, 4)` — raw unsigned
+5. Извлечь Args: `ExtractRawField(word, 0, 7)` — raw unsigned
+6. В зависимости от типа (R/I/J/S):
+    - **R-type**: Извлечь Op1/Op2/Op3 из Args, конвертировать в balanced: `value - 13`
+    - **I-type**: Извлечь Op1 (3 трита) и Imm (6 тритов), конвертировать в balanced: Op1 -= 13, Imm -= 364
+    - **J-type**: Извлечь Reg (3 трита), конвертировать в balanced: Reg -= 13. Imm = 0
+    - **S-type**: Извлечь Op1, Op2, Imm (по 3 трита), конвертировать в balanced
 
 **Важно**: Для J-type imm всегда равен 0. 6 тритов padding в младших разрядах Args гарантированно равны 0, но decoder устанавливает imm = 0 явно.
 
@@ -84,17 +90,21 @@ int ExtractBalancedTrit(Int128 value, int position)
 
 ## Регистры
 
-| Имя | Трит | Phys | FPU |
-|------|------|------|-----|
-| RW | -4 | 0 | FW |
-| RX | -3 | 1 | FX |
-| RY | -2 | 2 | FY |
-| RZ | -1 | 3 | FZ |
-| R0 | 0 | 4 | F0 |
-| R1 | +1 | 5 | F1 |
-| R2 | +2 | 6 | F2 |
-| R3 | +3 | 7 | F3 |
-| R4 | +4 | 8 | F4 |
+**GP Регистры (Общего назначения):**
+| Имя | Трит | Phys | Назначение |
+|------|------|------|-----------|
+| RW | -4 | 0 | Временный |
+| RX | -3 | 1 | Временный |
+| RY | -2 | 2 | Временный |
+| RZ | -1 | 3 | **База кадра (FP)** / Временный |
+| R0 | 0 | 4 | Временный |
+| R1 | +1 | 5 | Вспомогательный (вызов) |
+| R2 | +2 | 6 | Возвращаемое значение |
+| R3 | +3 | 7 | Сохраняется Callee |
+| R4 | +4 | 8 | Регистр адреса |
+
+**Регистры FPU (F.):** `FW, FX, FY, FZ, F0, F1, F2, F3, F4` (отдельный регистровый файл).
+**Специальные регистры (S.):** `FP, HP, SP, CD, PR, WD`.
 
 ## Таблица опкодов
 
