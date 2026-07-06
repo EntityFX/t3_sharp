@@ -47,7 +47,13 @@ namespace T3Simulator.InOrder
             return sb.ToString();
         }
 
-        public T3InOrderProcessor(T3Config config) : base(config) { LastError = null; }
+        public T3InOrderProcessor(T3Config config) : base(config) 
+        { 
+            LastError = null; 
+            SP = 1048575;
+            HP = 699050;
+            FP = 1048575;
+        }
 
         public override bool Step()
         {
@@ -139,6 +145,8 @@ namespace T3Simulator.InOrder
             _ => throw new IndexOutOfRangeException($"Special raw {raw}")
         };
 
+        private bool IsSpecialReg(int raw) => raw >= -4 && raw <= 1;
+
         private void SetSpecialReg(int raw, long value)
         {
             switch (raw)
@@ -175,20 +183,32 @@ namespace T3Simulator.InOrder
                 case Opcode.MOV:
                     if (fmt == 0)
                     {
-                        if (rg == +1)
+                        // Case 1: Destination is GP, Source is Special
+                        if (rg == 0 && instr.Op2 >= -4 && instr.Op2 <= 5 && IsSpecialReg(instr.Op2))
                         {
-                            TWord src = GetRegValue(+1, instr.Op2); // read from Special
-                            // Write to GP always (dest is GP register like RZ)
+                            TWord src = GetRegValue(+1, instr.Op2);
                             SetRegisterValue(instr.Op1 + 4, src);
                         }
+                        // Case 2: Destination is Special, Source is GP
+                        else if (rg == +1 && instr.Op2 >= -4 && instr.Op2 <= 8) 
+                        {
+                            TWord src = GetRegValue(0, instr.Op2); 
+                            SetSpecialReg(instr.Op1, ToLong(src));
+                        }
+                        // Case 3: Destination is Special, Source is Special
+                        else if (rg == +1 && instr.Op2 >= -4 && instr.Op2 <= 5 && IsSpecialReg(instr.Op2))
+                        {
+                            TWord src = GetRegValue(+1, instr.Op2);
+                            SetSpecialReg(instr.Op1, ToLong(src));
+                        }
+                        // Case 4: Default (GP to GP, etc.)
                         else
                             SetRegValue(rg, instr.Op1, GetRegValue(rg, instr.Op2));
                     }
                     else
                     {
-                        // I-type MOV with RG=+1: write immediate to Special? No—write to GP dest
-                        if (rg == +1)
-                            SetRegisterValue(instr.Op1 + 4, FromLong(instr.Immediate));
+                        if (rg == -1)
+                            SetFReg(instr.Op1, T3Float.FromInt((int)instr.Immediate));
                         else
                             SetRegValue(rg, instr.Op1, FromLong(instr.Immediate));
                     }
@@ -196,22 +216,30 @@ namespace T3Simulator.InOrder
 
                 case Opcode.LD:
                     {
-                        long baseAddr = ToLong(GetRegValue(0, instr.Op2)) + instr.Immediate;
+                        int baseRg = (rg == +1) ? +1 : 0;
+                        long baseAddr = ToLong(GetRegValue(baseRg, instr.Op2)) + instr.Immediate;
                         TWord memVal = ReadWord(baseAddr);
                         if (rg == -1)
                             SetFReg(instr.Op1, T3Float.FromWord18((Word18)(object)memVal));
+                        else if (rg == +1)
+                            SetRegValue(0, instr.Op1, memVal); // S.LD: Special base, GP dest
                         else
-                            SetRegValue(rg, instr.Op1, memVal);
+                            SetRegValue(rg, instr.Op1, memVal); // LD: GP base, GP dest
                         IncrementCycles(2); return false;
                     }
 
                 case Opcode.ST:
                     {
-                        long baseAddr = ToLong(GetRegValue(0, instr.Op2)) + instr.Immediate;
+                        int baseRg = (rg == +1) ? +1 : 0;
+                        long baseAddr = ToLong(GetRegValue(baseRg, instr.Op2)) + instr.Immediate;
+                        TWord valToStore;
                         if (rg == -1)
-                            WriteWord(baseAddr, (TWord)(object)GetFReg(instr.Op1).ToWord18());
+                            valToStore = (TWord)(object)GetFReg(instr.Op1).ToWord18();
+                        else if (rg == +1)
+                            valToStore = GetRegValue(0, instr.Op1); // S.ST: Special base, GP value
                         else
-                            WriteWord(baseAddr, GetRegValue(rg, instr.Op1));
+                            valToStore = GetRegValue(rg, instr.Op1); // ST: GP base, GP value
+                        WriteWord(baseAddr, valToStore);
                         IncrementCycles(2); return false;
                     }
 
@@ -331,7 +359,7 @@ namespace T3Simulator.InOrder
                         }
                         else
                         {
-                            TWord a = fmt == 0 ? GetRegValue(rg, instr.Op1) : GetRegValue(rg, instr.Op1);
+                            TWord a = GetRegValue(rg, instr.Op1);
                             TWord b = fmt == 0 ? GetRegValue(rg, instr.Op2) : FromLong(instr.Immediate);
                             CD = T3Alu.Compare(a, b);
                         }

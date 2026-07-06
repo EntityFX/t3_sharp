@@ -88,22 +88,27 @@ namespace TritTypes
             long mantissa;
             while (true)
             {
-                mantissa = (long)Math.Round(absVal / Math.Pow(3, exp));
+                mantissa = (long)Math.Round(absVal / Math.Pow(3, exp), MidpointRounding.AwayFromZero);
                 if (mantissa > maxMant || mantissa < -maxMant)
                 {
                     // Overflow: increase exponent
                     exp++;
-                    mantissa = (long)Math.Round(absVal / Math.Pow(3, exp));
+                    mantissa = (long)Math.Round(absVal / Math.Pow(3, exp), MidpointRounding.AwayFromZero);
                     break;
                 }
                 if (exp <= -182) break; // Hit minimum exponent
                 // Check if next lower exponent would overflow
-                long nextMant = (long)Math.Round(absVal / Math.Pow(3, exp - 1));
+                long nextMant = (long)Math.Round(absVal / Math.Pow(3, exp - 1), MidpointRounding.AwayFromZero);
                 if (nextMant > maxMant || nextMant < -maxMant) break;
                 exp--;
             }
             
             return new T3Float(exp + 182, mantissa * sign);
+        }
+
+        public static T3Float FromInt(int value)
+        {
+            return FromDouble(value);
         }
     }
 
@@ -166,17 +171,17 @@ namespace TritTypes
             Int128 mantissa;
             while (true)
             {
-                mantissa = (Int128)Math.Round(absVal / Math.Pow(3, exp));
+                mantissa = (Int128)Math.Round(absVal / Math.Pow(3, exp), MidpointRounding.AwayFromZero);
                 if (mantissa > maxMant || mantissa < -maxMant)
                 {
                     // Overflow: increase exponent
                     exp++;
-                    mantissa = (Int128)Math.Round(absVal / Math.Pow(3, exp));
+                    mantissa = (Int128)Math.Round(absVal / Math.Pow(3, exp), MidpointRounding.AwayFromZero);
                     break;
                 }
                 if (exp <= -3280) break; // Hit minimum exponent
                 // Check if next lower exponent would overflow
-                Int128 nextMant = (Int128)Math.Round(absVal / Math.Pow(3, exp - 1));
+                Int128 nextMant = (Int128)Math.Round(absVal / Math.Pow(3, exp - 1), MidpointRounding.AwayFromZero);
                 if (nextMant > maxMant || nextMant < -maxMant) break;
                 exp--;
             }

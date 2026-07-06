@@ -43,6 +43,9 @@ namespace T3Compiler.CodeGen
             Emit(output, "    MOV R0, 0"); Emit(output, "    CMP RW, R0"); Emit(output, "    JGE pi_pos");
             Emit(output, "    MOV R1, 45"); Emit(output, "    MOV R0, 0"); Emit(output, "    OUT R1, R0"); Emit(output, "    NEG RW, RW");
             Emit(output, "pi_pos:");
+            Emit(output, "    MOV R0, 0"); Emit(output, "    CMP RW, R0"); Emit(output, "    JNE pi_start");
+            Emit(output, "    MOV R1, 48"); Emit(output, "    MOV R0, 0"); Emit(output, "    OUT R1, R0"); Emit(output, "    LIMM R1, pi_end"); Emit(output, "    JMP R1");
+            Emit(output, "pi_start:");
             Emit(output, "    MOV R2, 10");
             Emit(output, "    MOV R3, 0");
             Emit(output, "pi_loop:");
@@ -55,6 +58,7 @@ namespace T3Compiler.CodeGen
             Emit(output, "    MOV R0, 0"); Emit(output, "    OUT R4, R0");
             Emit(output, "    SUB R3, R3, 1");
             Emit(output, "    MOV R0, 0"); Emit(output, "    CMP R3, R0"); Emit(output, "    JNE pi_emit");
+            Emit(output, "pi_end:");
             Emit(output, "    POP R4"); Emit(output, "    POP R3"); Emit(output, "    POP RZ");
             Emit(output, "    RET");
 

@@ -18,7 +18,7 @@ Status categories:
 |-----------|--------|-------|
 | `Trit`, `Tryte` | **Supported** | Core balanced-ternary primitives. |
 | `Word18` | **Supported** | 18-trit word; arithmetic, comparison, shifts, tritwise ops. |
-| `Word54` | **Experimental** | 54-trit word; arithmetic implemented, generic path is partial (lower-18 extraction in decoder). |
+| `Word54` | **Experimental** | 54-trit word; used as the basis for ISA v5; arithmetic implemented. |
 | `IT3Word<TSelf>` | **Supported** | Generic interface with static abstract members. |
 | `T3ArithmeticEngine` | **Supported** | Expression evaluator for assembler `.equ` directives. |
 | `TScii` | **Supported** | 6-trit T-SCII encoding table (CP1251-compatible zone at 0..255). |
@@ -34,8 +34,8 @@ Status categories:
 | `DeviceManager<TWord>` | **Experimental** | Port-mapped I/O; basic register/unregister. |
 | `InstructionEncoder` | **Supported** | Strict encoding; throws on out-of-range fields. |
 | `InstructionDecoder` | **Supported** | Full decode for 18-trit instructions; `Decode(Word54)` extracts lower 18 trits. |
-| `T3Disassembler` | **Supported** | All 66 opcodes have mnemonics; I/R/J format printing. |
-| `Opcode` enum | **Supported** | 69 opcodes defined. |
+| `T3Disassembler` | **Supported** | Full mnemonic support for ISA v5; fixed immediate loss in output. |
+| `Opcode` enum | **Supported** | 38 opcodes defined in ISA v5. |
 | `T3Config` | **Supported** | Processor configuration (word size, latencies). |
 
 ---
@@ -68,7 +68,7 @@ Status categories:
 | Lexer / Tokenizer | **Supported** | Full tokenization for T-lang. |
 | Parser / AST | **Supported** | `IfStmt` has `MaybeBody`; ternary expressions supported. |
 | Preprocessor | **Experimental** | Basic `#include` support. |
-| `T3Interpreter` (AST walker) | **Experimental** | Scalar subset: three-valued `if`/`maybe`/`else`, scopes (dynamic), functions. Arrays/structs/globals not yet initialized from declarations; string/float literals return 0. |
+| `T3Interpreter` (AST walker) | **Experimental** | Extended: double, typedef, char, tlong (Int128), union, error handling. Arrays/structs/globals gaps remain. |
 | `T3Compiler` (`CodeGenerator`) | **Experimental** | Generates T3 assembly; `MaybeBody` supported (2026-06-26); calling convention uses stack-based save/restore. |
 | Interpreter ↔ Compiler equivalence | **Experimental** | Partial — not all language features verified across both backends. |
 
@@ -121,8 +121,8 @@ Status categories:
 | `T3Simulator.Common.Tests` | **Supported** | In CI; FPU tests use independent expected values (2026-06-26). |
 | `T3Simulator.InOrder.Tests` | **Supported** | In CI. |
 | `T3Interpreter.Tests` | **Experimental** | In CI (2026-06-26); coverage being expanded. |
-| Equivalence tests (interpreter vs compiler+simulator) | **Experimental** | 24 tests covering expressions, loops, if/maybe/else, functions, recursion, preprocessor; 1 known divergence (nested function calls, compiler call ABI). |
+| Equivalence tests (interpreter vs compiler+simulator) | **Experimental** | 39 tests; now used as a differential oracle to catch compiler regressions. |
 
 ---
 
-*Last updated: 2026-06-26*
+*Last updated: 2026-07-06*

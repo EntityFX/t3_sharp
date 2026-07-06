@@ -69,21 +69,15 @@ namespace T3Assembler
             if(line.Contains(".word")){var p=line.Split(new[]{' ','\t',','},StringSplitOptions.RemoveEmptyEntries);if(p.Length>0){string last=p[p.Length-1];if(last.StartsWith("\""))return last.Length-2+1;return 1;}}
             var ip=line.Split(new[]{' ','\t',','},StringSplitOptions.RemoveEmptyEntries);if(ip.Length==0)return 0;
             string rawMn=ip[0];string mn=StripPrefix(rawMn).ToUpper();
-            if(mn=="LIMM")return 2;
-            if(IsJumpMnemonic(mn)&&ip.Length>1&&!IsRegister(ip[1]))return 3;
-            // MOV Rx, N with N>364: LIMM + MOV = 3 words
-            if(ip.Length>=3 && ip[0].ToUpper()=="MOV" && IsRegister(ip[1]) && IsRegister(ip[2]) && !IsRegister(ip[ip.Length-1])){
-                try{long rv=(long)ResolveOperandValue(ip[ip.Length-1]);if(rv>364||rv<-364)return 3;}catch{return 1;}
-                return 1;
+            
+            long? imm = null;
+            if(ip.Length > 0) {
+                string last = ip[ip.Length-1];
+                if(!IsRegister(last)) {
+                    try { imm = (long)ResolveOperandValue(last); } catch { }
+                }
             }
-            // I-type with 4 args: LIMM Rx, N + OP SP, SP, Rx = 3 words
-            if(ip.Length>=4){
-                string last=ip[ip.Length-1];
-                if(last.StartsWith("#"))return 1;
-                try{long rv=(long)ResolveOperandValue(last);if(rv>364||rv<-364)return 3;}catch{return 1;}
-                return 1;
-            }
-            return 1;
+            return InstructionMeta.GetSize(mn, ip, imm);
         }
 
         List<Int128> AssembleLine(string line,int pc){
@@ -109,6 +103,8 @@ namespace T3Assembler
                 if(IsRegister(ip[k])){
                     string rn=ip[k].ToUpper();
                     int rg=GetRegGroup(rn);
+                    if(regGroup != 0 && rg != 0 && rg != regGroup)
+                        throw new Exception($"Architecture Error: Mixing registers from different groups in instruction {mn}. Operand {ip[k]} (Group {rg}) conflicts with detected Group {regGroup}.");
                     if(rg==+1 && regGroup!=+1){regGroup=+1;}
                     else if(rg==-1 && regGroup==0){regGroup=-1;}
                 }

@@ -1,17 +1,17 @@
 # T3Sharp Roadmap
 
-**Дата:** 25 июня 2026 г.
-**Версия:** v2.2
+**Дата:** 6 июля 2026 г.
+**Версия:** v3.0 (ISA v5)
 **Статус:** Активная разработка
-**Тестов:** 371 (0 failures)
+**Тестов:** 556 (4 failures)
 
 ---
 
 ## Сводка реализованного
 
 ### Процессор (T3Simulator.InOrder)
-- ✅ Полная ISA: 70+ инструкций (ADD/SUB/MUL/DIV, SHL/SHR, AND/OR/XOR, CMP/Jxx, CALL/RET, PUSH/POP, LOAD/STORE, FPU)
-- ✅ 9 GP + 9 FPU регистров (RW..R4, FW..F4)
+- ✅ ISA v5: 38 базовых инструкций с ортогональной системой групп (GP/FPU/Special)
+- ✅ 9 GP + 9 FPU + 6 Special регистров (RW..R4, FW..F4, FP, HP, SP, CD, PR, WD)
 - ✅ Предикация (PR, 3 флага)
 - ✅ Стек (SP, CALL/RET, 1M слов)
 - ✅ Device Manager (IN/OUT, T-SCII output)
@@ -52,6 +52,9 @@
 
 | Задача | Файлы | Оценка |
 |--------|-------|--------|
+| **Регрессия базы кадра RZ** — исправить `S.MOV RZ, FP` после CALL | `CodeGenerator.cs` | 1 LOC |
+| **Синхронизация спецификации v5** — привести docs/t3-isa-v5-specification.md к коду | `docs/` | ~100 LOC |
+| **Матрица RegGroup** — закрыть дыры в межгрупповых операциях | `T3InOrderAssembler.cs` | ~200 LOC |
 | **FPU spill оптимизация** — не сохранять FPU если не используется | `CodeGenerator.cs` | ~30 LOC |
 | **Array spill** — большие массивы не должны целиком пушиться на стек | `CodeGenerator.cs` | ~50 LOC |
 | **Stack overflow detection** — проверка SP при CALL/PUSH | `ProcessorBase.cs` | ~20 LOC |
@@ -122,3 +125,4 @@ t3_sharp/
 | v2.0 | Июнь 2026 | FPU, предикация, ABI, компилятор T-lang | 299 |
 | v2.1 | 23 июня | Switch/case, do/while, тернарный, рекурсия, 29 тестов | 316 |
 | v2.2 | 25 июня | ABI v3 (spill locals+FPU), goto, sizeof, casts, expression evaluator | 316 |
+| v3.0 | 6 июля | Миграция на ISA v5 (RegGroup), расширение интерпретатора | 556 |
