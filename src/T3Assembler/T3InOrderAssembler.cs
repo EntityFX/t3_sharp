@@ -99,14 +99,23 @@ namespace T3Assembler
             Opcode op=GetOpcode(mn);
 
             int regGroup=IsFPU(rawMn)?-1:IsSpecial(rawMn)?+1:0;
-            for(int k=1; k<ip.Length; k++){
-                if(IsRegister(ip[k])){
-                    string rn=ip[k].ToUpper();
-                    int rg=GetRegGroup(rn);
-                    if(regGroup != 0 && rg != 0 && rg != regGroup)
-                        throw new Exception($"Architecture Error: Mixing registers from different groups in instruction {mn}. Operand {ip[k]} (Group {rg}) conflicts with detected Group {regGroup}.");
-                    if(rg==+1 && regGroup!=+1){regGroup=+1;}
-                    else if(rg==-1 && regGroup==0){regGroup=-1;}
+            // MOV without prefix uses destination-driven RegGroup (avoids Special promotion when dest is GP)
+            bool hasExplicitPrefix = IsFPU(rawMn) || IsSpecial(rawMn);
+            if (!hasExplicitPrefix && op == Opcode.MOV && ip.Length >= 2 && IsRegister(ip[1]))
+            {
+                regGroup = GetRegGroup(ip[1]);
+            }
+            else
+            {
+                for(int k=1; k<ip.Length; k++){
+                    if(IsRegister(ip[k])){
+                        string rn=ip[k].ToUpper();
+                        int rg=GetRegGroup(rn);
+                        if(regGroup != 0 && rg != 0 && rg != regGroup)
+                            throw new Exception($"Architecture Error: Mixing registers from different groups in instruction {mn}. Operand {ip[k]} (Group {rg}) conflicts with detected Group {regGroup}.");
+                        if(rg==+1 && regGroup!=+1){regGroup=+1;}
+                        else if(rg==-1 && regGroup==0){regGroup=-1;}
+                    }
                 }
             }
 

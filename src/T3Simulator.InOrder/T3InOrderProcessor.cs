@@ -183,27 +183,7 @@ namespace T3Simulator.InOrder
                 case Opcode.MOV:
                     if (fmt == 0)
                     {
-                        // Case 1: Destination is GP, Source is Special
-                        if (rg == 0 && instr.Op2 >= -4 && instr.Op2 <= 5 && IsSpecialReg(instr.Op2))
-                        {
-                            TWord src = GetRegValue(+1, instr.Op2);
-                            SetRegisterValue(instr.Op1 + 4, src);
-                        }
-                        // Case 2: Destination is Special, Source is GP
-                        else if (rg == +1 && instr.Op2 >= -4 && instr.Op2 <= 8) 
-                        {
-                            TWord src = GetRegValue(0, instr.Op2); 
-                            SetSpecialReg(instr.Op1, ToLong(src));
-                        }
-                        // Case 3: Destination is Special, Source is Special
-                        else if (rg == +1 && instr.Op2 >= -4 && instr.Op2 <= 5 && IsSpecialReg(instr.Op2))
-                        {
-                            TWord src = GetRegValue(+1, instr.Op2);
-                            SetSpecialReg(instr.Op1, ToLong(src));
-                        }
-                        // Case 4: Default (GP to GP, etc.)
-                        else
-                            SetRegValue(rg, instr.Op1, GetRegValue(rg, instr.Op2));
+                        SetRegValue(rg, instr.Op1, GetRegValue(rg, instr.Op2));
                     }
                     else
                     {
