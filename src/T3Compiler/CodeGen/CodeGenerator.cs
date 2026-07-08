@@ -46,7 +46,7 @@ namespace T3Compiler.CodeGen
             ScanBody(f.Body.Body);
             foreach(var param in f.Parameters)Alloc(param.Name,param.Type);
             EmitCode($"{f.Name}:");
-            EmitCode("    PUSH R3");EmitCode("    PUSH R4");
+            EmitCode("    PUSH RZ");
             int localSize=0;foreach(var sz in _varSizes.Values)localSize+=sz;_currentLocalSize=localSize;
             if(localSize>0){EmitCode($"    LIMM R3,{localSize}");EmitCode($"    S.SUB SP, SP, R3");}
             EmitCode("    S.PUSH FP");EmitCode("    POP RZ");  // RZ = FP (fixed frame base, PUSH-safe)
@@ -55,7 +55,7 @@ namespace T3Compiler.CodeGen
             if(nParams>4){for(int i=4;i<nParams;i++){int so=(i-4)+2;int t=AllocR();if(so>=-13&&so<=13)EmitCode($"    LD {RegName(t)}, RZ, {so}");else{int or=Imm(so),ar=AllocR();EmitCode($"    ADD {RegName(ar)}, RZ, {RegName(or)}");EmitCode($"    LD {RegName(t)}, {RegName(ar)}, 0");FreeR(or);FreeR(ar);}StoreV(f.Parameters[i].Name,t,0);FreeR(t);}}
             foreach(var s in f.Body.Body)GenStmt(s);
             EmitCode($"{_epilogueLabel}:");if(localSize>0){int r=AllocR();EmitCode($"    LIMM {RegName(r)},{localSize}");EmitCode($"    S.ADD SP, SP, {RegName(r)}");FreeR(r);}
-            EmitCode("    POP R4");EmitCode("    POP R3");EmitCode("    RET");
+            EmitCode("    POP RZ");EmitCode("    RET");
         }
 
         void GenStmt(Statement s){switch(s){case ExpressionStmt e:if(e.Expression!=null)GenExpr(e.Expression);break;case VarDeclaration vd:Alloc(vd.Name,vd.Type);if(vd.Type.StructName!=null&&_structDefs.TryGetValue(vd.Type.StructName,out var sf))_structFields[vd.Name]=sf;if(vd.Initializer!=null){int r=GenExpr(vd.Initializer);StoreV(vd.Name,r,0);}break;case ReturnStmt rs:if(rs.Value!=null){int r=GenExpr(rs.Value);EmitCode($"    MOV R2,{RegName(r)}");}if(_epilogueLabel!=null){int rj=AllocR();EmitCode($"    LIMM {RegName(rj)},{_epilogueLabel}");EmitCode($"    JMP {RegName(rj)}");}else EmitCode("    RET");break;case CompoundStmt cs:foreach(var ss in cs.Body)GenStmt(ss);break;case IfStmt ifs:GenIf(ifs);break;case WhileStmt ws:GenWhile(ws);break;case DoWhileStmt dws:GenDoWhile(dws);break;case ForStmt fs:GenFor(fs);break;case SwitchStmt ss:GenSwitch(ss);break;case BreakStmt _:{var(brk,_)=_loopStack.Peek();Jmp(brk);}break;case ContinueStmt _:{var(_,cont)=_loopStack.Peek();Jmp(cont);}break;case GotoStmt gs:Jmp($"__glbl_{gs.Label}");break;case LabeledStmt ls:EmitCode($"__glbl_{ls.Label}:");GenStmt(ls.Body);break;}}

@@ -13,7 +13,7 @@ namespace T3Assembler
 
             if (IsJumpMnemonic(mn))
             {
-                if (operands.Length > 0 && !IsRegister(operands[0]))
+                if (operands.Length > 1 && !IsRegister(operands[1]))
                     return 3; // LIMM + JMP
                 return 1;
             }

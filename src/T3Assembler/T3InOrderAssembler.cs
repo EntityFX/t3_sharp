@@ -74,7 +74,12 @@ namespace T3Assembler
             if(ip.Length > 0) {
                 string last = ip[ip.Length-1];
                 if(!IsRegister(last)) {
-                    try { imm = (long)ResolveOperandValue(last); } catch { }
+                    if (_labels.TryGetValue(last, out int la))
+                        imm = la;
+                    else if (_constants.TryGetValue(last, out var cv))
+                        imm = (long)cv;
+                    else if (long.TryParse(last, out long lv))
+                        imm = lv;
                 }
             }
             return InstructionMeta.GetSize(mn, ip, imm);
@@ -137,6 +142,8 @@ namespace T3Assembler
                         return new List<Int128>{EncI(pred,regGroup,Opcode.LIMM,op1,0),(Int128)0};
                     }
                 }
+                if (_labels.TryGetValue(valStr, out int la))
+                    return new List<Int128>{EncI(pred,regGroup,Opcode.LIMM,op1,0),la};
                 return new List<Int128>{EncI(pred,regGroup,Opcode.LIMM,op1,0),(Int128)ResolveOperandValue(valStr)};
             }
 

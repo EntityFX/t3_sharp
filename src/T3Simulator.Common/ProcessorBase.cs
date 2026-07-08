@@ -53,6 +53,7 @@ namespace T3Simulator.Common
             HeapStart = memSize * HeapFractionNumerator / HeapFractionDenominator;
             Memory = new Memory<TWord>(memSize);
             DeviceManager = new DeviceManager<TWord>();
+            DeviceManager.RegisterDevice(0, new NullDevice<TWord>());
 
             _initialSp = memSize - 1;
             SP = _initialSp;
