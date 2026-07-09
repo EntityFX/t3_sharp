@@ -33,6 +33,7 @@ namespace T3Compiler.CodeGen
         readonly Dictionary<string, int> _globalSlots = new();
         int _localSlotCounter;
         int _currentLocalSize;
+        int _localVarSize;
         string _currentFunc = "";
         readonly Dictionary<string, int> _structSizes = new();
         const int CALLREG = 5;
@@ -165,10 +166,12 @@ namespace T3Compiler.CodeGen
             int localSize = 0;
             foreach (var sz in _varSizes.Values)
                 localSize += sz;
-            _currentLocalSize = localSize;
-            if (localSize > 0)
+            _localVarSize = localSize;
+            int callSaveArea = 5; // Space for PUSH RW,RX,RY,R0,R1 during calls
+            _currentLocalSize = localSize + callSaveArea;
+            if (_currentLocalSize > 0)
             {
-                EmitCode($"    LIMM R3,{localSize}");
+                EmitCode($"    LIMM R3,{_currentLocalSize}");
                 EmitCode($"    S.SUB SP, SP, R3");
             }
             EmitCode("    S.PUSH FP");
@@ -201,10 +204,10 @@ namespace T3Compiler.CodeGen
             foreach (var s in f.Body.Body)
                 GenStmt(s);
             EmitCode($"{_epilogueLabel}:");
-            if (localSize > 0)
+            if (_currentLocalSize > 0)
             {
                 int r = AllocR();
-                EmitCode($"    LIMM {RegName(r)},{localSize}");
+                EmitCode($"    LIMM {RegName(r)},{_currentLocalSize}");
                 EmitCode($"    S.ADD SP, SP, {RegName(r)}");
                 FreeR(r);
             }
@@ -1244,7 +1247,7 @@ namespace T3Compiler.CodeGen
 
         void LabelAddr(int reg, int slotIndex)
         {
-            int offset = slotIndex - _currentLocalSize - 1;
+            int offset = slotIndex - _localVarSize - 1;
             if (offset < 0)
             {
                 int absOff = -offset;
@@ -1323,7 +1326,7 @@ namespace T3Compiler.CodeGen
             if (_varSlots.TryGetValue(name, out int a))
             {
                 _liveVars.Add(name);
-                int offset = a + idx - _currentLocalSize - 1;
+                int offset = a + idx - _localVarSize - 1;
                 if (offset >= -13 && offset <= 13)
                     EmitCode($"    LD {RegName(r)}, RZ, {offset}");
                 else
@@ -1351,7 +1354,7 @@ namespace T3Compiler.CodeGen
             if (_varSlots.TryGetValue(name, out int a))
             {
                 _liveVars.Add(name);
-                int offset = a + idx - _currentLocalSize - 1;
+                int offset = a + idx - _localVarSize - 1;
                 if (offset >= -13 && offset <= 13)
                     EmitCode($"    ST {RegName(reg)}, RZ, {offset}");
                 else
