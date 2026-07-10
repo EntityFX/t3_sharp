@@ -19,11 +19,39 @@ namespace T3Simulator.InOrder
         {
             if (_traceWriter == null)
                 return;
-            string regs = "";
-            for (int i = 0; i < 5; i++)
-                regs += $" R{i}:{Registers[i].ToLong()}";
+            string regs = $" R0:{Registers[0].ToLong()} R1:{Registers[1].ToLong()} R2:{Registers[2].ToLong()} R3:{Registers[3].ToLong()} R4:{Registers[4].ToLong()}";
+            regs += $" R5(R1):{Registers[5].ToLong()} R6(R2):{Registers[6].ToLong()} R7(R3):{Registers[7].ToLong()} R8(R4):{Registers[8].ToLong()}";
             regs += $" SP:{SP} FP:{FP} CD:{CD}";
             _traceWriter.WriteLine($"[PC:{PC:D4}] {instr.Opcode} | {regs}");
+            
+            // Trace details for specific opcodes
+            switch (instr.Opcode)
+            {
+                case Opcode.CALL:
+                    _traceWriter.WriteLine($"[CALL] target=R1={Registers[5].ToLong()} SP:{SP}→{SP-2}");
+                    break;
+                case Opcode.RET:
+                    _traceWriter.WriteLine($"[RET] R2={Registers[6].ToLong()} SP:{SP}→{SP+2}");
+                    break;
+                case Opcode.LIMM:
+                    try {
+                        var immVal = ReadWord(PC + 1);
+                        _traceWriter.WriteLine($"[LIMM] dst=R{instr.Op1+4}={immVal.ToLong()}");
+                    } catch {}
+                    break;
+                case Opcode.PUSH:
+                    _traceWriter.WriteLine($"[PUSH] val={GetRegValue(instr.RegGroup, instr.Op1).ToLong()} SP:{SP}→{SP-1}");
+                    break;
+                case Opcode.POP:
+                    _traceWriter.WriteLine($"[POP] SP:{SP}→{SP+1}");
+                    break;
+                case Opcode.LD:
+                    _traceWriter.WriteLine($"[LD] addr={GetRegValue(instr.RegGroup, instr.Op2).ToLong()}+{instr.Op3}");
+                    break;
+                case Opcode.ST:
+                    _traceWriter.WriteLine($"[ST] val={GetRegValue(instr.RegGroup, instr.Op1).ToLong()} → addr={GetRegValue(instr.RegGroup, instr.Op2).ToLong()}+{instr.Op3}");
+                    break;
+            }
         }
 
         public string DumpState()
