@@ -582,7 +582,7 @@ namespace T3Assembler
 
             if (op == Opcode.LD || op == Opcode.ST)
             {
-                int baseR = op2 != 0 ? op2 : (op1 != 0 ? 3 : 0);
+                int baseR = op2;
                 long off =
                     ip.Length > 3 && !IsRegister(ip[ip.Length - 1])
                         ? (long)ResolveOperandValue(ip[ip.Length - 1])

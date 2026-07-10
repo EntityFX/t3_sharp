@@ -828,7 +828,7 @@ tint main() {
             AssertResult(699050, "tint main(){tint p=malloc(10);return p;}", nameof(Compile_Malloc_AllocatesHeap));
 
         [TestMethod][Timeout(5000)]
-        [Ignore("CodeGen::malloc built-in needs deeper ABI integration for variable assignment")]
+        //[Ignore("CodeGen::malloc built-in needs deeper ABI integration for variable assignment")]
         public void Compile_Malloc_StoreLoad() =>
             AssertResult(42, "tint main(){tint p=malloc(10);*p=42;return *p;}", nameof(Compile_Malloc_StoreLoad));
 

@@ -1035,6 +1035,36 @@ namespace T3Compiler.CodeGen
                 EmitArrStore(aa, v);
             else if (ass.Target is MemberAccess ma)
                 EmitMemStore(ma, v);
+            else if (ass.Target is UnaryOp u && u.Operator == "*")
+            {
+                int ptrReg = GenExpr(u.Operand);
+                if (ass.Operator == "=")
+                {
+                    EmitCode($"    ST {RegName(v)}, {RegName(ptrReg)}, 0");
+                }
+                else
+                {
+                    int old = AllocR();
+                    EmitCode($"    LD {RegName(old)}, {RegName(ptrReg)}, 0");
+                    string op = ass.Operator switch
+                    {
+                        "+=" => "ADD",
+                        "-=" => "SUB",
+                        "*=" => "MUL",
+                        "/=" => "DIV",
+                        "%=" => "MOD",
+                        "&=" => "AND",
+                        "|=" => "OR",
+                        "^=" => "XOR",
+                        "<<=" => "SHL",
+                        ">>=" => "SHR",
+                        _ => throw new NotSupportedException($"Unsupported: {ass.Operator}")
+                    };
+                    EmitCode($"    {op} {RegName(v)}, {RegName(old)}, {RegName(v)}");
+                    EmitCode($"    ST {RegName(v)}, {RegName(ptrReg)}, 0");
+                    FreeR(old);
+                }
+            }
             return v;
         }
 
