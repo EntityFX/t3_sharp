@@ -35,7 +35,8 @@ namespace T3Simulator.Common
             if (a.Exponent == 182 && b.Exponent == 182)
             {
                 if (b.Mantissa == 0) throw new DivideByZeroException("FPU Division by zero");
-                return new T3Float(182, a.Mantissa / b.Mantissa);
+                // Use double division to avoid integer truncation (7/2 = 3.5, not 3)
+                return T3Float.FromDouble((double)a.Mantissa / b.Mantissa);
             }
             if (b.ToDouble() == 0) throw new DivideByZeroException("FPU Division by zero");
             return T3Float.FromDouble(a.ToDouble() / b.ToDouble());

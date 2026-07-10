@@ -1,9 +1,9 @@
 # T3Sharp Roadmap
 
-**Дата:** 6 июля 2026 г.
-**Версия:** v3.0 (ISA v5)
+**Дата:** 10 июля 2026 г.
+**Версия:** v3.1 (ISA v5, ABI v5)
 **Статус:** Активная разработка
-**Тестов:** 556 (4 failures)
+**Тестов:** 561 (0 failures)
 
 ---
 
@@ -17,6 +17,7 @@
 - ✅ Device Manager (IN/OUT, T-SCII output)
 - ✅ LIMM (2-словные инструкции для констант > ±364)
 - ✅ T3Float: 6+12 тритов (bias=182), FTOI/ITOF bit-preserving round-trip
+- ✅ Расширенная отладочная трассировка (CALL/RET/LD/ST/LIMM/PUSH/POP)
 
 ### Ассемблер (T3Assembler)
 - ✅ Два прохода: labels + binary
@@ -26,6 +27,8 @@
 - ✅ `Jxx label` → `LIMM R1, addr + Jxx R1` (3 слова)
 - ✅ `LI label` → всегда `LIMM` (2 слова, I-type encoding)
 - ✅ Дизассемблер (T3Disassembler)
+- ✅ Точная классификация регистров (IsRegister без эвристик по первой букве)
+- ✅ Исправлен LD/ST с R0 как базовым регистром
 
 ### T-lang компилятор
 - ✅ Полный рекурсивный спуск (Lexer → Parser → Preprocessor → CodeGen)
@@ -37,12 +40,18 @@
 - ✅ Тринарный оператор `?? :? :!`, составные присваивания (`+=`, `-=`, etc.)
 - ✅ `sizeof(тип)`, type casts `(tint)expr`, char literals `'A'`
 - ✅ Строки: `.string` + `strlen` в stdlib
-- ✅ ABI v3: spill locals + FPU на стек перед CALL → **функции любой сложности**
+- ✅ `*ptr = value` (запись через указатель, включая `malloc`-память)
+- ✅ Nested function calls (взаимная рекурсия с локальными переменными)
+- ✅ ABI v5: спецификация соглашения о вызовах (FP как Special-регистр, CALL/RET автосохранение)
+- ✅ Отключаемая отладочная трассировка (EnableDebugTrace / CompilerDebugConfig.EnableCodeGenTrace)
 
 ### Типы данных (TritTypes)
 - ✅ Trit, Tryte, Word18, Word54, T3Float, T3Double
 - ✅ BalancedTernary, TernaryMath, T3Alu, T3Fpu
 - ✅ T-SCII (729 символов: CP1251 + дополнительные символы)
+
+### Документация
+- ✅ `docs/t3-abi-v5-specification.md` — спецификация ABI v5 (соответствует реальному коду)
 
 ---
 
@@ -52,22 +61,18 @@
 
 | Задача | Файлы | Оценка |
 |--------|-------|--------|
-| **Регрессия базы кадра RZ** — исправить `S.MOV RZ, FP` после CALL | `CodeGenerator.cs` | 1 LOC |
-| **Синхронизация спецификации v5** — привести docs/t3-isa-v5-specification.md к коду | `docs/` | ~100 LOC |
-| **Матрица RegGroup** — закрыть дыры в межгрупповых операциях | `T3InOrderAssembler.cs` | ~200 LOC |
-| **FPU spill оптимизация** — не сохранять FPU если не используется | `CodeGenerator.cs` | ~30 LOC |
 | **Array spill** — большие массивы не должны целиком пушиться на стек | `CodeGenerator.cs` | ~50 LOC |
 | **Stack overflow detection** — проверка SP при CALL/PUSH | `ProcessorBase.cs` | ~20 LOC |
 
-### 🟡 Высокий приоритет (язык/ассемблер)
+### 🟡 Высокий приоритет (язык/ассемблер/долг)
 
 | Задача | Файлы | Оценка |
 |--------|-------|--------|
 | **`.include` для .asm** — многофайловые проекты | `T3InOrderAssembler.cs` | ~50 LOC |
-| **`typedef`** — алиасы типов | `Parser.cs`, `Ast.cs` | ~60 LOC |
-| **Constant folding** — `2+3*4` → `14` на этапе компиляции | `CodeGenerator.cs` | ~80 LOC |
-| **Better register allocator** — linear scan вместо round-robin | `CodeGenerator.cs` | ~200 LOC |
+| **Better register allocator** — расширить пул (R3/R4) или добавить спилл | `CodeGenerator.cs` | ~200 LOC |
 | **Source-level error messages** — строка и позиция в исходнике | `Parser.cs`, `CodeGenerator.cs` | ~150 LOC |
+| **ABI > 4 аргументов** — нет теста, смещение в коде исправлено | `CodeGenerator.cs`, tests | ~20 LOC |
+| **print_int тест на вывод** — проверять поток, а не только R2 | tests | ~20 LOC |
 
 ### 🟢 Низкий приоритет (архитектурные)
 

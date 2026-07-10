@@ -17,18 +17,32 @@ namespace TritTypes
         public Tryte(short value)
         {
             if (value < MinValue || value > MaxValue)
-                throw new ArgumentOutOfRangeException(nameof(value), $"Tryte value must be between {MinValue} and {MaxValue}");
+                throw new ArgumentOutOfRangeException(
+                    nameof(value),
+                    $"Tryte value must be between {MinValue} and {MaxValue}"
+                );
             _value = value;
         }
 
-        public Tryte(int value) : this((short)value) { }
+        public Tryte(int value)
+        {
+            if (value < MinValue || value > MaxValue)
+                throw new ArgumentOutOfRangeException(
+                    nameof(value),
+                    $"Tryte value must be between {MinValue} and {MaxValue}"
+                );
+            _value = (short)value;
+        }
 
         public long ToLong() => _value;
 
         public static Tryte FromLong(long value)
         {
             if (value < MinValue || value > MaxValue)
-                throw new ArgumentOutOfRangeException(nameof(value), $"Tryte value must be between {MinValue} and {MaxValue}");
+                throw new ArgumentOutOfRangeException(
+                    nameof(value),
+                    $"Tryte value must be between {MinValue} and {MaxValue}"
+                );
             return new Tryte((short)value);
         }
 
@@ -39,11 +53,31 @@ namespace TritTypes
             for (int i = 5; i >= 0; i--)
             {
                 long rem = remaining % 3;
-                if (rem == 2) { chars[i] = '-'; remaining = (remaining + 1) / 3; }
-                else if (rem == -2) { chars[i] = '+'; remaining = (remaining - 1) / 3; }
-                else if (rem == 1) { chars[i] = '+'; remaining = (remaining - 1) / 3; }
-                else if (rem == -1) { chars[i] = '-'; remaining = (remaining + 1) / 3; }
-                else { chars[i] = '0'; remaining /= 3; }
+                if (rem == 2)
+                {
+                    chars[i] = '-';
+                    remaining = (remaining + 1) / 3;
+                }
+                else if (rem == -2)
+                {
+                    chars[i] = '+';
+                    remaining = (remaining - 1) / 3;
+                }
+                else if (rem == 1)
+                {
+                    chars[i] = '+';
+                    remaining = (remaining - 1) / 3;
+                }
+                else if (rem == -1)
+                {
+                    chars[i] = '-';
+                    remaining = (remaining + 1) / 3;
+                }
+                else
+                {
+                    chars[i] = '0';
+                    remaining /= 3;
+                }
             }
             return new string(chars);
         }
@@ -62,7 +96,7 @@ namespace TritTypes
                     '-' => -power,
                     '0' => 0,
                     '+' => power,
-                    _ => throw new FormatException($"Invalid tryte character: '{s[i]}'")
+                    _ => throw new FormatException($"Invalid tryte character: '{s[i]}'"),
                 };
                 power *= 3;
             }
@@ -70,19 +104,29 @@ namespace TritTypes
         }
 
         public override bool Equals(object? obj) => obj is Tryte other && _value == other._value;
+
         public bool Equals(Tryte other) => _value == other._value;
+
         public override int GetHashCode() => _value.GetHashCode();
 
         public static bool operator ==(Tryte left, Tryte right) => left._value == right._value;
+
         public static bool operator !=(Tryte left, Tryte right) => left._value != right._value;
 
-        public static Tryte operator +(Tryte a, Tryte b) => new Tryte((short)(a._value + b._value));
-        public static Tryte operator -(Tryte a, Tryte b) => new Tryte((short)(a._value - b._value));
-        public static Tryte operator *(Tryte a, Tryte b) => new Tryte((short)(a._value * b._value));
-        public static Tryte operator -(Tryte t) => new Tryte((short)(-t._value));
+        // Arithmetic operators with overflow detection via Tryte(int) constructor
+        public static Tryte operator +(Tryte a, Tryte b) => new Tryte(a._value + b._value);
+
+        public static Tryte operator -(Tryte a, Tryte b) => new Tryte(a._value - b._value);
+
+        public static Tryte operator *(Tryte a, Tryte b) =>
+            new Tryte((int)a._value * (int)b._value);
+
+        public static Tryte operator -(Tryte t) => new Tryte(-(int)t._value);
 
         public static implicit operator Tryte(int value) => new Tryte(value);
+
         public static explicit operator int(Tryte t) => t._value;
+
         public static explicit operator short(Tryte t) => t._value;
     }
 }
