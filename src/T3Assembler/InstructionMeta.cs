@@ -9,7 +9,8 @@ namespace T3Assembler
         {
             string mn = mnemonic.ToUpper();
 
-            if (mn == "LIMM") return 2;
+            if (mn == "LIMM")
+                return 2;
 
             if (IsJumpMnemonic(mn))
             {
@@ -32,12 +33,14 @@ namespace T3Assembler
             return 1;
         }
 
-        private static bool IsJumpMnemonic(string m) => m is "JMP" or "JE" or "JNE" or "JL" or "JG" or "JM" or "JLE" or "JGE" or "CALL";
+        private static bool IsJumpMnemonic(string m) =>
+            m is "JMP" or "JE" or "JNE" or "JL" or "JG" or "JM" or "JLE" or "JGE" or "CALL";
 
         private static bool IsRegister(string s)
         {
             // Simple check: starts with R, F, S or is a known special reg
-            if (string.IsNullOrEmpty(s)) return false;
+            if (string.IsNullOrEmpty(s))
+                return false;
             char first = char.ToUpper(s[0]);
             return first == 'R' || first == 'F' || first == 'S';
         }

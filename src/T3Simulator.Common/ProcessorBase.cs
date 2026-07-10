@@ -35,6 +35,8 @@ namespace T3Simulator.Common
         public const int HeapFractionNumerator = 2;
         public const int HeapFractionDenominator = 3;
         
+        public readonly long MemSize;
+
         public readonly long HeapStart;
         private readonly long _initialSp;
 
@@ -49,13 +51,13 @@ namespace T3Simulator.Common
             PC = 0;
             IsHalted = false;
 
-            long memSize = 1048576;
-            HeapStart = memSize * HeapFractionNumerator / HeapFractionDenominator;
-            Memory = new Memory<TWord>(memSize);
+            MemSize = 1048576;
+            HeapStart = MemSize * HeapFractionNumerator / HeapFractionDenominator;
+            Memory = new Memory<TWord>(MemSize);
             DeviceManager = new DeviceManager<TWord>();
             DeviceManager.RegisterDevice(0, new NullDevice<TWord>());
 
-            _initialSp = memSize - 1;
+            _initialSp = MemSize - 1;
             SP = _initialSp;
             FP = _initialSp;
             HP = HeapStart;

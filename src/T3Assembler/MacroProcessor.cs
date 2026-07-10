@@ -60,12 +60,17 @@ namespace T3Assembler
                 // Replace CALL macroName with macro body
                 // Simple approach: find lines that start with the macro name
                 var sb = new StringBuilder();
-                foreach (var line in result.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None))
+                foreach (
+                    var line in result.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None)
+                )
                 {
                     string lt = line.Trim();
                     if (lt.StartsWith(kv.Key + " ") || lt == kv.Key)
                     {
-                        var parts = lt.Split(new[] { ' ', '\t', ',' }, StringSplitOptions.RemoveEmptyEntries);
+                        var parts = lt.Split(
+                            new[] { ' ', '\t', ',' },
+                            StringSplitOptions.RemoveEmptyEntries
+                        );
                         string body = kv.Value.body;
                         for (int i = 0; i < kv.Value.args.Length && i + 1 < parts.Length; i++)
                             body = body.Replace("\\" + kv.Value.args[i], parts[i + 1]);

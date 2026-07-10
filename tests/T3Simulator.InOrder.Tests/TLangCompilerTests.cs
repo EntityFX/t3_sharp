@@ -33,9 +33,14 @@ namespace T3Simulator.InOrder.Tests
             File.WriteAllText(Path.Combine(dumpDir, $"{testName}.ast.txt"), astText);
         }
         
-        string asm = new CodeGenerator(ast).Generate();
+        var cg = new CodeGenerator(ast);
+        if (CompilerDebugConfig.EnableCodeGenTrace)
+        {
+            cg.EnableDebugTrace();
+        }
+        string asm = cg.Generate();
         
-        if (CompilerDebugConfig.EnableDumps)
+        if (CompilerDebugConfig.EnableDumps || CompilerDebugConfig.EnableCodeGenTrace)
         {
             File.WriteAllText(Path.Combine(dumpDir, $"{testName}.asm"), asm);
         }
@@ -642,13 +647,9 @@ namespace T3Simulator.InOrder.Tests
         [TestMethod]
         [Timeout(5000)]
         public void Compile_Strings_And_Strlen() =>
-            Assert.AreEqual(
-                11,
-                CompileAndRun(
-                    "tint strlen(tint s);tint main(){tint len1=strlen(\"Hello\");tint len2=strlen(\"World!\");return len1+len2;}", 
-                    nameof(Compile_Strings_And_Strlen)
-                )
-            );
+            AssertResult(11, 
+                "tint strlen(tint s);tint main(){tint len1=strlen(\"Hello\");tint len2=strlen(\"World!\");return len1+len2;}", 
+                nameof(Compile_Strings_And_Strlen));
 
         // ============================================================
         // ABI legacy: Deep recursion with spilled locals

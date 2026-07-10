@@ -30,6 +30,7 @@ namespace T3Compiler.CodeGen
         string? _epilogueLabel;
         readonly HashSet<string> _liveVars = new();
         bool _fpuLive = false;
+        bool _debugTrace = false;
         readonly Dictionary<string, int> _globalSlots = new();
         int _localSlotCounter;
         int _currentLocalSize;
@@ -47,6 +48,14 @@ namespace T3Compiler.CodeGen
             _codeOutput = new();
             foreach (var s in p.Structs)
                 _structDefs[s.Name] = s.Fields;
+        }
+
+        public void EnableDebugTrace() => _debugTrace = true;
+
+        void TraceEmit(string msg)
+        {
+            if (_debugTrace)
+                _codeOutput.AppendLine($"; [TRACE] {msg}");
         }
 
         public string Generate()
@@ -167,7 +176,7 @@ namespace T3Compiler.CodeGen
             foreach (var sz in _varSizes.Values)
                 localSize += sz;
             _localVarSize = localSize;
-            int callSaveArea = 5; // Space for PUSH RW,RX,RY,R0,R1 during calls
+            int callSaveArea = 50; // Space for caller + callee PUSH depth (strlen pushes many temps)
             _currentLocalSize = localSize + callSaveArea;
             if (_currentLocalSize > 0)
             {
@@ -1031,6 +1040,7 @@ namespace T3Compiler.CodeGen
 
         int EmitCall(FunctionCall fc)
         {
+            TraceEmit($"EmitCall → {fc.FunctionName} (args={fc.Arguments.Count})");
             if (fc.FunctionName == "malloc")
             {
                 int sizeR = GenExpr(fc.Arguments[0]);
@@ -1102,8 +1112,6 @@ namespace T3Compiler.CodeGen
                 FreeR(savedTemps.Pop());
             EmitCode($"    LIMM R1,{fc.FunctionName}");
             EmitCode("    CALL R1");
-            EmitCode("    S.PUSH FP");
-            EmitCode("    POP RZ");
             if (nArgs > 4)
             {
                 int stackSize = nArgs - 4;
@@ -1327,6 +1335,7 @@ namespace T3Compiler.CodeGen
             {
                 _liveVars.Add(name);
                 int offset = a + idx - _localVarSize - 1;
+                TraceEmit($"LoadV {RegName(r)} ← {name}[{idx}] (slot={a}, offset={offset}, localVarSize={_localVarSize})");
                 if (offset >= -13 && offset <= 13)
                     EmitCode($"    LD {RegName(r)}, RZ, {offset}");
                 else
@@ -1351,10 +1360,12 @@ namespace T3Compiler.CodeGen
 
         void StoreV(string name, int reg, int idx)
         {
+            TraceEmit($"StoreV {name}[{idx}] ← {RegName(reg)}");
             if (_varSlots.TryGetValue(name, out int a))
             {
                 _liveVars.Add(name);
                 int offset = a + idx - _localVarSize - 1;
+                TraceEmit($"  slot={a}, offset={offset}, localVarSize={_localVarSize}");
                 if (offset >= -13 && offset <= 13)
                     EmitCode($"    ST {RegName(reg)}, RZ, {offset}");
                 else
@@ -1410,6 +1421,7 @@ namespace T3Compiler.CodeGen
 
         int AllocR()
         {
+            int r;
             while (_freeRegs.Count > 0)
             {
                 int fr = _freeRegs.Pop();
@@ -1422,7 +1434,11 @@ namespace T3Compiler.CodeGen
                     && fr != 7
                     && fr != RESERVED_RZ
                 )
-                    return fr;
+                {
+                    r = fr;
+                    TraceEmit($"AllocR → {RegName(r)} (from free pool, {_freeRegs.Count} left)");
+                    return r;
+                }
             }
             while (true)
             {
@@ -1438,8 +1454,9 @@ namespace T3Compiler.CodeGen
                     break;
                 _nextReg = (_nextReg + 1) % 9;
             }
-            int r = _nextReg;
+            r = _nextReg;
             _nextReg = (_nextReg + 1) % 9;
+            TraceEmit($"AllocR → {RegName(r)} (next={_nextReg}, pool empty)");
             return r;
         }
 
@@ -1454,7 +1471,10 @@ namespace T3Compiler.CodeGen
                 && r != 7
                 && r != RESERVED_RZ
             )
+            {
+                TraceEmit($"FreeR ← {RegName(r)}");
                 _freeRegs.Push(r);
+            }
         }
 
         int Imm(long v)

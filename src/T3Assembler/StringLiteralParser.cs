@@ -35,7 +35,8 @@ namespace T3Assembler
         public static string? ExtractLabel(string line)
         {
             var words = line.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
-            if (words.Length < 2) return null;
+            if (words.Length < 2)
+                return null;
             if (words[1] == ".string" || words[1] == ".word")
                 return words[0];
             if (words[0] == ".string")
