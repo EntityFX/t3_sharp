@@ -832,6 +832,13 @@ tint main() {
         public void Compile_Malloc_StoreLoad() =>
             AssertResult(42, "tint main(){tint p=malloc(10);*p=42;return *p;}", nameof(Compile_Malloc_StoreLoad));
 
+        [TestMethod][Timeout(5000)]
+        [Ignore("Requires >4 register allocator pool; 4-register pool insufficient for >4 args")]
+        public void ABI_Gt4Args_Sum6() =>
+            AssertResult(21,
+                "tint sum6(tint a,tint b,tint c,tint d,tint e,tint f){return a+b+c+d+e+f;}tint main(){return sum6(1,2,3,4,5,6);}",
+                nameof(ABI_Gt4Args_Sum6));
+
         [TestMethod]
         [Timeout(15000)]
         public void Compile_FromFile_Comprehensive()

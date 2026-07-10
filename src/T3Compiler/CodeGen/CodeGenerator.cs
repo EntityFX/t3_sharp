@@ -193,7 +193,7 @@ namespace T3Compiler.CodeGen
             {
                 for (int i = 4; i < nParams; i++)
                 {
-                    int so = (i - 4) + 2;
+                    int so = (i - 4) + 7; // 2 (CALL retaddr/FP) + 5 (caller-saved RW,RX,RY,R0,R1)
                     int t = AllocR();
                     if (so >= -13 && so <= 13)
                         EmitCode($"    LD {RegName(t)}, RZ, {so}");
@@ -1085,8 +1085,28 @@ namespace T3Compiler.CodeGen
             int nArgs = fc.Arguments.Count;
             int[] argRegs = { 0, 1, 2, 4 };
             var argRegList = new List<int>();
-            for (int i = 0; i < nArgs; i++)
+            // Compute args 0..3 first; if more than 4 args, save them on stack
+            // immediately to prevent register reuse from overwriting their values.
+            for (int i = 0; i < 4 && i < nArgs; i++)
+            {
+                int argR = GenExpr(fc.Arguments[i]);
+                argRegList.Add(argR);
+                if (nArgs > 4)
+                    EmitCode($"    PUSH {RegName(argR)}");
+            }
+            // Compute remaining args
+            for (int i = 4; i < nArgs; i++)
                 argRegList.Add(GenExpr(fc.Arguments[i]));
+            // Restore saved args 0..3 in reverse order
+            if (nArgs > 4)
+            {
+                for (int i = Math.Min(3, nArgs - 1); i >= 0; i--)
+                {
+                    int saved = AllocR();
+                    EmitCode($"    POP {RegName(saved)}");
+                    argRegList[i] = saved;
+                }
+            }
             EmitCode("    PUSH RW");
             EmitCode("    PUSH RX");
             EmitCode("    PUSH RY");
@@ -1113,7 +1133,8 @@ namespace T3Compiler.CodeGen
                 EmitCode("    FTI R0, FW");
                 EmitCode("    PUSH R0");
             }
-            for (int i = nArgs - 1; i >= 4; i--)
+            // Push args 4+ in forward order so callee reads them correctly via RZ+offset
+            for (int i = 4; i < nArgs; i++)
                 EmitCode($"    PUSH {RegName(argRegList[i])}");
             var savedTemps = new Stack<int>();
             for (int i = 0; i < 4 && i < nArgs; i++)

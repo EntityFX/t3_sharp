@@ -12,6 +12,8 @@ namespace T3Compiler.Lexer
         private int _col;
         private readonly List<Token> _tokens;
 
+        public (int Line, int Column) CurrentPosition => (_line, _col);
+
         public Tokenizer(string source)
         {
             _source = source;
