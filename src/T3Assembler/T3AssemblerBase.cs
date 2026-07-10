@@ -85,13 +85,16 @@ namespace T3Assembler
         // ---- ISA v5: RegGroup-aware register parsing ----
 
         protected bool IsRegister(string t){
-            string u=t.ToUpper();
+            if (string.IsNullOrEmpty(t))
+                return false;
+            string u = t.Trim().ToUpperInvariant();
+            if (u.StartsWith("S.") || u.StartsWith("F."))
+                u = u[2..];
             return u is "RW" or "RX" or "RY" or "RZ"
-                or "FW" or "FX" or "FY" or "FZ"
-                or "SP" or "FP" or "HP" or "CD" or "PR" or "WD"
-                || (u.StartsWith('R') && int.TryParse(u[1..],out int i) && i>=0 && i<=4)
-                || (u.StartsWith('F') && int.TryParse(u[1..],out int j) && j>=0 && j<=4)
-                || (u.Length==1 && u[0]>='A' && u[0]<='I');
+                     or "R0" or "R1" or "R2" or "R3" or "R4"
+                     or "FW" or "FX" or "FY" or "FZ"
+                     or "SP" or "FP" or "HP" or "CD" or "PR" or "WD"
+                || System.Text.RegularExpressions.Regex.IsMatch(u, @"^F[0-9]+$");
         }
 
         /// <summary>Returns RAW TRIT value (-4..+4) for encoding.</summary>

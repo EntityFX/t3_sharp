@@ -38,11 +38,15 @@ namespace T3Assembler
 
         private static bool IsRegister(string s)
         {
-            // Simple check: starts with R, F, S or is a known special reg
             if (string.IsNullOrEmpty(s))
                 return false;
-            char first = char.ToUpper(s[0]);
-            return first == 'R' || first == 'F' || first == 'S';
+            s = s.Trim().ToUpperInvariant();
+            if (s.StartsWith("S.") || s.StartsWith("F."))
+                s = s[2..];
+            return s is "RW" or "RX" or "RY" or "RZ"
+                     or "R0" or "R1" or "R2" or "R3" or "R4"
+                     or "SP" or "FP" or "HP" or "CD" or "PR" or "WD"
+                || System.Text.RegularExpressions.Regex.IsMatch(s, @"^F[0-9]+$");
         }
     }
 }
